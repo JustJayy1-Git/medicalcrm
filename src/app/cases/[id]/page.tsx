@@ -93,6 +93,12 @@ export default async function CasePage({
           </div>
           <div className="flex items-center gap-3">
             <Link
+              href={`/cases/${c.id}/visits/new`}
+              className="px-3 py-1.5 text-xs bg-amber-700 text-white rounded-md hover:bg-amber-800 font-medium"
+            >
+              + New visit / charges
+            </Link>
+            <Link
               href={`/cases/${c.id}/edit`}
               className="px-3 py-1.5 text-xs border border-stone-300 text-stone-700 rounded-md hover:bg-stone-100"
             >

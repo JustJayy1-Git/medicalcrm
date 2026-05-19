@@ -9,11 +9,11 @@ const NAV = [
   { href: "/providers", label: "Providers", icon: "🩺" },
   { href: "/facilities", label: "Facilities", icon: "🏥" },
   { href: "/insurance", label: "Insurance", icon: "🛡️" },
-  { href: "/schedule", label: "Schedule", icon: "📅" },
+  { href: "/attorneys", label: "Attorneys", icon: "⚖️" },
+  { href: "/templates", label: "Templates", icon: "📋" },
   { href: "/billing", label: "Billing", icon: "💰" },
   { href: "/claims", label: "Claims", icon: "🧾" },
   { href: "/reports", label: "Reports", icon: "📊" },
-  { href: "/lists", label: "Lists", icon: "⚙️" },
 ] as const;
 
 export function AppShell({
