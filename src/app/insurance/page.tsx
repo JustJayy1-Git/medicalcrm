@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
+import { CARRIER_PICKER_SELECT } from "@/lib/insurance-carrier";
 
 export const dynamic = "force-dynamic";
 
@@ -29,8 +30,9 @@ export default async function InsurancePage({
 
   let query = supabase
     .from("insurance_carriers")
-    .select("id, name, carrier_type, payer_id, phone, city, state")
-    .order("name");
+    .select(CARRIER_PICKER_SELECT)
+    .order("sort_rank", { ascending: true })
+    .order("name", { ascending: true });
 
   if (type) query = query.eq("carrier_type", type);
   if (q) {
@@ -40,6 +42,8 @@ export default async function InsurancePage({
   }
 
   const { data: carriers, error } = await query;
+  const list = carriers ?? [];
+  const flCommonCount = list.filter((c) => c.seed_key).length;
 
   return (
     <AppShell user={user} active="/insurance">
@@ -52,9 +56,17 @@ export default async function InsurancePage({
             <h1 className="text-3xl font-serif font-semibold text-stone-900">
               Carriers
             </h1>
-            <p className="text-sm text-stone-500 mt-1">
-              The insurance companies your patients are covered by.
+            <p className="text-sm text-stone-500 mt-1 max-w-xl">
+              Master list for PIP/MedPay claims — payer ID, claims phone, and
+              mailing address auto-fill when you open a case policy tab.
             </p>
+            {flCommonCount > 0 && !q && !type && (
+              <p className="text-xs text-amber-800 mt-2">
+                {flCommonCount} Florida common auto carrier
+                {flCommonCount === 1 ? "" : "s"} loaded (State Farm, GEICO,
+                Progressive, …).
+              </p>
+            )}
           </div>
           <Link
             href="/insurance/new"
@@ -93,7 +105,17 @@ export default async function InsurancePage({
 
         {error && (
           <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-            {error.message}
+            {error.message.includes("sort_rank") || error.message.includes("seed_key") ? (
+              <>
+                Database needs migration{" "}
+                <code className="text-xs bg-red-100 px-1 rounded">
+                  0012_fl_common_carriers.sql
+                </code>{" "}
+                — run it in Supabase SQL Editor, then refresh.
+              </>
+            ) : (
+              error.message
+            )}
           </div>
         )}
 
@@ -110,14 +132,31 @@ export default async function InsurancePage({
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-200">
-              {(carriers ?? []).length === 0 && !error && (
+              {list.length === 0 && !error && (
                 <tr>
                   <td colSpan={6} className="px-4 py-12 text-center text-stone-500">
-                    No carriers match.
+                    {q || type ? (
+                      "No carriers match."
+                    ) : (
+                      <>
+                        No carriers yet. Run migration{" "}
+                        <code className="text-xs bg-stone-100 px-1 rounded">
+                          0012_fl_common_carriers.sql
+                        </code>{" "}
+                        in Supabase, or{" "}
+                        <Link
+                          href="/insurance/new"
+                          className="text-amber-700 hover:text-amber-800 font-medium"
+                        >
+                          add one manually
+                        </Link>
+                        .
+                      </>
+                    )}
                   </td>
                 </tr>
               )}
-              {(carriers ?? []).map((c) => (
+              {list.map((c) => (
                 <tr key={c.id} className="hover:bg-stone-50">
                   <td className="px-4 py-3">
                     <Link
@@ -126,6 +165,11 @@ export default async function InsurancePage({
                     >
                       {c.name}
                     </Link>
+                    {c.seed_key && (
+                      <span className="ml-2 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide rounded bg-amber-100 text-amber-800 border border-amber-200">
+                        FL common
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-stone-600">
                     {TYPE_LABEL[c.carrier_type ?? "other"] ?? c.carrier_type}
