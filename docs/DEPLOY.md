@@ -76,6 +76,8 @@ git push -u origin main
    | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase → API → publishable key |
    | `SUPABASE_SECRET_KEY` | Supabase → API → secret key (server only) |
    | `KIOSK_EXIT_PIN` | 4–6 digit PIN for **Staff** exit on iPad portal |
+   | `KIOSK_DEVICE_EMAIL` | Kiosk Supabase user email (iPad auto-sign-in; patients never type this) |
+   | `KIOSK_DEVICE_PASSWORD` | Kiosk user password (server-only) |
    | `NEXT_PUBLIC_SITE_URL` | Your Vercel URL after first deploy, e.g. `https://medicalcrm-xxx.vercel.app` |
 
    Optional CMS-1500 / practice (if you use them locally, add the same names):

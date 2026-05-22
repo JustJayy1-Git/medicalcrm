@@ -47,9 +47,9 @@ where email = 'kiosk@proinjury.local';
 ## 3. iPad — Safari / PWA
 
 1. Connect iPad to Wi‑Fi (same network as CRM, or production URL).
-2. Open Safari → `https://<your-crm-host>/login`
-3. Sign in as the **kiosk** user (check **Remember me** if offered).
-4. You should land on **`/portal`** automatically.
+2. Open Safari → `https://<your-crm-host>/portal` (not `/login`)
+3. **First time only (staff):** if prompted, sign in at `/portal/login` with the kiosk account, or set `KIOSK_DEVICE_EMAIL` + `KIOSK_DEVICE_PASSWORD` on Vercel so patients never see a login screen.
+4. You should land on **`/portal`** with **Begin intake** (no CRM sidebar).
 5. **Add to Home Screen** (Share → Add to Home Screen) — name it “Patient Intake”.
 6. Open only from that home-screen icon going forward.
 

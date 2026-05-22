@@ -76,7 +76,7 @@ export function LoginForm({ afterLogin }: { afterLogin: string }) {
                 Welcome back.
               </h1>
               <p className="text-sm text-neutral-400 mt-2">
-                Enter your credentials to access the portal.
+                Enter your staff credentials to access billing, patients, and reports.
               </p>
             </header>
 
@@ -138,7 +138,11 @@ export function LoginForm({ afterLogin }: { afterLogin: string }) {
           </section>
 
           <p className="text-center text-xs text-neutral-500 mt-6">
-            Staff access only. Unauthorized use is prohibited.
+            Staff CRM only — not for patient intake on the iPad.
+            <br />
+            <a href="/portal" className="text-neon-mint/80 hover:text-neon-mint mt-1 inline-block">
+              Patient intake iPad → /portal
+            </a>
           </p>
         </section>
       </main>

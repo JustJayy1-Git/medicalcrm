@@ -10,7 +10,7 @@ export async function startIntakePacket() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login?next=/portal");
+  if (!user) redirect("/portal/login?next=/portal");
 
   const { packetId } = await createPortalPacket(supabase, user.id);
   const first = FORM_ORDER[0];

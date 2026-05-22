@@ -1,8 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isKioskRole } from "@/lib/auth-profile";
+import { signInKioskDevice } from "@/lib/portal/device-auth";
 
-const PUBLIC_PREFIXES = ["/login", "/auth"];
+const PUBLIC_PREFIXES = ["/login", "/auth", "/portal/login"];
 const PUBLIC_EXACT = new Set(["/"]);
 
 function isPublicPath(pathname: string) {
@@ -12,6 +13,10 @@ function isPublicPath(pathname: string) {
 
 function isPortalPath(pathname: string) {
   return pathname === "/portal" || pathname.startsWith("/portal/");
+}
+
+function isPortalLoginPath(pathname: string) {
+  return pathname === "/portal/login" || pathname.startsWith("/portal/login/");
 }
 
 function isKioskAllowedPath(pathname: string) {
@@ -52,12 +57,27 @@ export async function updateSession(request: NextRequest) {
       },
     });
 
-    const {
+    let {
       data: { user },
     } = await supabase.auth.getUser();
 
     const { pathname, search } = request.nextUrl;
     const isPublic = isPublicPath(pathname);
+
+    if (!user && isPortalPath(pathname) && !isPortalLoginPath(pathname)) {
+      const kioskUser = await signInKioskDevice(supabase);
+      if (kioskUser) {
+        user = kioskUser;
+      } else {
+        const portalLogin = request.nextUrl.clone();
+        portalLogin.pathname = "/portal/login";
+        portalLogin.searchParams.set("next", pathname + search);
+        if (process.env.KIOSK_DEVICE_EMAIL) {
+          portalLogin.searchParams.set("error", "device");
+        }
+        return NextResponse.redirect(portalLogin);
+      }
+    }
 
     if (!user && !isPublic) {
       const login = request.nextUrl.clone();
@@ -76,10 +96,18 @@ export async function updateSession(request: NextRequest) {
       role = profile?.role ?? null;
     }
 
+    if (user && isPortalPath(pathname) && !isKioskRole(role) && !isPortalLoginPath(pathname)) {
+      const dashboard = request.nextUrl.clone();
+      dashboard.pathname = "/dashboard";
+      dashboard.search = "";
+      return NextResponse.redirect(dashboard);
+    }
+
     if (user && isKioskRole(role)) {
       if (
         !isKioskAllowedPath(pathname) &&
         pathname !== "/login" &&
+        !isPortalLoginPath(pathname) &&
         !pathname.startsWith("/auth/")
       ) {
         const portal = request.nextUrl.clone();
@@ -92,7 +120,10 @@ export async function updateSession(request: NextRequest) {
     if (user && pathname === "/login") {
       const next = request.nextUrl.searchParams.get("next");
       const dest = request.nextUrl.clone();
-      if (next && next.startsWith("/") && !next.startsWith("//")) {
+      if (next && next.startsWith("/portal") && !next.startsWith("//")) {
+        dest.pathname = "/portal";
+        dest.search = "";
+      } else if (next && next.startsWith("/") && !next.startsWith("//")) {
         dest.pathname = next.split("?")[0];
         dest.search = next.includes("?") ? next.slice(next.indexOf("?")) : "";
       } else if (isKioskRole(role)) {
@@ -100,6 +131,19 @@ export async function updateSession(request: NextRequest) {
         dest.search = "";
       } else {
         dest.pathname = "/dashboard";
+        dest.search = "";
+      }
+      return NextResponse.redirect(dest);
+    }
+
+    if (user && isPortalLoginPath(pathname)) {
+      const next = request.nextUrl.searchParams.get("next");
+      const dest = request.nextUrl.clone();
+      if (next && next.startsWith("/portal") && !next.startsWith("//")) {
+        dest.pathname = next.split("?")[0];
+        dest.search = next.includes("?") ? next.slice(next.indexOf("?")) : "";
+      } else {
+        dest.pathname = "/portal";
         dest.search = "";
       }
       return NextResponse.redirect(dest);

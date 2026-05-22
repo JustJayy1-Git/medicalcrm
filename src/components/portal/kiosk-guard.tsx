@@ -41,7 +41,7 @@ export function KioskGuard({ children }: { children: React.ReactNode }) {
       const href = anchor.getAttribute("href");
       if (!href || href.startsWith("#") || href.startsWith("javascript:")) return;
       if (href.startsWith(PORTAL_PREFIX) || href.startsWith("/serve/forms/")) return;
-      if (href.startsWith("/login") || href.startsWith("/auth/")) return;
+      if (href.startsWith("/portal/login") || href.startsWith("/auth/")) return;
       e.preventDefault();
     };
     document.addEventListener("click", onClick, true);

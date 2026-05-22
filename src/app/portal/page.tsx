@@ -11,10 +11,13 @@ export default function PortalHomePage() {
 
       <Image src="/logo.png" alt="Pro Injury" width={96} height={96} priority className="mb-6" />
       <h1 className="text-3xl md:text-4xl font-serif font-semibold text-white text-center mb-3">
-        Patient intake
+        Welcome
       </h1>
-      <p className="text-white/60 text-center max-w-md mb-10">
-        Tap below to begin your forms. Your answers save automatically as you go.
+      <p className="text-white/60 text-center max-w-md mb-2 text-lg">
+        New patient?
+      </p>
+      <p className="text-white/45 text-center max-w-md mb-10 text-sm">
+        Tap below to begin your intake forms. No account or password needed.
       </p>
 
       <form action={startIntakePacket}>
@@ -22,7 +25,7 @@ export default function PortalHomePage() {
           type="submit"
           className="px-14 py-4 text-lg font-bold rounded-xl bg-gradient-to-r from-neon-mint to-neon-pink text-eggplant-950 shadow-lg hover:brightness-110 transition"
         >
-          Start intake
+          Begin intake
         </button>
       </form>
 
