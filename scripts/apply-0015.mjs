@@ -1,5 +1,5 @@
 /**
- * Apply migration 0015 (kiosk + intake packets) using SUPABASE_DB_PASSWORD from .env.local
+ * Apply migration 0015_kiosk_intake_packets.sql using SUPABASE_DB_PASSWORD from .env.local
  * Run from project root: npm run db:migrate-0015
  */
 import { readFileSync, existsSync } from "fs";
@@ -38,7 +38,7 @@ async function main() {
   }
   if (!password) {
     throw new Error(
-      "SUPABASE_DB_PASSWORD missing in .env.local — Supabase → Settings → Database.",
+      "SUPABASE_DB_PASSWORD missing in .env.local — use the database password from Supabase → Settings → Database.",
     );
   }
 
@@ -47,7 +47,13 @@ async function main() {
     env.DATABASE_URL ||
     `postgresql://postgres:${encodeURIComponent(password)}@db.${ref}.supabase.co:5432/postgres`;
 
-  const sqlPath = resolve(root, "supabase/migrations/0015_kiosk_intake_packets.sql");
+  const sqlPath = resolve(
+    root,
+    "supabase/migrations/0015_kiosk_intake_packets.sql",
+  );
+  if (!existsSync(sqlPath)) {
+    throw new Error(`Migration file not found: ${sqlPath}`);
+  }
   const sql = readFileSync(sqlPath, "utf8");
 
   console.log(`Connecting to Supabase project ${ref}…`);
@@ -61,20 +67,25 @@ async function main() {
   await client.query(sql);
 
   const { rows } = await client.query(
-    `select exists (
-       select 1 from information_schema.tables
-       where table_schema = 'public' and table_name = 'intake_packets'
-     ) as ok`,
+    `select count(*)::int as tables
+     from information_schema.tables
+     where table_schema = 'public' and table_name = 'intake_packets'`,
   );
   await client.end();
 
-  if (!rows[0]?.ok) {
-    throw new Error("intake_packets table was not created");
-  }
-  console.log("Done. intake_packets + form tables + kiosk role are ready.");
+  console.log(
+    rows[0].tables === 1
+      ? "Done. intake_packets and related tables are ready."
+      : "Migration ran; verify intake_packets in Supabase Table Editor.",
+  );
 }
 
 main().catch((err) => {
   console.error("\nMigration failed:", err.message);
+  if (err.message.includes("password authentication failed")) {
+    console.error(
+      "\nReset the database password in Supabase Dashboard → Settings → Database,\nthen update SUPABASE_DB_PASSWORD in .env.local.",
+    );
+  }
   process.exit(1);
 });

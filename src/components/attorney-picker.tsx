@@ -2,6 +2,20 @@
 
 import type { AttorneyPicker } from "@/lib/attorney";
 
+export function AttorneyReferencePanel({ attorney }: { attorney: AttorneyPicker }) {
+  return (
+    <section className="p-3 rounded-lg bg-neon-mint-100 border border-neon-mint-100 text-sm">
+      <p className="font-medium text-eggplant-900">{attorney.attorney_name}</p>
+      {attorney.firm_name ? (
+        <p className="text-xs text-eggplant-700">{attorney.firm_name}</p>
+      ) : null}
+      {attorney.phone ? (
+        <p className="text-xs text-eggplant-700 mt-1">Phone: {attorney.phone}</p>
+      ) : null}
+    </section>
+  );
+}
+
 export function AttorneyPicker({
   label,
   name,

@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+/**
+ * Copy Archie intake-forms into this repo (required for Vercel deploy).
+ * Run from project root: npm run sync-intake-forms
+ */
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -9,9 +13,8 @@ const dest = path.join(root, "intake-forms");
 const sources = [
   process.env.INTAKE_FORMS_SOURCE,
   path.join(root, "intake-packet", "intake-forms"),
-  path.join(root, "..", "MedicalCRM", "intake-forms"),
   "/mnt/c/Users/Stric/MedicalCRM/intake-forms",
-  "C:\\Users\\Stric\\MedicalCRM\\intake-forms",
+  path.join("C:", "Users", "Stric", "MedicalCRM", "intake-forms"),
 ].filter(Boolean);
 
 function copyDir(src, dst) {
@@ -24,15 +27,19 @@ function copyDir(src, dst) {
   }
 }
 
+let copied = false;
 for (const src of sources) {
   if (!src || !fs.existsSync(path.join(src, "forms", "intake.html"))) continue;
   if (fs.existsSync(dest)) fs.rmSync(dest, { recursive: true, force: true });
   copyDir(src, dest);
-  console.log(`Synced intake-forms from ${src}`);
-  process.exit(0);
+  console.log(`Copied intake-forms from ${src}`);
+  copied = true;
+  break;
 }
 
-console.warn(
-  "intake-forms not found — set INTAKE_FORMS_SOURCE or copy MedicalCRM/intake-forms into project root",
-);
-process.exit(0);
+if (!copied) {
+  console.error(
+    "Could not find intake-forms. Set INTAKE_FORMS_SOURCE or ensure C:\\Users\\Stric\\MedicalCRM\\intake-forms exists.",
+  );
+  process.exit(1);
+}

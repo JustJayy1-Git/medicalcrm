@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AGING_BUCKETS } from "@/lib/ar-aging";
 import { fetchArAgingReport } from "@/lib/ar-aging-server";
 import { fmtMoney } from "@/lib/cpt";
+import { PrintButton } from "@/app/cases/[id]/billing-report/print-button";
 
 export const dynamic = "force-dynamic";
 
@@ -37,14 +38,12 @@ export default async function ArAgingPrintPage() {
         `}</style>
       </head>
       <body>
-        <div class="no-print">
+        <div className="no-print">
           <Link href="/reports/ar-aging">← Back</Link>
-          <button type="button" onclick="window.print()" style="margin-left: 8px">
-            Print
-          </button>
+          <PrintButton />
         </div>
         <h1>Accounts receivable aging</h1>
-        <p class="meta">
+        <p className="meta">
           By insurance carrier · As of {report.asOfDate} · Printed {printed}
         </p>
 
@@ -57,11 +56,11 @@ export default async function ArAgingPrintPage() {
                 <tr>
                   <th>Carrier</th>
                   {AGING_BUCKETS.map((b) => (
-                    <th key={b} class="num">
+                    <th key={b} className="num">
                       {BUCKET_LABELS[b]} days
                     </th>
                   ))}
-                  <th class="num">Total</th>
+                  <th className="num">Total</th>
                 </tr>
               </thead>
               <tbody>
@@ -69,21 +68,21 @@ export default async function ArAgingPrintPage() {
                   <tr key={row.carrierId ?? row.carrierName}>
                     <td>{row.carrierName}</td>
                     {AGING_BUCKETS.map((b) => (
-                      <td key={b} class="num">
+                      <td key={b} className="num">
                         {row.buckets[b] > 0 ? fmtMoney(row.buckets[b]) : "—"}
                       </td>
                     ))}
-                    <td class="num">{fmtMoney(row.total)}</td>
+                    <td className="num">{fmtMoney(row.total)}</td>
                   </tr>
                 ))}
-                <tr class="total">
+                <tr className="total">
                   <td>Grand total</td>
                   {AGING_BUCKETS.map((b) => (
-                    <td key={b} class="num">
+                    <td key={b} className="num">
                       {report.grandBuckets[b] > 0 ? fmtMoney(report.grandBuckets[b]) : "—"}
                     </td>
                   ))}
-                  <td class="num">{fmtMoney(report.grandTotal)}</td>
+                  <td className="num">{fmtMoney(report.grandTotal)}</td>
                 </tr>
               </tbody>
             </table>
@@ -96,8 +95,8 @@ export default async function ArAgingPrintPage() {
                   <th>Carrier</th>
                   <th>Date</th>
                   <th>CPT</th>
-                  <th class="num">Days</th>
-                  <th class="num">Balance</th>
+                  <th className="num">Days</th>
+                  <th className="num">Balance</th>
                 </tr>
               </thead>
               <tbody>
@@ -107,8 +106,8 @@ export default async function ArAgingPrintPage() {
                     <td>{line.carrierName}</td>
                     <td>{line.serviceDate}</td>
                     <td>{line.cpt_code ?? "—"}</td>
-                    <td class="num">{line.daysOld}</td>
-                    <td class="num">{fmtMoney(line.balance)}</td>
+                    <td className="num">{line.daysOld}</td>
+                    <td className="num">{fmtMoney(line.balance)}</td>
                   </tr>
                 ))}
               </tbody>

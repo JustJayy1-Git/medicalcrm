@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { fetchAttorneyCaseLedger } from "@/lib/attorney-ledger-server";
 import { fmtMoney } from "@/lib/cpt";
+import { PrintButton } from "@/app/cases/[id]/billing-report/print-button";
 
 export const dynamic = "force-dynamic";
 
@@ -22,9 +23,9 @@ export default async function AttorneyLedgerPrintPage({
   const { caseId } = await searchParams;
   if (!caseId) {
     return (
-      <section className="p-8 text-center text-eggplant-700">
+      <section className="p-8 text-center text-stone-600">
         Missing case.{" "}
-        <Link href="/reports/attorney-ledger" className="text-neon-pink">
+        <Link href="/reports/attorney-ledger" className="text-amber-700">
           Pick a case
         </Link>
       </section>
@@ -59,21 +60,15 @@ export default async function AttorneyLedgerPrintPage({
         `}</style>
       </head>
       <body>
-        <div class="no-print">
+        <div className="no-print">
           <Link href={`/cases/${caseId}`} style={{ fontSize: "10pt" }}>
             ← Back to case
           </Link>
-          <button
-            type="button"
-            onclick="window.print()"
-            style="margin-left: 12px; font-size: 10pt; padding: 4px 10px; cursor: pointer;"
-          >
-            Print
-          </button>
+          <PrintButton />
         </div>
 
         <h1>Attorney account ledger</h1>
-        <p class="meta">
+        <p className="meta">
           <strong>{ledger.patientName}</strong>
           <br />
           Case {ledger.caseNumber ?? caseId.slice(0, 8)}
@@ -90,7 +85,7 @@ export default async function AttorneyLedgerPrintPage({
 
         {ledger.sections.map((section) => (
           <div key={section.carrierId ?? section.carrierName}>
-            <p class="carrier">Insurance: {section.carrierName}</p>
+            <p className="carrier">Insurance: {section.carrierName}</p>
             {section.lines.length === 0 ? (
               <p>No charges on file.</p>
             ) : (
@@ -99,10 +94,10 @@ export default async function AttorneyLedgerPrintPage({
                   <tr>
                     <th>Date</th>
                     <th>CPT</th>
-                    <th class="num">Units</th>
-                    <th class="num">Charge</th>
-                    <th class="num">Payment</th>
-                    <th class="num">Balance</th>
+                    <th className="num">Units</th>
+                    <th className="num">Charge</th>
+                    <th className="num">Payment</th>
+                    <th className="num">Balance</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -115,20 +110,20 @@ export default async function AttorneyLedgerPrintPage({
                           {line.cpt_code ?? "—"}
                           {line.modifier ? `-${line.modifier}` : ""}
                         </td>
-                        <td class="num">{line.units}</td>
-                        <td class="num">{fmtMoney(line.charge)}</td>
-                        <td class="num">{fmtMoney(line.payment)}</td>
-                        <td class="num">{fmtMoney(running)}</td>
+                        <td className="num">{line.units}</td>
+                        <td className="num">{fmtMoney(line.charge)}</td>
+                        <td className="num">{fmtMoney(line.payment)}</td>
+                        <td className="num">{fmtMoney(running)}</td>
                       </tr>
                     );
                   })}
-                  <tr class="sub">
+                  <tr className="sub">
                     <td colSpan={3}>
                       {section.carrierName} subtotal
                     </td>
-                    <td class="num">{fmtMoney(section.totalCharges)}</td>
-                    <td class="num">{fmtMoney(section.totalPayments)}</td>
-                    <td class="num">{fmtMoney(section.balance)}</td>
+                    <td className="num">{fmtMoney(section.totalCharges)}</td>
+                    <td className="num">{fmtMoney(section.totalPayments)}</td>
+                    <td className="num">{fmtMoney(section.balance)}</td>
                   </tr>
                 </tbody>
               </table>
@@ -136,14 +131,14 @@ export default async function AttorneyLedgerPrintPage({
           </div>
         ))}
 
-        <div class="grand">
+        <div className="grand">
           <strong>Account balance (charges − payments)</strong>
           <span style={{ fontFamily: "ui-monospace, monospace", fontSize: "12pt" }}>
             {fmtMoney(ledger.balance)}
           </span>
         </div>
 
-        <p class="meta" style={{ marginTop: 16 }}>
+        <p className="meta" style={{ marginTop: 16 }}>
           This report is for attorney / lien review — not a CMS-1500 claim. Post
           payments under Billing → Post insurance payment.
         </p>

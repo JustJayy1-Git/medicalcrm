@@ -68,7 +68,7 @@ export default async function BillingReportPage({
         `}</style>
       </head>
       <body>
-        <div class="no-print">
+        <div className="no-print">
           <Link href={`/cases/${caseId}`} style={{ fontSize: "10pt" }}>
             ← Back to case
           </Link>
@@ -76,7 +76,7 @@ export default async function BillingReportPage({
         </div>
 
         <h1>Treatment charge summary</h1>
-        <p class="meta">
+        <p className="meta">
           <strong>
             {patient.last_name}, {patient.first_name}
           </strong>
@@ -90,7 +90,7 @@ export default async function BillingReportPage({
           Printed: {printed}
         </p>
 
-        <div class="grand">
+        <div className="grand">
           <strong>Total treatment charges (beginning to end)</strong>
           <span>{fmtMoney(ledger.accountTotal)}</span>
         </div>
@@ -99,8 +99,8 @@ export default async function BillingReportPage({
           <p>No charges on file for this case.</p>
         ) : (
           ledger.days.map((day) => (
-            <div key={day.visit_date} class="day">
-              <div class="day-hdr">
+            <div key={day.visit_date} className="day">
+              <div className="day-hdr">
                 <span>{fmtDate(day.visit_date)}</span>
                 <span>Day total: {fmtMoney(day.dayTotal)}</span>
               </div>
@@ -110,14 +110,14 @@ export default async function BillingReportPage({
                     <th>Visit #</th>
                     <th>Type</th>
                     <th>CPT</th>
-                    <th class="num">Units</th>
-                    <th class="num">Fee</th>
-                    <th class="num">Amount</th>
+                    <th className="num">Units</th>
+                    <th className="num">Fee</th>
+                    <th className="num">Amount</th>
                   </tr>
                 </thead>
                 <tbody>
                   {day.visits.flatMap((v) =>
-                    v.charges.map((ch) => (
+                    (v.charges ?? []).map((ch) => (
                       <tr key={ch.id}>
                         <td>{v.visit_number ?? "—"}</td>
                         <td>{fmtVisitType(v.visit_type)}</td>
@@ -125,9 +125,9 @@ export default async function BillingReportPage({
                           {ch.cpt_code}
                           {ch.modifier ? `-${ch.modifier}` : ""}
                         </td>
-                        <td class="num">{ch.units}</td>
-                        <td class="num">{fmtMoney(ch.fee)}</td>
-                        <td class="num">
+                        <td className="num">{ch.units}</td>
+                        <td className="num">{fmtMoney(ch.fee)}</td>
+                        <td className="num">
                           {fmtMoney(lineAmount(ch))}
                         </td>
                       </tr>
@@ -139,7 +139,7 @@ export default async function BillingReportPage({
           ))
         )}
 
-        <p class="meta" style={{ marginTop: 24 }}>
+        <p className="meta" style={{ marginTop: 24 }}>
           {ledger.visitCount} visit(s) · {ledger.chargeLineCount} charge line(s)
           {ledger.firstServiceDate && ledger.lastServiceDate
             ? ` · Service from ${fmtDate(ledger.firstServiceDate)} through ${fmtDate(ledger.lastServiceDate)}`

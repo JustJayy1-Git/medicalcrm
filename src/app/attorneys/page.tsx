@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { ATTORNEY_PICKER_SELECT } from "@/lib/attorney";
+import { ATTORNEY_LIST_SELECT } from "@/lib/attorney";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +16,7 @@ const params = await searchParams;
 
   let query = supabase
     .from("attorneys")
-    .select(ATTORNEY_PICKER_SELECT)
+    .select(ATTORNEY_LIST_SELECT)
     .order("attorney_name", { ascending: true });
 
   if (q) {

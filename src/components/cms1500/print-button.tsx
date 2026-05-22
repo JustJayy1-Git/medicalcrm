@@ -10,7 +10,7 @@ export function Cms1500PrintButton() {
         cursor: "pointer",
         fontSize: "11pt",
         fontWeight: 600,
-        background: linear-gradient(135deg, #ff2d8a, #00f5c4);
+        background: "linear-gradient(135deg, #ff2d8a, #00f5c4)",
         color: "#fff",
         border: "none",
         borderRadius: 4,

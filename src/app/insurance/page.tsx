@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { CARRIER_PICKER_SELECT } from "@/lib/insurance-carrier";
+import { CARRIER_LIST_SELECT } from "@/lib/insurance-carrier";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +24,7 @@ const params = await searchParams;
 
   let query = supabase
     .from("insurance_carriers")
-    .select(CARRIER_PICKER_SELECT)
+    .select(CARRIER_LIST_SELECT)
     .order("sort_rank", { ascending: true })
     .order("name", { ascending: true });
 

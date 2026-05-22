@@ -9,6 +9,28 @@ function emptyDate(value: unknown): string | null {
   return String(value);
 }
 
+function patientRow(
+  patients: unknown,
+): {
+  first_name: string;
+  last_name: string;
+  date_of_birth?: string | null;
+  phone?: string | null;
+  email?: string | null;
+} | null {
+  if (!patients) return null;
+  const row = Array.isArray(patients) ? patients[0] : patients;
+  if (!row || typeof row !== "object") return null;
+  const p = row as Record<string, unknown>;
+  return {
+    first_name: String(p.first_name ?? ""),
+    last_name: String(p.last_name ?? ""),
+    date_of_birth: emptyDate(p.date_of_birth),
+    phone: emptyDate(p.phone),
+    email: emptyDate(p.email),
+  };
+}
+
 function splitPatientName(full: string) {
   const parts = full.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return { first_name: "Intake", last_name: "Pending" };
@@ -89,13 +111,7 @@ export async function getPacketMeta(supabase: SupabaseClient, packetId: number) 
   if (error) throw error;
   if (!data) return null;
 
-  const pt = data.patients as {
-    first_name: string;
-    last_name: string;
-    date_of_birth: string | null;
-    phone: string | null;
-    email: string | null;
-  } | null;
+  const pt = patientRow(data.patients);
 
   return {
     id: data.id,
@@ -122,7 +138,7 @@ export async function listPackets(supabase: SupabaseClient) {
   if (error) throw error;
 
   return (data ?? []).map((row) => {
-    const pt = row.patients as { first_name: string; last_name: string; phone: string | null } | null;
+    const pt = patientRow(row.patients);
     return {
       id: row.id,
       status: row.status,

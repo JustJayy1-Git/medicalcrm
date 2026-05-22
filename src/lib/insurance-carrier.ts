@@ -10,5 +10,13 @@ export type InsuranceCarrierPicker = {
   zip?: string | null;
 };
 
+export type InsuranceCarrierListRow = InsuranceCarrierPicker & {
+  carrier_type?: string | null;
+  seed_key?: string | null;
+};
+
 export const CARRIER_PICKER_SELECT =
   "id, name, payer_id, phone, address_line1, address_line2, city, state, zip";
+
+export const CARRIER_LIST_SELECT =
+  "id, name, payer_id, phone, address_line1, address_line2, city, state, zip, carrier_type, seed_key";
