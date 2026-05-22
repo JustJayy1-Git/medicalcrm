@@ -27,6 +27,6 @@ export async function createPortalClient() {
     },
   );
 
-  const user = await ensurePortalUser(supabase);
-  return { supabase, user };
+  const { user, kioskFailure } = await ensurePortalUser(supabase);
+  return { supabase, user, kioskFailure };
 }

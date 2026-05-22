@@ -5,6 +5,7 @@ import { FORM_ORDER } from "@/lib/intake-packet/form-slugs";
 import { kioskSignInErrorMessage } from "@/lib/portal/device-auth";
 import { createPortalClient } from "@/lib/portal/portal-supabase";
 import { redirect } from "next/navigation";
+import { isRedirectError } from "next/dist/client/components/redirect";
 
 /** Full-page redirect — works reliably on iPad Safari (fetch + cookies often fails). */
 export async function startIntakePacket() {
@@ -20,7 +21,10 @@ export async function startIntakePacket() {
   try {
     ({ packetId } = await createPortalPacket(supabase, user.id));
   } catch (err) {
+    // CRITICAL: never swallow redirect errors — they are Next.js control flow, not real errors.
+    if (isRedirectError(err)) throw err;
     const message = err instanceof Error ? err.message : "Could not start intake";
+    console.error("createPortalPacket failed:", err);
     redirect(`/portal?error=${encodeURIComponent(message)}`);
   }
 
