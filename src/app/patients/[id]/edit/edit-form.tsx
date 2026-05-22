@@ -75,7 +75,7 @@ export function EditPatientForm({
       )}
 
       {/* Top row */}
-      <section className="p-3 rounded-lg bg-white border border-stone-200 shadow-sm">
+      <section className="p-3 rounded-lg bg-white border border-vice-border shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
           <Field
             label="Chart number"
@@ -244,13 +244,13 @@ export function EditPatientForm({
           <Card title="Assignments">
             <div className="grid grid-cols-3 gap-2">
               <div className="col-span-3">
-                <label className="block text-[11px] font-medium text-stone-600 mb-1">
+                <label className="block text-[11px] font-medium text-eggplant-700 mb-1">
                   Assigned provider
                 </label>
                 <select
                   name="assigned_provider_id"
                   defaultValue={patient.assigned_provider_id ?? ""}
-                  className="w-full px-2 py-1 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+                  className="w-full px-2 py-1 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40"
                 >
                   <option value="">— None —</option>
                   {providers.map((p) => (
@@ -280,16 +280,16 @@ export function EditPatientForm({
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-3 pt-2 border-t border-stone-200">
+      <div className="flex items-center justify-end gap-3 pt-2 border-t border-vice-border">
         <Link
           href={`/patients/${patient.id}`}
-          className="px-4 py-2 text-sm border border-stone-300 text-stone-700 rounded-md hover:bg-stone-100"
+          className="px-4 py-2 text-sm border border-vice-border text-eggplant-800 rounded-md hover:bg-neon-mint-100"
         >
           Cancel
         </Link>
         <button
           type="submit"
-          className="px-6 py-2 text-sm bg-gradient-to-b from-amber-400 to-amber-600 text-stone-900 font-semibold rounded-md hover:from-amber-300 hover:to-amber-500 shadow-sm"
+          className="px-6 py-2 text-sm bg-gradient-to-b from-neon-pink to-neon-mint text-eggplant-900 font-semibold rounded-md hover:brightness-110 shadow-sm"
         >
           Save changes
         </button>
@@ -309,8 +309,8 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className="p-3 rounded-lg bg-white border border-stone-200 shadow-sm">
-      <h2 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-700 mb-2">
+    <section className="p-3 rounded-lg bg-white border border-vice-border shadow-sm">
+      <h2 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neon-pink mb-2">
         {title}
       </h2>
       {children}
@@ -337,14 +337,14 @@ function Field({
     span === 3 ? "col-span-3" : span === 2 ? "col-span-2" : "col-span-1";
   return (
     <div className={spanClass}>
-      <label className="block text-[11px] font-medium text-stone-600 mb-0.5">
+      <label className="block text-[11px] font-medium text-eggplant-700 mb-0.5">
         {label}
       </label>
       <input
         type={type}
         name={name}
         required={required}
-        className="w-full px-2 py-1 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500/40 focus:border-amber-500"
+        className="w-full px-2 py-1 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 placeholder-vice-muted focus:outline-none focus:ring-1 focus:ring-neon-mint/40 focus:border-neon-mint"
         {...rest}
       />
     </div>
@@ -364,13 +364,13 @@ function Select({
 }) {
   return (
     <div>
-      <label className="block text-[11px] font-medium text-stone-600 mb-0.5">
+      <label className="block text-[11px] font-medium text-eggplant-700 mb-0.5">
         {label}
       </label>
       <select
         name={name}
         defaultValue={defaultValue ?? ""}
-        className="w-full px-2 py-1 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+        className="w-full px-2 py-1 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -392,12 +392,12 @@ function Checkbox({
   defaultChecked?: boolean;
 }) {
   return (
-    <label className="flex items-center gap-2 text-xs text-stone-700 cursor-pointer select-none">
+    <label className="flex items-center gap-2 text-xs text-eggplant-800 cursor-pointer select-none">
       <input
         type="checkbox"
         name={name}
         defaultChecked={defaultChecked}
-        className="rounded border-stone-400 bg-white text-amber-600 focus:ring-amber-500/40"
+        className="rounded border-vice-muted bg-white text-neon-mint focus:ring-neon-mint/40"
       />
       {label}
     </label>

@@ -1,0 +1,165 @@
+/* CMS-1500 print layout — red-tinted paper style */
+.cms1500 {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 9pt;
+  color: #1a1a1a;
+  background: #fff5f5;
+  border: 2px solid #c41e3a;
+  padding: 8px;
+  max-width: 8.5in;
+  margin: 0 auto;
+}
+
+.cms1500-header {
+  text-align: center;
+  border-bottom: 2px solid #c41e3a;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+
+.cms1500-title {
+  font-size: 11pt;
+  font-weight: 700;
+  margin: 0;
+  color: #c41e3a;
+}
+
+.cms1500-sub {
+  font-size: 7pt;
+  margin: 2px 0 0;
+}
+
+.cms1500-form-id {
+  font-size: 8pt;
+  font-weight: 700;
+  float: right;
+  margin-top: -14px;
+}
+
+.cms-label,
+.cms-sublabel {
+  font-size: 6.5pt;
+  font-weight: 700;
+  color: #c41e3a;
+  text-transform: uppercase;
+  display: block;
+}
+
+.cms-value {
+  font-size: 9pt;
+  min-height: 14px;
+}
+
+.cms-value.block {
+  display: block;
+}
+
+.cms-check,
+.cms-checks {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 10px;
+  font-size: 7pt;
+}
+
+.cms-checks-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cms-box,
+.cms-box-sm {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 1px solid #333;
+  text-align: center;
+  line-height: 12px;
+  font-size: 8pt;
+  background: #fff;
+}
+
+.cms-box-sm {
+  width: 10px;
+  height: 10px;
+  line-height: 10px;
+}
+
+.cms-date span {
+  display: inline-block;
+  min-width: 22px;
+  border-bottom: 1px solid #333;
+  margin-right: 6px;
+  text-align: center;
+}
+
+.cms-grid,
+.cms-svc {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 6px 0;
+}
+
+.cms-grid td,
+.cms-svc th,
+.cms-svc td {
+  border: 1px solid #c41e3a;
+  padding: 4px 6px;
+  vertical-align: top;
+}
+
+.cms-svc th {
+  font-size: 6.5pt;
+  background: #ffe4e4;
+  color: #c41e3a;
+  text-align: left;
+}
+
+.cms-mono {
+  font-family: ui-monospace, monospace;
+}
+
+.cms-num {
+  text-align: right;
+}
+
+.cms-dx-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin: 4px 0 0;
+  font-size: 8pt;
+}
+
+.cms-dx strong {
+  color: #c41e3a;
+}
+
+.cms-footer-note {
+  font-size: 7pt;
+  color: #666;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.no-print {
+  margin-bottom: 16px;
+}
+
+@media print {
+  body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .cms1500 {
+    border-width: 1px;
+    max-width: none;
+    background: #fff;
+  }
+}

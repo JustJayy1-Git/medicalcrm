@@ -4,14 +4,36 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
-type ChargeInput = {
-  line_number: number;
-  cpt_code: string;
-  units: number;
-  fee_per_unit: number;
-  modifier: string | null;
-  icd_codes: string[];
-};
+function parseCharges(formData: FormData) {
+  const lines: {
+    cpt_code: string;
+    units: number;
+    fee: number;
+    modifier: string | null;
+    icd_codes: string[];
+  }[] = [];
+  const count = Number(formData.get("line_count") ?? 0);
+  for (let i = 0; i < count; i++) {
+    const cpt = formData.get(`line_${i}_cpt`);
+    if (typeof cpt !== "string" || !cpt.trim()) continue;
+    const units = Number(formData.get(`line_${i}_units`) ?? 1) || 1;
+    const fee = Number(formData.get(`line_${i}_fee`) ?? 0) || 0;
+    const modifier = formData.get(`line_${i}_modifier`);
+    const icdRaw = formData.get(`line_${i}_icd`);
+    const icd_codes =
+      typeof icdRaw === "string" && icdRaw.trim()
+        ? icdRaw.split(",").map((s) => s.trim().toUpperCase())
+        : [];
+    lines.push({
+      cpt_code: cpt.trim(),
+      units,
+      fee,
+      modifier: typeof modifier === "string" && modifier.trim() ? modifier.trim() : null,
+      icd_codes,
+    });
+  }
+  return lines;
+}
 
 export async function saveVisit(formData: FormData): Promise<void> {
   const supabase = await createClient();
@@ -20,100 +42,98 @@ export async function saveVisit(formData: FormData): Promise<void> {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const str = (k: string) => {
-    const v = formData.get(k);
-    return typeof v === "string" && v.trim() !== "" ? v.trim() : null;
-  };
-  const intOrNull = (k: string) => {
-    const v = str(k);
-    if (v === null) return null;
-    const n = parseInt(v, 10);
-    return Number.isFinite(n) ? n : null;
-  };
+  const caseId = formData.get("case_id");
+  const visitDate = formData.get("visit_date");
+  const providerId = formData.get("provider_id");
+  const patientId = formData.get("patient_id");
 
-  const caseId = str("case_id");
-  const patientId = str("patient_id");
-  const visitDate = str("visit_date");
-  const visitType = str("visit_type") ?? "office";
-  const providerId = str("provider_id");
-  const pos = str("place_of_service") ?? "11";
-  const visitNumber = intOrNull("visit_number");
-  const notes = str("notes");
-
-  if (!caseId || !patientId || !visitDate) {
-    redirect(
-      `/cases/${caseId ?? ""}/visits/new?error=${encodeURIComponent("Missing required fields")}`,
-    );
+  if (
+    typeof caseId !== "string" ||
+    typeof visitDate !== "string" ||
+    typeof patientId !== "string"
+  ) {
+    redirect("/cases");
   }
 
-  let charges: ChargeInput[] = [];
-  try {
-    const raw = formData.get("charges_json");
-    if (typeof raw === "string" && raw.length > 0) {
-      charges = JSON.parse(raw) as ChargeInput[];
-    }
-  } catch {
-    redirect(
-      `/cases/${caseId}/visits/new?error=${encodeURIComponent("Invalid charge data")}`,
-    );
-  }
-
+  const charges = parseCharges(formData);
   if (charges.length === 0) {
-    redirect(
-      `/cases/${caseId}/visits/new?error=${encodeURIComponent("Add at least one charge line")}`,
-    );
+    redirect(`/cases/${caseId}/visits/new?error=no_charges`);
+  }
+  if (charges.length > 6) {
+    redirect(`/cases/${caseId}/visits/new?error=max_six_lines`);
   }
 
-  // 1. Insert the visit
-  const { data: visit, error: visitErr } = await supabase
+  const { data: existing } = await supabase
     .from("visits")
-    .insert({
+    .select("id")
+    .eq("case_id", caseId)
+    .eq("visit_date", visitDate)
+    .limit(1)
+    .maybeSingle();
+
+  let visitId = existing?.id;
+
+  if (visitId) {
+    const { count } = await supabase
+      .from("charges")
+      .select("id", { count: "exact", head: true })
+      .eq("visit_id", visitId);
+    const existingLines = count ?? 0;
+    if (existingLines + charges.length > 6) {
+      redirect(`/cases/${caseId}/visits/new?error=max_six_lines`);
+    }
+  }
+
+  if (!visitId) {
+    const insert: Record<string, unknown> = {
       case_id: caseId,
       patient_id: patientId,
       visit_date: visitDate,
-      visit_type: visitType,
-      provider_id: providerId,
-      visit_number: visitNumber,
-      notes,
       status: "completed",
       created_by: user.id,
-    })
-    .select("id")
-    .single();
-
-  if (visitErr || !visit) {
-    redirect(
-      `/cases/${caseId}/visits/new?error=${encodeURIComponent(visitErr?.message ?? "Visit insert failed")}`,
-    );
+    };
+    if (typeof providerId === "string" && providerId) {
+      insert.provider_id = providerId;
+    }
+    const { data: created, error } = await supabase
+      .from("visits")
+      .insert(insert)
+      .select("id")
+      .single();
+    if (error) {
+      redirect(
+        `/cases/${caseId}/visits/new?error=${encodeURIComponent(error.message)}`,
+      );
+    }
+    visitId = created.id;
+  } else if (typeof providerId === "string" && providerId) {
+    await supabase
+      .from("visits")
+      .update({ provider_id: providerId })
+      .eq("id", visitId);
   }
 
-  // 2. Insert charges in bulk
-  const chargesRows = charges.map((c) => ({
-    visit_id: visit.id,
+  const rows = charges.map((ch) => ({
+    visit_id: visitId,
     case_id: caseId,
     patient_id: patientId,
-    line_number: c.line_number,
-    cpt_code: c.cpt_code,
-    units: c.units,
-    fee: c.fee_per_unit,
-    modifier: c.modifier,
-    icd_codes: c.icd_codes,
-    status: "unbilled" as const,
-    notes: null,
+    cpt_code: ch.cpt_code,
+    units: ch.units,
+    fee: ch.fee,
+    modifier: ch.modifier,
+    icd_codes: ch.icd_codes,
+    status: "unbilled",
     created_by: user.id,
   }));
 
-  const { error: chargesErr } = await supabase.from("charges").insert(chargesRows);
-
-  if (chargesErr) {
-    // Best-effort rollback — delete the visit we just created
-    await supabase.from("visits").delete().eq("id", visit.id);
+  const { error: chargeErr } = await supabase.from("charges").insert(rows);
+  if (chargeErr) {
     redirect(
-      `/cases/${caseId}/visits/new?error=${encodeURIComponent(chargesErr.message)}`,
+      `/cases/${caseId}/visits/new?error=${encodeURIComponent(chargeErr.message)}`,
     );
   }
 
   revalidatePath(`/cases/${caseId}`);
-  revalidatePath(`/cases/${caseId}/visits`);
-  redirect(`/cases/${caseId}`);
+  revalidatePath("/reports/cms-1500");
+  redirect(`/cases/${caseId}?saved=1`);
 }

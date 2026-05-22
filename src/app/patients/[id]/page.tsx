@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { AppShell } from "@/components/app-shell";
 import { PatientTabs } from "./patient-tabs";
 
 export const dynamic = "force-dynamic";
@@ -12,11 +11,11 @@ function fmtDate(d: string | null | undefined) {
 }
 
 const STATUS_PILL: Record<string, string> = {
-  open: "bg-amber-100 text-amber-800 border-amber-200",
+  open: "bg-neon-mint-100 text-eggplant-800 border-neon-mint-100",
   active: "bg-emerald-100 text-emerald-700 border-emerald-200",
-  on_hold: "bg-stone-100 text-stone-600 border-stone-300",
+  on_hold: "bg-neon-mint-100 text-eggplant-700 border-vice-border",
   settled: "bg-sky-100 text-sky-700 border-sky-200",
-  closed: "bg-stone-100 text-stone-500 border-stone-300",
+  closed: "bg-neon-mint-100 text-vice-muted border-vice-border",
   denied: "bg-red-100 text-red-700 border-red-200",
 };
 
@@ -27,12 +26,7 @@ export default async function PatientPage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: patient, error } = await supabase
+const { data: patient, error } = await supabase
     .from("patients")
     .select("*")
     .eq("id", id)
@@ -49,19 +43,18 @@ export default async function PatientPage({
     .order("date_of_injury", { ascending: false });
 
   return (
-    <AppShell user={user} active="/cases">
-      <div className="px-8 py-6 max-w-6xl mx-auto">
+    <div className="px-8 py-6 max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-700 mb-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-neon-pink mb-1">
               Patient {patient.chart_number ? `· ${patient.chart_number}` : ""}
             </p>
-            <h1 className="text-3xl font-serif font-semibold text-stone-900">
+            <h1 className="text-3xl font-serif font-semibold text-eggplant-900">
               {patient.last_name}, {patient.first_name}
               {patient.preferred_name ? ` (${patient.preferred_name})` : ""}
             </h1>
-            <p className="text-sm text-stone-500 mt-1">
+            <p className="text-sm text-vice-muted mt-1">
               DOB: {fmtDate(patient.date_of_birth)} · Phone:{" "}
               {patient.phone_cell ?? patient.phone ?? "—"} ·{" "}
               <span className="text-emerald-700 font-medium">
@@ -72,13 +65,13 @@ export default async function PatientPage({
           <div className="flex items-center gap-3">
             <Link
               href={`/patients/${id}/edit`}
-              className="px-3 py-1.5 text-xs border border-stone-300 text-stone-700 rounded-md hover:bg-stone-100"
+              className="px-3 py-1.5 text-xs border border-vice-border text-eggplant-800 rounded-md hover:bg-neon-mint-100"
             >
               ✏️ Edit patient
             </Link>
             <Link
               href="/patients"
-              className="text-sm text-stone-500 hover:text-stone-900"
+              className="text-sm text-vice-muted hover:text-eggplant-900"
             >
               ← Back to all
             </Link>
@@ -108,8 +101,7 @@ export default async function PatientPage({
           }
         />
       </div>
-    </AppShell>
-  );
+);
 }
 
 // =================================================
@@ -156,11 +148,11 @@ function OverviewTab({
         ]}
       />
       {patient.notes && (
-        <div className="lg:col-span-3 p-5 rounded-xl bg-white border border-stone-200 shadow-sm">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-amber-700 mb-2">
+        <div className="lg:col-span-3 p-5 rounded-xl bg-white border border-vice-border shadow-sm">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-neon-pink mb-2">
             Notes
           </h2>
-          <p className="text-sm text-stone-700 whitespace-pre-wrap">
+          <p className="text-sm text-eggplant-800 whitespace-pre-wrap">
             {patient.notes as string}
           </p>
         </div>
@@ -191,33 +183,33 @@ function CasesTab({
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-semibold text-stone-700">
+        <h2 className="text-sm font-semibold text-eggplant-800">
           {cases.length} {cases.length === 1 ? "case" : "cases"}
         </h2>
         <Link
           href={`/cases/new?patient=${patientId}`}
-          className="px-4 py-2 text-sm bg-gradient-to-b from-amber-400 to-amber-600 text-stone-900 font-semibold rounded-md hover:from-amber-300 hover:to-amber-500 shadow-sm transition-colors"
+          className="px-4 py-2 text-sm bg-gradient-to-b from-neon-pink to-neon-mint text-eggplant-900 font-semibold rounded-md hover:brightness-110 shadow-sm transition-colors"
         >
           + New case
         </Link>
       </div>
 
       {cases.length === 0 ? (
-        <div className="p-10 rounded-xl bg-white border border-dashed border-stone-300 text-center">
-          <p className="text-stone-500 text-sm mb-4">
+        <div className="p-10 rounded-xl bg-white border border-dashed border-vice-border text-center">
+          <p className="text-vice-muted text-sm mb-4">
             No cases for this patient yet.
           </p>
           <Link
             href={`/cases/new?patient=${patientId}`}
-            className="text-amber-700 hover:text-amber-800 font-medium text-sm"
+            className="text-neon-pink hover:text-eggplant-800 font-medium text-sm"
           >
             ➜ Open a new case
           </Link>
         </div>
       ) : (
-        <div className="rounded-xl border border-stone-200 overflow-hidden bg-white shadow-sm">
+        <div className="rounded-xl border border-vice-border overflow-hidden bg-white shadow-sm">
           <table className="w-full text-sm">
-            <thead className="bg-stone-100 text-stone-600 uppercase text-xs tracking-wider">
+            <thead className="bg-neon-mint-100 text-eggplant-700 uppercase text-xs tracking-wider">
               <tr>
                 <th className="text-left px-4 py-2 font-medium">Case #</th>
                 <th className="text-left px-4 py-2 font-medium">Type</th>
@@ -228,27 +220,27 @@ function CasesTab({
                 <th className="text-right px-4 py-2 font-medium"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-200">
+            <tbody className="divide-y divide-vice-border">
               {cases.map((c) => (
-                <tr key={c.id} className="hover:bg-stone-50">
+                <tr key={c.id} className="hover:bg-vice-surface">
                   <td className="px-4 py-2">
                     <Link
                       href={`/cases/${c.id}`}
-                      className="text-amber-700 hover:text-amber-800 font-mono text-xs font-medium"
+                      className="text-neon-pink hover:text-eggplant-800 font-mono text-xs font-medium"
                     >
                       {c.case_number ?? c.id.slice(0, 8)}
                     </Link>
                   </td>
-                  <td className="px-4 py-2 capitalize text-stone-700">
+                  <td className="px-4 py-2 capitalize text-eggplant-800">
                     {c.case_type.replace("_", " ")}
                   </td>
-                  <td className="px-4 py-2 text-stone-600">
+                  <td className="px-4 py-2 text-eggplant-700">
                     {fmtDate(c.date_of_injury)}
                   </td>
-                  <td className="px-4 py-2 text-stone-600">
+                  <td className="px-4 py-2 text-eggplant-700">
                     {c.pain_level !== null ? `${c.pain_level}/10` : "—"}
                   </td>
-                  <td className="px-4 py-2 text-stone-600 capitalize">
+                  <td className="px-4 py-2 text-eggplant-700 capitalize">
                     {c.billing_method}
                   </td>
                   <td className="px-4 py-2">
@@ -265,7 +257,7 @@ function CasesTab({
                     <Link
                       href={`/cases/${c.id}/edit`}
                       title="Edit case"
-                      className="inline-flex items-center justify-center w-7 h-7 rounded-md text-stone-500 hover:text-amber-700 hover:bg-amber-50 transition-colors"
+                      className="inline-flex items-center justify-center w-7 h-7 rounded-md text-vice-muted hover:text-neon-pink hover:bg-neon-mint-100 transition-colors"
                     >
                       ✏️
                     </Link>
@@ -291,15 +283,15 @@ function Info({
   data: [string, string | null | undefined][];
 }) {
   return (
-    <div className="p-5 rounded-xl bg-white border border-stone-200 shadow-sm">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-amber-700 mb-3">
+    <div className="p-5 rounded-xl bg-white border border-vice-border shadow-sm">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-neon-pink mb-3">
         {title}
       </h2>
       <dl className="space-y-2">
         {data.map(([k, v]) => (
           <div key={k} className="flex justify-between text-sm">
-            <dt className="text-stone-500">{k}</dt>
-            <dd className="text-stone-900 text-right truncate ml-3">
+            <dt className="text-vice-muted">{k}</dt>
+            <dd className="text-eggplant-900 text-right truncate ml-3">
               {v || "—"}
             </dd>
           </div>
@@ -311,9 +303,9 @@ function Info({
 
 function Empty({ title, hint }: { title: string; hint: string }) {
   return (
-    <div className="p-10 rounded-xl bg-white border border-dashed border-stone-300 text-center">
-      <p className="text-stone-800 font-medium">{title}</p>
-      <p className="text-stone-500 text-sm mt-1">{hint}</p>
+    <div className="p-10 rounded-xl bg-white border border-dashed border-vice-border text-center">
+      <p className="text-eggplant-900 font-medium">{title}</p>
+      <p className="text-vice-muted text-sm mt-1">{hint}</p>
     </div>
   );
 }

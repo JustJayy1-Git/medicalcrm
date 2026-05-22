@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { AppShell } from "@/components/app-shell";
+import { CaseChargeLedger } from "@/components/case-charge-ledger";
+import { fetchCaseLedger } from "@/lib/charge-ledger-server";
 
 export const dynamic = "force-dynamic";
 
@@ -11,11 +12,11 @@ function fmt(d: string | null | undefined) {
 }
 
 const STATUS_PILL: Record<string, string> = {
-  open: "bg-amber-100 text-amber-800 border-amber-200",
+  open: "bg-neon-mint-100 text-eggplant-800 border-neon-mint-100",
   active: "bg-emerald-100 text-emerald-700 border-emerald-200",
-  on_hold: "bg-stone-100 text-stone-600 border-stone-300",
+  on_hold: "bg-neon-mint-100 text-eggplant-700 border-vice-border",
   settled: "bg-sky-100 text-sky-700 border-sky-200",
-  closed: "bg-stone-100 text-stone-500 border-stone-300",
+  closed: "bg-neon-mint-100 text-vice-muted border-vice-border",
   denied: "bg-red-100 text-red-700 border-red-200",
 };
 
@@ -26,12 +27,7 @@ export default async function CasePage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: c } = await supabase
+const { data: c } = await supabase
     .from("cases")
     .select(
       `*,
@@ -44,24 +40,26 @@ export default async function CasePage({
 
   if (!c) notFound();
 
-  const patient = c.patient;
+  const patient = Array.isArray(c.patient) ? c.patient[0] : c.patient;
+  if (!patient) notFound();
+
+  const ledger = await fetchCaseLedger(supabase, id);
 
   return (
-    <AppShell user={user} active="/cases">
-      <div className="px-6 py-4 max-w-6xl mx-auto">
+    <div className="px-6 py-4 max-w-6xl mx-auto">
         {/* Patient banner — always visible */}
-        <div className="mb-3 flex items-center justify-between p-3 rounded-lg bg-amber-50 border border-amber-200">
+        <div className="mb-3 flex items-center justify-between p-3 rounded-lg bg-neon-mint-100 border border-neon-mint-100">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-amber-700">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-neon-pink">
               Patient
             </p>
             <Link
               href={`/patients/${patient.id}`}
-              className="text-base font-semibold text-stone-900 hover:text-amber-800"
+              className="text-base font-semibold text-eggplant-900 hover:text-eggplant-800"
             >
               {patient.last_name}, {patient.first_name}
               {patient.chart_number ? (
-                <span className="text-stone-500 font-mono text-xs ml-2">
+                <span className="text-vice-muted font-mono text-xs ml-2">
                   {patient.chart_number}
                 </span>
               ) : null}
@@ -69,7 +67,7 @@ export default async function CasePage({
           </div>
           <Link
             href={`/patients/${patient.id}`}
-            className="text-xs text-amber-700 hover:text-amber-800 font-medium"
+            className="text-xs text-neon-pink hover:text-eggplant-800 font-medium"
           >
             Open patient →
           </Link>
@@ -78,14 +76,14 @@ export default async function CasePage({
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-700 mb-1">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-neon-pink mb-1">
               Case · {c.case_number ?? c.id.slice(0, 8)}
             </p>
-            <h1 className="text-2xl font-sans font-semibold text-stone-900 tabular-nums">
+            <h1 className="text-2xl font-sans font-semibold text-eggplant-900 tabular-nums">
               {c.description ??
                 c.case_type.replace("_", " ").toUpperCase()}
             </h1>
-            <p className="text-sm text-stone-500 mt-1">
+            <p className="text-sm text-vice-muted mt-1">
               DOI: {fmt(c.date_of_injury)} · First visit:{" "}
               {fmt(c.date_of_first_visit)} · Billing:{" "}
               <span className="capitalize">{c.billing_method}</span>
@@ -94,13 +92,13 @@ export default async function CasePage({
           <div className="flex items-center gap-3">
             <Link
               href={`/cases/${c.id}/visits/new`}
-              className="px-3 py-1.5 text-xs bg-amber-700 text-white rounded-md hover:bg-amber-800 font-medium"
+              className="px-3 py-1.5 text-xs bg-neon-pink text-white rounded-md hover:bg-eggplant-800 font-medium"
             >
-              + New visit / charges
+              Transaction entry
             </Link>
             <Link
               href={`/cases/${c.id}/edit`}
-              className="px-3 py-1.5 text-xs border border-stone-300 text-stone-700 rounded-md hover:bg-stone-100"
+              className="px-3 py-1.5 text-xs border border-vice-border text-eggplant-800 rounded-md hover:bg-neon-mint-100"
             >
               ✏️ Edit case
             </Link>
@@ -114,6 +112,10 @@ export default async function CasePage({
             </span>
           </div>
         </div>
+
+        <section className="mb-4">
+          <CaseChargeLedger caseId={c.id} ledger={ledger} />
+        </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* What happened */}
@@ -149,15 +151,15 @@ export default async function CasePage({
               value={c.pain_level !== null ? `${c.pain_level} / 10` : null}
             />
             <div>
-              <p className="text-[11px] text-stone-500 mb-1">Locations</p>
+              <p className="text-[11px] text-vice-muted mb-1">Locations</p>
               <div className="flex flex-wrap gap-1.5">
                 {(c.pain_locations ?? []).length === 0 && (
-                  <span className="text-stone-400 text-sm">—</span>
+                  <span className="text-vice-muted text-sm">—</span>
                 )}
                 {(c.pain_locations ?? []).map((loc: string) => (
                   <span
                     key={loc}
-                    className="px-2 py-0.5 rounded-full text-xs bg-amber-50 text-amber-800 border border-amber-200 capitalize"
+                    className="px-2 py-0.5 rounded-full text-xs bg-neon-mint-100 text-eggplant-800 border border-neon-mint-100 capitalize"
                   >
                     {loc.replace("_", " ")}
                   </span>
@@ -189,13 +191,13 @@ export default async function CasePage({
                   "px-2 py-0.5 rounded-full text-xs border",
                   c.lop_signed
                     ? "bg-emerald-100 text-emerald-700 border-emerald-200"
-                    : "bg-stone-100 text-stone-500 border-stone-300",
+                    : "bg-neon-mint-100 text-vice-muted border-vice-border",
                 ].join(" ")}
               >
                 {c.lop_signed ? "LOP signed" : "LOP not signed"}
               </span>
               {c.lop_signed_date && (
-                <span className="text-xs text-stone-500">
+                <span className="text-xs text-vice-muted">
                   {fmt(c.lop_signed_date)}
                 </span>
               )}
@@ -205,7 +207,7 @@ export default async function CasePage({
           {c.notes && (
             <div className="lg:col-span-2">
               <Card title="Notes">
-                <p className="text-sm text-stone-700 whitespace-pre-wrap">
+                <p className="text-sm text-eggplant-800 whitespace-pre-wrap">
                   {c.notes}
                 </p>
               </Card>
@@ -213,8 +215,7 @@ export default async function CasePage({
           )}
         </div>
       </div>
-    </AppShell>
-  );
+);
 }
 
 function Card({
@@ -225,8 +226,8 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className="p-5 rounded-xl bg-white border border-stone-200 shadow-sm">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-amber-700 mb-3">
+    <section className="p-5 rounded-xl bg-white border border-vice-border shadow-sm">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-neon-pink mb-3">
         {title}
       </h2>
       <div className="space-y-2">{children}</div>
@@ -245,12 +246,12 @@ function Row({
 }) {
   return (
     <div>
-      <p className="text-[11px] text-stone-500 mb-0.5">{label}</p>
+      <p className="text-[11px] text-vice-muted mb-0.5">{label}</p>
       <p
         className={[
-          "text-sm text-stone-900",
+          "text-sm text-eggplant-900",
           capitalize ? "capitalize" : "",
-          value ? "" : "text-stone-400",
+          value ? "" : "text-vice-muted",
         ].join(" ")}
       >
         {value || "—"}
@@ -267,16 +268,16 @@ function YesNo({
   value: boolean | null | undefined;
 }) {
   return (
-    <div className="flex items-center justify-between text-xs px-2 py-1 rounded border border-stone-200 bg-stone-50">
-      <span className="text-stone-600">{label}</span>
+    <div className="flex items-center justify-between text-xs px-2 py-1 rounded border border-vice-border bg-vice-surface">
+      <span className="text-eggplant-700">{label}</span>
       <span
         className={[
           "font-medium",
           value === true
             ? "text-emerald-700"
             : value === false
-            ? "text-stone-500"
-            : "text-stone-400",
+            ? "text-vice-muted"
+            : "text-vice-muted",
         ].join(" ")}
       >
         {value === true ? "Yes" : value === false ? "No" : "—"}

@@ -19,7 +19,7 @@ export function PatientTabs({
 
   return (
     <div>
-      <div className="flex items-center gap-1 border-b border-stone-200 mb-4">
+      <div className="flex items-center gap-1 border-b border-vice-border mb-4">
         <Tab active={tab === "overview"} onClick={() => setTab("overview")}>
           Overview
         </Tab>
@@ -58,8 +58,8 @@ function Tab({
       className={[
         "px-5 py-2 text-sm font-medium transition-colors -mb-px",
         active
-          ? "text-amber-800 border-b-2 border-amber-600"
-          : "text-stone-500 border-b-2 border-transparent hover:text-stone-900",
+          ? "text-eggplant-800 border-b-2 border-neon-mint"
+          : "text-vice-muted border-b-2 border-transparent hover:text-eggplant-900",
       ].join(" ")}
     >
       {children}

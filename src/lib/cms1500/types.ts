@@ -1,0 +1,107 @@
+export type CmsDateParts = { mm: string; dd: string; yy: string };
+
+export type Cms1500ServiceLine = {
+  from: CmsDateParts;
+  to: CmsDateParts;
+  placeOfService: string;
+  cpt: string;
+  modifier: string;
+  diagnosisPointer: string;
+  charges: string;
+  units: string;
+  renderingNpi: string;
+};
+
+export type Cms1500Claim = {
+  meta: {
+    caseId: string;
+    visitId: string;
+    dateOfService: string;
+    page: number;
+    pageCount: number;
+  };
+  insuranceType: {
+    medicare: boolean;
+    medicaid: boolean;
+    tricare: boolean;
+    champva: boolean;
+    groupHealth: boolean;
+    feca: boolean;
+    other: boolean;
+  };
+  insuredId: string;
+  patientName: string;
+  patientBirth: CmsDateParts;
+  patientSex: "M" | "F" | "";
+  insuredName: string;
+  patientAddress: string;
+  patientCity: string;
+  patientState: string;
+  patientZip: string;
+  patientPhone: string;
+  relationshipSelf: boolean;
+  relationshipSpouse: boolean;
+  relationshipChild: boolean;
+  relationshipOther: boolean;
+  insuredAddress: string;
+  insuredCity: string;
+  insuredState: string;
+  insuredZip: string;
+  reserved: string;
+  otherInsuredName: string;
+  otherInsuredPolicy: string;
+  otherInsuredBirth: CmsDateParts;
+  otherInsuredSex: "M" | "F" | "";
+  employerName: string;
+  conditionRelated: {
+    employment: boolean;
+    autoAccident: boolean;
+    autoAccidentState: string;
+    otherAccident: boolean;
+  };
+  policyGroup: string;
+  patientSignatureOnFile: boolean;
+  insuredSignatureOnFile: boolean;
+  dateOfInjury: CmsDateParts;
+  otherDate: CmsDateParts;
+  unableToWorkFrom: CmsDateParts;
+  unableToWorkTo: CmsDateParts;
+  referringProvider: string;
+  hospitalizationFrom: CmsDateParts;
+  hospitalizationTo: CmsDateParts;
+  outsideLab: boolean;
+  outsideLabCharges: string;
+  diagnosisCodes: string[];
+  resubmissionCode: string;
+  originalRef: string;
+  priorAuth: string;
+  serviceLines: Cms1500ServiceLine[];
+  taxId: string;
+  taxIdTypeEin: boolean;
+  taxIdTypeSsn: boolean;
+  patientAccount: string;
+  acceptAssignment: boolean;
+  totalCharge: string;
+  amountPaid: string;
+  balanceDue: string;
+  physicianSignature: string;
+  serviceFacility: {
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    zip: string;
+    npi: string;
+  };
+  billingProvider: {
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    zip: string;
+    phone: string;
+    npi: string;
+  };
+  carrierName: string;
+  carrierAddress: string;
+};

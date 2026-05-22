@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { AppShell } from "@/components/app-shell";
+import { CarrierReferencePanel } from "@/components/carrier-picker";
 import { CarrierForm } from "../carrier-form";
 import { updateCarrier } from "../actions";
+import type { InsuranceCarrierPicker } from "@/lib/insurance-carrier";
 
 export const dynamic = "force-dynamic";
 
@@ -17,12 +18,7 @@ export default async function CarrierPage({
   const { id } = await params;
   const { error } = await searchParams;
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: carrier } = await supabase
+const { data: carrier } = await supabase
     .from("insurance_carriers")
     .select("*")
     .eq("id", id)
@@ -34,21 +30,28 @@ export default async function CarrierPage({
     error === "missing_name" ? "Name is required." : error ?? null;
 
   return (
-    <AppShell user={user} active="/insurance">
-      <div className="px-6 py-4 max-w-4xl mx-auto">
+    <div className="px-6 py-4 max-w-4xl mx-auto">
         <div className="mb-3">
           <Link
             href="/insurance"
-            className="text-xs text-stone-500 hover:text-stone-900"
+            className="text-xs text-vice-muted hover:text-eggplant-900"
           >
             ← Back to carriers
           </Link>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-700 mt-2 mb-0.5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-neon-pink mt-2 mb-0.5">
             Carrier
           </p>
-          <h1 className="text-xl font-serif font-semibold text-stone-900">
+          <h1 className="text-xl font-serif font-semibold text-eggplant-900">
             {carrier.name}
           </h1>
+        </div>
+
+        <div className="mb-4">
+          <CarrierReferencePanel carrier={carrier as InsuranceCarrierPicker} />
+          <p className="text-xs text-vice-muted mt-2">
+            This is what staff see when they pick this carrier on a case. Edit
+            fields below to update the master record.
+          </p>
         </div>
 
         <CarrierForm
@@ -59,6 +62,5 @@ export default async function CarrierPage({
           submitLabel="Save changes"
         />
       </div>
-    </AppShell>
-  );
+);
 }

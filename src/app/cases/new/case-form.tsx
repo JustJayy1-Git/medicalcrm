@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { createCase } from "./actions";
 import { CodePicker } from "@/components/code-picker";
+import { AttorneyPicker } from "@/components/attorney-picker";
+import { CarrierPicker } from "@/components/carrier-picker";
+import type { AttorneyPicker as AttorneyRecord } from "@/lib/attorney";
+import type { InsuranceCarrierPicker } from "@/lib/insurance-carrier";
 
 const TYPE_LABEL: Record<string, string> = {
   mva: "MVA",
@@ -21,8 +25,8 @@ function autoName(type: string, doa: string): string {
   return `${label} ${m}/${d}/${y}`;
 }
 
-type Carrier = { id: string; name: string };
-type Attorney = { id: string; attorney_name: string; firm_name: string | null };
+type Carrier = InsuranceCarrierPicker;
+type Attorney = AttorneyRecord;
 type Provider = {
   id: string;
   full_name: string;
@@ -93,17 +97,17 @@ export function CaseForm({
       )}
 
       {/* Always-visible header card */}
-      <section className="p-3 rounded-lg bg-white border border-stone-200 shadow-sm">
+      <section className="p-3 rounded-lg bg-white border border-vice-border shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div>
-            <label className="block text-[11px] font-medium text-stone-600 mb-1">
+            <label className="block text-[11px] font-medium text-eggplant-700 mb-1">
               Type
             </label>
             <select
               name="case_type"
               value={caseType}
               onChange={(e) => setCaseType(e.target.value)}
-              className="w-full px-2 py-1.5 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+              className="w-full px-2 py-1.5 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40"
             >
               <option value="mva">Motor vehicle accident</option>
               <option value="slip_fall">Slip &amp; fall</option>
@@ -113,7 +117,7 @@ export function CaseForm({
             </select>
           </div>
           <div>
-            <label className="block text-[11px] font-medium text-stone-600 mb-1">
+            <label className="block text-[11px] font-medium text-eggplant-700 mb-1">
               Date of accident
             </label>
             <input
@@ -121,7 +125,7 @@ export function CaseForm({
               name="date_of_injury"
               value={doa}
               onChange={(e) => setDoa(e.target.value)}
-              className="w-full px-2 py-1.5 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+              className="w-full px-2 py-1.5 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40"
             />
           </div>
           <Select
@@ -150,9 +154,9 @@ export function CaseForm({
           />
         </div>
         <div className="mt-3">
-          <label className="block text-[11px] font-medium text-stone-600 mb-1">
+          <label className="block text-[11px] font-medium text-eggplant-700 mb-1">
             Case name{" "}
-            <span className="text-stone-400">(auto from type + date — you can override)</span>
+            <span className="text-vice-muted">(auto from type + date — you can override)</span>
           </label>
           <input
             type="text"
@@ -163,13 +167,13 @@ export function CaseForm({
               setDescription(e.target.value);
             }}
             placeholder="e.g. MVA 03/15/2026"
-            className="w-full px-2 py-1.5 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+            className="w-full px-2 py-1.5 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 placeholder-vice-muted focus:outline-none focus:ring-1 focus:ring-neon-mint/40"
           />
         </div>
       </section>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 border-b border-stone-200 overflow-x-auto">
+      <div className="flex items-center gap-1 border-b border-vice-border overflow-x-auto">
         <TabBtn active={tab === "providers"} onClick={() => setTab("providers")}>
           Providers
         </TabBtn>
@@ -201,16 +205,16 @@ export function CaseForm({
         {tab === "auth" && <AuthTab />}
       </div>
 
-      <div className="flex items-center justify-end gap-3 pt-2 border-t border-stone-200">
+      <div className="flex items-center justify-end gap-3 pt-2 border-t border-vice-border">
         <Link
           href={`/patients/${patientId}`}
-          className="px-4 py-2 text-sm border border-stone-300 text-stone-700 rounded-md hover:bg-stone-100"
+          className="px-4 py-2 text-sm border border-vice-border text-eggplant-800 rounded-md hover:bg-neon-mint-100"
         >
           Cancel — back to {patientName}
         </Link>
         <button
           type="submit"
-          className="px-6 py-2 text-sm bg-gradient-to-b from-amber-400 to-amber-600 text-stone-900 font-semibold rounded-md hover:from-amber-300 hover:to-amber-500 shadow-sm"
+          className="px-6 py-2 text-sm bg-gradient-to-b from-neon-pink to-neon-mint text-eggplant-900 font-semibold rounded-md hover:brightness-110 shadow-sm"
         >
           Save case
         </button>
@@ -264,16 +268,10 @@ function AttorneyTab({ attorneys }: { attorneys: Attorney[] }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
       <Card title="Attorney (LOP)">
-        <SelectFromList
+        <AttorneyPicker
           label="Attorney"
           name="attorney_id"
-          options={attorneys.map((a) => ({
-            value: a.id,
-            label: a.firm_name
-              ? `${a.attorney_name} (${a.firm_name})`
-              : a.attorney_name,
-          }))}
-          emptyHint="No attorneys yet — add some under Lists → Attorneys."
+          attorneys={attorneys}
         />
         <div className="grid grid-cols-2 gap-3">
           <Checkbox label="LOP signed" name="lop_signed" />
@@ -288,7 +286,7 @@ function ConditionTab() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
       <Card title="Accident details">
-        <p className="text-[11px] text-stone-500">
+        <p className="text-[11px] text-vice-muted">
           Date of accident is set in the header at the top. The fields below
           are additional condition dates.
         </p>
@@ -368,7 +366,7 @@ function ConditionTab() {
 
       <Card title="Pain & symptoms">
         <div>
-          <label className="block text-[11px] font-medium text-stone-600 mb-1">
+          <label className="block text-[11px] font-medium text-eggplant-700 mb-1">
             Pain locations
           </label>
           <div className="grid grid-cols-3 gap-1.5">
@@ -384,13 +382,13 @@ function ConditionTab() {
         </div>
         <div className="grid grid-cols-2 gap-3 pt-2">
           <div>
-            <label className="block text-[11px] font-medium text-stone-600 mb-1">
+            <label className="block text-[11px] font-medium text-eggplant-700 mb-1">
               Pain level (0–10)
             </label>
             <select
               name="pain_level"
               defaultValue=""
-              className="w-full px-2 py-1.5 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+              className="w-full px-2 py-1.5 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40"
             >
               <option value="">—</option>
               {Array.from({ length: 11 }, (_, i) => (
@@ -423,7 +421,7 @@ function DiagnosisTab() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
       <Card title="ICD-10 diagnosis codes">
-        <p className="text-xs text-stone-500">
+        <p className="text-xs text-vice-muted">
           Search by code (e.g. <span className="font-mono">S13.4</span>) or
           keyword (e.g. <span className="italic">lumbar sprain</span>). Click
           🔍 or start typing.
@@ -445,11 +443,10 @@ function PolicyTab({ carriers }: { carriers: Carrier[] }) {
   return (
     <div className="grid grid-cols-1 gap-3">
       <Card title="Primary insurance">
-        <SelectFromList
+        <CarrierPicker
           label="Carrier"
           name="primary_carrier_id"
-          options={carriers.map((c) => ({ value: c.id, label: c.name }))}
-          emptyHint="No carriers yet — add some under Lists → Insurance carriers."
+          carriers={carriers}
         />
         <Field label="Claim number" name="primary_claim_number" />
         <Field label="Policy number" name="primary_policy_number" />
@@ -483,7 +480,7 @@ function PolicyTab({ carriers }: { carriers: Carrier[] }) {
           <Checkbox label="Accept assignment" name="accept_assignment" defaultChecked />
           <Checkbox label="Deductible met" name="deductible_met" />
         </div>
-        <div className="grid grid-cols-2 gap-3 pt-1 border-t border-stone-200">
+        <div className="grid grid-cols-2 gap-3 pt-1 border-t border-vice-border">
           <Field label="Adjuster name" name="primary_adjuster_name" />
           <Field
             label="Adjuster phone"
@@ -498,7 +495,7 @@ function PolicyTab({ carriers }: { carriers: Carrier[] }) {
         />
       </Card>
 
-      <p className="text-xs text-stone-500">
+      <p className="text-xs text-vice-muted">
         Insurance cards and other documents can be uploaded after the case is
         saved (Policy tab → Insurance card &amp; documents).
       </p>
@@ -561,8 +558,8 @@ function TabBtn({
       className={[
         "px-5 py-2 text-sm font-medium transition-colors -mb-px whitespace-nowrap",
         active
-          ? "text-amber-800 border-b-2 border-amber-600"
-          : "text-stone-500 border-b-2 border-transparent hover:text-stone-900",
+          ? "text-eggplant-800 border-b-2 border-neon-mint"
+          : "text-vice-muted border-b-2 border-transparent hover:text-eggplant-900",
       ].join(" ")}
     >
       {children}
@@ -578,8 +575,8 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className="p-4 rounded-lg bg-white border border-stone-200 shadow-sm">
-      <h2 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-700 mb-3">
+    <section className="p-4 rounded-lg bg-white border border-vice-border shadow-sm">
+      <h2 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neon-pink mb-3">
         {title}
       </h2>
       <div className="space-y-3">{children}</div>
@@ -600,13 +597,13 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-[11px] font-medium text-stone-600 mb-1">
+      <label className="block text-[11px] font-medium text-eggplant-700 mb-1">
         {label}
       </label>
       <input
         type={type}
         name={name}
-        className="w-full px-2 py-1.5 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500/40 focus:border-amber-500"
+        className="w-full px-2 py-1.5 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 placeholder-vice-muted focus:outline-none focus:ring-1 focus:ring-neon-mint/40 focus:border-neon-mint"
         {...rest}
       />
     </div>
@@ -626,14 +623,14 @@ function TextArea({
 }) {
   return (
     <div>
-      <label className="block text-[11px] font-medium text-stone-600 mb-1">
+      <label className="block text-[11px] font-medium text-eggplant-700 mb-1">
         {label}
       </label>
       <textarea
         name={name}
         rows={rows}
         placeholder={placeholder}
-        className="w-full px-2 py-1.5 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500/40 focus:border-amber-500"
+        className="w-full px-2 py-1.5 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 placeholder-vice-muted focus:outline-none focus:ring-1 focus:ring-neon-mint/40 focus:border-neon-mint"
       />
     </div>
   );
@@ -652,13 +649,13 @@ function Select({
 }) {
   return (
     <div>
-      <label className="block text-[11px] font-medium text-stone-600 mb-1">
+      <label className="block text-[11px] font-medium text-eggplant-700 mb-1">
         {label}
       </label>
       <select
         name={name}
         defaultValue={defaultValue ?? ""}
-        className="w-full px-2 py-1.5 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+        className="w-full px-2 py-1.5 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -683,13 +680,13 @@ function SelectFromList({
 }) {
   return (
     <div>
-      <label className="block text-[11px] font-medium text-stone-600 mb-1">
+      <label className="block text-[11px] font-medium text-eggplant-700 mb-1">
         {label}
       </label>
       <select
         name={name}
         defaultValue=""
-        className="w-full px-2 py-1.5 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+        className="w-full px-2 py-1.5 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40"
       >
         <option value="">— None —</option>
         {options.map((o) => (
@@ -699,7 +696,7 @@ function SelectFromList({
         ))}
       </select>
       {options.length === 0 && emptyHint && (
-        <p className="text-[10px] text-stone-500 mt-1">{emptyHint}</p>
+        <p className="text-[10px] text-vice-muted mt-1">{emptyHint}</p>
       )}
     </div>
   );
@@ -716,13 +713,13 @@ function ProviderSelect({
 }) {
   return (
     <div>
-      <label className="block text-[11px] font-medium text-stone-600 mb-1">
+      <label className="block text-[11px] font-medium text-eggplant-700 mb-1">
         {label}
       </label>
       <select
         name={name}
         defaultValue=""
-        className="w-full px-2 py-1.5 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+        className="w-full px-2 py-1.5 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40"
       >
         <option value="">— None —</option>
         {providers.map((p) => (
@@ -733,8 +730,8 @@ function ProviderSelect({
         ))}
       </select>
       {providers.length === 0 && (
-        <p className="text-[10px] text-stone-500 mt-1">
-          No providers yet — add under Lists → Providers.
+        <p className="text-[10px] text-vice-muted mt-1">
+          No providers yet — add under Providers.
         </p>
       )}
     </div>
@@ -753,13 +750,13 @@ function Checkbox({
   defaultChecked?: boolean;
 }) {
   return (
-    <label className="flex items-center gap-2 text-xs text-stone-700 cursor-pointer select-none">
+    <label className="flex items-center gap-2 text-xs text-eggplant-800 cursor-pointer select-none">
       <input
         type="checkbox"
         name={name}
         value={value}
         defaultChecked={defaultChecked}
-        className="rounded border-stone-400 bg-white text-amber-600 focus:ring-amber-500/40"
+        className="rounded border-vice-muted bg-white text-neon-mint focus:ring-neon-mint/40"
       />
       {label}
     </label>
@@ -769,21 +766,21 @@ function Checkbox({
 function DateRange({ label, name }: { label: string; name: string }) {
   return (
     <div className="grid grid-cols-[1fr_1fr_1fr] items-end gap-2">
-      <div className="text-[11px] font-medium text-stone-600">{label}</div>
+      <div className="text-[11px] font-medium text-eggplant-700">{label}</div>
       <div>
-        <label className="block text-[10px] text-stone-500 mb-0.5">From</label>
+        <label className="block text-[10px] text-vice-muted mb-0.5">From</label>
         <input
           type="date"
           name={`${name}_from`}
-          className="w-full px-2 py-1 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+          className="w-full px-2 py-1 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40"
         />
       </div>
       <div>
-        <label className="block text-[10px] text-stone-500 mb-0.5">To</label>
+        <label className="block text-[10px] text-vice-muted mb-0.5">To</label>
         <input
           type="date"
           name={`${name}_to`}
-          className="w-full px-2 py-1 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+          className="w-full px-2 py-1 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40"
         />
       </div>
     </div>

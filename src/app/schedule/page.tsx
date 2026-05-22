@@ -3,9 +3,8 @@ import { StubPage } from "../(stubs)/stub-page";
 export default function SchedulePage() {
   return (
     <StubPage
-      active="/schedule"
       title="Schedule"
-      description="Appointment book — daily, weekly, and per-provider views. Coming after Cases."
+      description="Not in use for now — your volume is low (~10 patients/month). Ask to enable if scheduling becomes a bottleneck."
     />
   );
 }

@@ -51,7 +51,7 @@ export default function Home() {
           priority
         />
         <span
-          className="text-4xl font-sans font-extrabold italic tracking-tight text-neutral-100 inline-block border-b-2 border-amber-500/70 pb-0.5"
+          className="text-4xl font-sans font-extrabold italic tracking-tight text-neutral-100 inline-block border-b-2 border-neon-mint/70 pb-0.5"
         >
           CRM
         </span>
@@ -74,7 +74,7 @@ export default function Home() {
             priority
             className="mx-auto mb-5"
           />
-          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-amber-500/80 mb-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-neon-mint/80 mb-6">
             Pro Injury · Internal Portal
           </p>
           <h1 className="text-4xl md:text-5xl font-serif font-semibold text-neutral-50 mb-4 leading-tight">
@@ -91,7 +91,7 @@ export default function Home() {
           <div className="flex justify-center">
             <a
               href="/login"
-              className="px-12 py-3.5 bg-gradient-to-b from-amber-400 to-amber-600 text-neutral-950 font-semibold rounded-lg shadow-lg shadow-amber-900/30 hover:from-amber-300 hover:to-amber-500 transition-all"
+              className="px-12 py-3.5 bg-gradient-to-b from-neon-pink to-neon-mint text-neutral-950 font-semibold rounded-lg shadow-lg shadow-eggplant-900/30 hover:brightness-110 transition-all"
             >
               Sign in
             </a>

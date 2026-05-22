@@ -1,0 +1,1116 @@
+{
+  "form_set": "pro_injury_intake_packet",
+  "version": "2026.05",
+  "address": "15165 NW 77th Ave, Suite 1001, Miami Lakes, FL 33014",
+  "fort_myers": "6309 Corporate Court, Suite 100/103, Fort Myers, FL 33919",
+  "phone": "786-362-5480",
+  "fax": "786-362-5638",
+  "email": "admin@ProInjuryLLC.com",
+  "forms": [
+    {
+      "file": "intake.html",
+      "page": 1,
+      "table_name": "patient_intake",
+      "title": "Patient Intake",
+      "localStorage_key": "proInjury.intake.v1",
+      "field_count": 35,
+      "fields": [
+        {
+          "name": "meta_todays_date",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "meta_date_of_accident",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "meta_referred_by",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "meta_type_of_accident",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "language",
+          "kind": "input",
+          "type": "radio",
+          "value": "english",
+          "maxlength": null,
+          "multi": true,
+          "options": [
+            "spanish",
+            "creole"
+          ]
+        },
+        {
+          "name": "email",
+          "kind": "input",
+          "type": "email",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_name",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "marital",
+          "kind": "input",
+          "type": "radio",
+          "value": "single",
+          "maxlength": null,
+          "multi": true,
+          "options": [
+            "married",
+            "divorced"
+          ]
+        },
+        {
+          "name": "addr_street",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "addr_city",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "addr_state",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "addr_zip",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "gender",
+          "kind": "input",
+          "type": "radio",
+          "value": "female",
+          "maxlength": null,
+          "multi": true,
+          "options": [
+            "male"
+          ]
+        },
+        {
+          "name": "phone_home",
+          "kind": "input",
+          "type": "tel",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "phone_cell",
+          "kind": "input",
+          "type": "tel",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "client_role",
+          "kind": "input",
+          "type": "radio",
+          "value": "driver",
+          "maxlength": null,
+          "multi": true,
+          "options": [
+            "passenger"
+          ]
+        },
+        {
+          "name": "dob",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "emergency_contact",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "rescue",
+          "kind": "input",
+          "type": "radio",
+          "value": "yes",
+          "maxlength": null,
+          "multi": true,
+          "options": [
+            "no"
+          ]
+        },
+        {
+          "name": "hospital",
+          "kind": "input",
+          "type": "radio",
+          "value": "yes",
+          "maxlength": null,
+          "multi": true,
+          "options": [
+            "no"
+          ]
+        },
+        {
+          "name": "hospital_name",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "pip_carrier",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "pip_policy",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "pip_claim",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "pip_address",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "pip_adjuster",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "pip_phone",
+          "kind": "input",
+          "type": "tel",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "pip_fax",
+          "kind": "input",
+          "type": "tel",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "acc_time_location",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "acc_crash_report",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "inj_initial",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "acc_prior_surgeries",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "inj_treating_facility",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_initials",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": 4
+        },
+        {
+          "name": "acc_summary",
+          "kind": "textarea",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "file": "disclosure.html",
+      "page": 2,
+      "table_name": "pip_disclosure",
+      "title": "PIP Standard Disclosure",
+      "localStorage_key": "proInjury.disclosure.v1",
+      "field_count": 23,
+      "fields": [
+        {
+          "name": "patient_name",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_dob",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_phone",
+          "kind": "input",
+          "type": "tel",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "date_of_accident",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "svc_initial_visit",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "svc_initial_therapist_eval",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "svc_cold_hot",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "svc_ultrasound",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "svc_xrays",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "svc_estim",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "svc_massage",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "svc_therapeutic",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "svc_paraffin",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "svc_infrared",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "svc_other",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "svc_other_text",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "insured_name_print",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "insured_signature",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "insured_signed_date",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "provider_name_print",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "provider_signature",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "provider_signed_date",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_initials_p2",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": 4
+        }
+      ]
+    },
+    {
+      "file": "aob.html",
+      "page": 3,
+      "table_name": "assignment_benefits",
+      "title": "AOB / Release & Demand",
+      "localStorage_key": "proInjury.aob.v1",
+      "field_count": 7,
+      "fields": [
+        {
+          "name": "patient_name",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_dob",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_phone",
+          "kind": "input",
+          "type": "tel",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_name_print",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_signature",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_signed_date",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_initials_p3",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": 4
+        }
+      ]
+    },
+    {
+      "file": "hipaa.html",
+      "page": 4,
+      "table_name": "hipaa_consent",
+      "title": "HIPAA Consent & Privacy Ack",
+      "localStorage_key": "proInjury.hipaa.v1",
+      "field_count": 22,
+      "fields": [
+        {
+          "name": "patient_name",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_dob",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_phone",
+          "kind": "input",
+          "type": "tel",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "no_restrictions",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "consent_sms",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "consent_email",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "consent_voicemail",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "consent_billing_electronic",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "referral_source",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "attorney",
+          "maxlength": null,
+          "options": [
+            "attorney",
+            "friend_family",
+            "google",
+            "social_media",
+            "prior_patient",
+            "other"
+          ],
+          "multi": true
+        },
+        {
+          "name": "referral_source_other",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "ack_received_npp",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "patient_name_print",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_signature",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_signed_date",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "guardian_name",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "guardian_signature",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "guardian_relationship",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "witness_name",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "witness_signature",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "witness_date",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_initials_p4",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": 4
+        },
+        {
+          "name": "restrictions",
+          "kind": "textarea",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "file": "fraud.html",
+      "page": 5,
+      "table_name": "fraud_statement",
+      "title": "Fraud Statement",
+      "localStorage_key": "proInjury.fraud.v1",
+      "field_count": 8,
+      "fields": [
+        {
+          "name": "patient_name",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_dob",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_phone",
+          "kind": "input",
+          "type": "tel",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "date_of_accident",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "fraud_name_print",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "fraud_signature",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "fraud_signed_date",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_initials_p5",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": 4
+        }
+      ]
+    },
+    {
+      "file": "financial.html",
+      "page": 6,
+      "table_name": "financial_consent",
+      "title": "Financial Resp. & Deductible",
+      "localStorage_key": "proInjury.financial.v1",
+      "field_count": 15,
+      "fields": [
+        {
+          "name": "patient_name",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_dob",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_phone",
+          "kind": "input",
+          "type": "tel",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "deductible_choice",
+          "kind": "input",
+          "type": "radio",
+          "value": "payment_plan",
+          "maxlength": null,
+          "multi": true,
+          "options": [
+            "check",
+            "card_on_file",
+            "bill_attorney",
+            "hardship"
+          ]
+        },
+        {
+          "name": "cc_visa",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "cc_mc",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "cc_amex",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "cc_discover",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "attorney_firm",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "attorney_name",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "attorney_phone",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "financial_name_print",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "financial_signature",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "financial_signed_date",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_initials_p6",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": 4
+        }
+      ]
+    },
+    {
+      "file": "treatment.html",
+      "page": 7,
+      "table_name": "treatment_consent",
+      "title": "Treatment Consent & Radiology",
+      "localStorage_key": "proInjury.treatment.v1",
+      "field_count": 9,
+      "fields": [
+        {
+          "name": "patient_name",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_dob",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_phone",
+          "kind": "input",
+          "type": "tel",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "not_pregnant_attest",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "not_applicable",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "treatment_name_print",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "treatment_signature",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "treatment_signed_date",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_initials_p7",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": 4
+        }
+      ]
+    },
+    {
+      "file": "records.html",
+      "page": 8,
+      "table_name": "records_release",
+      "title": "Authorization for Records Release",
+      "localStorage_key": "proInjury.records.v1",
+      "field_count": 22,
+      "fields": [
+        {
+          "name": "patient_name",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_dob",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_phone",
+          "kind": "input",
+          "type": "tel",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "date_of_accident",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "release_from_name",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "release_from_phone",
+          "kind": "input",
+          "type": "tel",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "release_from_address",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "expiration_date",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "expire_at_case_end",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "sens_drug_alcohol",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "sens_mental",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "sens_hiv_aids",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "sens_std",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "sens_tb",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "sens_genetic",
+          "kind": "input",
+          "type": "checkbox",
+          "value": "yes",
+          "maxlength": null
+        },
+        {
+          "name": "records_name_print",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "records_signature",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "records_signed_date",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "witness_name",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "witness_signature",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "witness_date",
+          "kind": "input",
+          "type": "date",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "patient_initials_p8",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": 4
+        }
+      ]
+    }
+  ]
+}

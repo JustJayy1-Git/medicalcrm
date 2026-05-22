@@ -103,13 +103,13 @@ export function AttachmentsPanel({
   }
 
   return (
-    <section className="p-4 rounded-lg bg-white border border-stone-200 shadow-sm">
+    <section className="p-4 rounded-lg bg-white border border-vice-border shadow-sm">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-700">
+        <h2 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neon-pink">
           Insurance card & documents
         </h2>
         {busy && (
-          <span className="text-[10px] text-stone-500">Working…</span>
+          <span className="text-[10px] text-vice-muted">Working…</span>
         )}
       </div>
 
@@ -139,30 +139,30 @@ export function AttachmentsPanel({
       </div>
 
       {items.length === 0 ? (
-        <p className="text-xs text-stone-500">
+        <p className="text-xs text-vice-muted">
           No files yet. Upload the insurance card and we&apos;ll keep it
           attached to this case.
         </p>
       ) : (
-        <ul className="divide-y divide-stone-200 border border-stone-200 rounded">
+        <ul className="divide-y divide-vice-border border border-vice-border rounded">
           {items.map((a) => (
             <li
               key={a.id}
               className="flex items-center gap-3 px-3 py-2 text-sm"
             >
-              <span className="text-[10px] uppercase tracking-wider text-amber-700 w-44 shrink-0">
+              <span className="text-[10px] uppercase tracking-wider text-neon-pink w-44 shrink-0">
                 {KIND_LABEL[a.kind] ?? a.kind}
               </span>
-              <span className="flex-1 truncate text-stone-700">
+              <span className="flex-1 truncate text-eggplant-800">
                 {a.label ?? "(file)"}
               </span>
-              <span className="text-[11px] text-stone-400">
+              <span className="text-[11px] text-vice-muted">
                 {fmtBytes(a.size_bytes)}
               </span>
               <button
                 type="button"
                 onClick={() => handleOpen(a.id)}
-                className="text-xs px-2 py-1 border border-stone-300 text-stone-700 rounded hover:bg-stone-100"
+                className="text-xs px-2 py-1 border border-vice-border text-eggplant-800 rounded hover:bg-neon-mint-100"
               >
                 Open
               </button>
@@ -189,7 +189,7 @@ function UploadButton({
   onPick: (f: File) => void;
 }) {
   return (
-    <label className="cursor-pointer block px-3 py-3 text-center text-xs text-stone-700 border border-dashed border-stone-300 rounded hover:bg-amber-50 hover:border-amber-400 transition-colors">
+    <label className="cursor-pointer block px-3 py-3 text-center text-xs text-eggplant-800 border border-dashed border-vice-border rounded hover:bg-neon-mint-100 hover:border-neon-mint transition-colors">
       {label}
       <input
         type="file"

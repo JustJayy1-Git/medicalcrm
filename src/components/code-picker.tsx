@@ -93,7 +93,7 @@ export function CodePicker({
 
   return (
     <div className="relative" ref={wrapRef}>
-      <label className="block text-[11px] font-medium text-stone-600 mb-1">
+      <label className="block text-[11px] font-medium text-eggplant-700 mb-1">
         {label}
       </label>
 
@@ -109,13 +109,13 @@ export function CodePicker({
           }}
           onFocus={() => setOpen(true)}
           placeholder={placeholder}
-          className="w-full px-2 py-1.5 pr-8 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500/40 focus:border-amber-500"
+          className="w-full px-2 py-1.5 pr-8 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 placeholder-vice-muted focus:outline-none focus:ring-1 focus:ring-neon-mint/40 focus:border-neon-mint"
           autoComplete="off"
         />
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-stone-500 hover:text-amber-700"
+          className="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-vice-muted hover:text-neon-pink"
           aria-label="Search codes"
           title="Search codes"
         >
@@ -125,7 +125,7 @@ export function CodePicker({
           <button
             type="button"
             onClick={clear}
-            className="absolute right-7 top-1/2 -translate-y-1/2 p-1 text-stone-400 hover:text-stone-700 text-xs"
+            className="absolute right-7 top-1/2 -translate-y-1/2 p-1 text-vice-muted hover:text-eggplant-800 text-xs"
             aria-label="Clear"
             title="Clear"
           >
@@ -138,18 +138,18 @@ export function CodePicker({
       <input type="hidden" name={name} value={selected} />
 
       {selectedDesc && (
-        <p className="text-[10px] text-stone-500 mt-0.5 truncate">
+        <p className="text-[10px] text-vice-muted mt-0.5 truncate">
           {selectedDesc}
         </p>
       )}
 
       {open && (
-        <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-stone-300 rounded-lg shadow-lg max-h-72 overflow-auto">
+        <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-vice-border rounded-lg shadow-lg max-h-72 overflow-auto">
           {loading && (
-            <div className="px-3 py-2 text-xs text-stone-500">Searching…</div>
+            <div className="px-3 py-2 text-xs text-vice-muted">Searching…</div>
           )}
           {!loading && results.length === 0 && (
-            <div className="px-3 py-2 text-xs text-stone-500">
+            <div className="px-3 py-2 text-xs text-vice-muted">
               {q ? "No matches." : "Type to search."}
             </div>
           )}
@@ -159,10 +159,10 @@ export function CodePicker({
                 key={r.code}
                 type="button"
                 onClick={() => pick(r)}
-                className="w-full text-left px-3 py-2 text-sm hover:bg-amber-50 hover:text-amber-900 border-b border-stone-100 last:border-b-0"
+                className="w-full text-left px-3 py-2 text-sm hover:bg-neon-mint-100 hover:text-eggplant-900 border-b border-neon-mint-100 last:border-b-0"
               >
-                <span className="font-mono text-xs text-amber-700">{r.code}</span>
-                <span className="text-stone-600 ml-2">{r.description}</span>
+                <span className="font-mono text-xs text-neon-pink">{r.code}</span>
+                <span className="text-eggplant-700 ml-2">{r.description}</span>
               </button>
             ))}
         </div>

@@ -91,7 +91,7 @@ export function IntakeForm({
       )}
 
       {/* Top metadata row (always visible — applies to whole patient) */}
-      <section className="p-3 rounded-lg bg-white border border-stone-200 shadow-sm">
+      <section className="p-3 rounded-lg bg-white border border-vice-border shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
           <Field
             label="Chart number"
@@ -118,7 +118,7 @@ export function IntakeForm({
         </Link>
         <button
           type="submit"
-          className="px-6 py-2 text-sm bg-gradient-to-b from-amber-400 to-amber-600 text-neutral-950 font-semibold rounded-md hover:from-amber-300 hover:to-amber-500"
+          className="px-6 py-2 text-sm bg-gradient-to-b from-neon-pink to-neon-mint text-neutral-950 font-semibold rounded-md hover:brightness-110"
         >
           Save patient
         </button>
@@ -176,13 +176,13 @@ function NameAddressTab({ providers }: { providers: Provider[] }) {
 
         <SectionCard title="Assignments">
           <div className="col-span-3">
-            <label className="block text-[11px] font-medium text-stone-600 mb-0.5">
+            <label className="block text-[11px] font-medium text-eggplant-700 mb-0.5">
               Assigned provider
             </label>
             <select
               name="assigned_provider_id"
               defaultValue=""
-              className="w-full px-2 py-1 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40 focus:border-amber-500"
+              className="w-full px-2 py-1 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40 focus:border-neon-mint"
             >
               <option value="">— None —</option>
               {providers.map((p) => (
@@ -193,7 +193,7 @@ function NameAddressTab({ providers }: { providers: Provider[] }) {
               ))}
             </select>
             {providers.length === 0 && (
-              <p className="text-[10px] text-stone-500 mt-0.5">
+              <p className="text-[10px] text-vice-muted mt-0.5">
                 No providers yet. Add some under Lists → Providers.
               </p>
             )}
@@ -224,8 +224,8 @@ function SectionCard({
   cols?: 1 | 3;
 }) {
   return (
-    <section className="p-3 rounded-lg bg-white border border-stone-200 shadow-sm">
-      <h2 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-700 mb-2">
+    <section className="p-3 rounded-lg bg-white border border-vice-border shadow-sm">
+      <h2 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neon-pink mb-2">
         {title}
       </h2>
       <div className={`grid grid-cols-${cols === 1 ? "1" : "3"} gap-2`}>
@@ -256,17 +256,17 @@ function Field({
     span === 3 ? "col-span-3" : span === 2 ? "col-span-2" : "col-span-1";
   return (
     <div className={spanClass}>
-      <label className="block text-[11px] font-medium text-stone-600 mb-0.5">
+      <label className="block text-[11px] font-medium text-eggplant-700 mb-0.5">
         {label}
       </label>
       <input
         type={type}
         name={name}
         required={required}
-        className="w-full px-2 py-1 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500/40 focus:border-amber-500"
+        className="w-full px-2 py-1 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 placeholder-vice-muted focus:outline-none focus:ring-1 focus:ring-neon-mint/40 focus:border-neon-mint"
         {...rest}
       />
-      {hint && <p className="text-[10px] text-stone-500 mt-0.5">{hint}</p>}
+      {hint && <p className="text-[10px] text-vice-muted mt-0.5">{hint}</p>}
     </div>
   );
 }
@@ -284,13 +284,13 @@ function Select({
 }) {
   return (
     <div>
-      <label className="block text-[11px] font-medium text-stone-600 mb-0.5">
+      <label className="block text-[11px] font-medium text-eggplant-700 mb-0.5">
         {label}
       </label>
       <select
         name={name}
         defaultValue={defaultValue ?? ""}
-        className="w-full px-2 py-1 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40 focus:border-amber-500"
+        className="w-full px-2 py-1 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40 focus:border-neon-mint"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -304,11 +304,11 @@ function Select({
 
 function Checkbox({ label, name }: { label: string; name: string }) {
   return (
-    <label className="flex items-center gap-2 text-xs text-stone-700 cursor-pointer select-none">
+    <label className="flex items-center gap-2 text-xs text-eggplant-800 cursor-pointer select-none">
       <input
         type="checkbox"
         name={name}
-        className="rounded border-stone-400 bg-white text-amber-600 focus:ring-amber-500/40"
+        className="rounded border-vice-muted bg-white text-neon-mint focus:ring-neon-mint/40"
       />
       {label}
     </label>

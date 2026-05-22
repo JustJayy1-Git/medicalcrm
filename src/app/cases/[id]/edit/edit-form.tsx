@@ -8,9 +8,13 @@ import {
   AttachmentsPanel,
   type Attachment,
 } from "@/components/attachments-panel";
+import { AttorneyPicker } from "@/components/attorney-picker";
+import { CarrierPicker } from "@/components/carrier-picker";
+import type { AttorneyPicker as AttorneyRecord } from "@/lib/attorney";
+import type { InsuranceCarrierPicker } from "@/lib/insurance-carrier";
 
-type Carrier = { id: string; name: string };
-type Attorney = { id: string; attorney_name: string; firm_name: string | null };
+type Carrier = InsuranceCarrierPicker;
+type Attorney = AttorneyRecord;
 type Provider = { id: string; full_name: string; credentials: string | null };
 type Facility = { id: string; name: string };
 
@@ -115,17 +119,17 @@ export function EditCaseForm({
       )}
 
       {/* Header */}
-      <section className="p-3 rounded-lg bg-white border border-stone-200 shadow-sm">
+      <section className="p-3 rounded-lg bg-white border border-vice-border shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div>
-            <label className="block text-[11px] font-medium text-stone-600 mb-1">
+            <label className="block text-[11px] font-medium text-eggplant-700 mb-1">
               Type
             </label>
             <select
               name="case_type"
               value={caseType}
               onChange={(e) => setCaseType(e.target.value)}
-              className="w-full px-2 py-1.5 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+              className="w-full px-2 py-1.5 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40"
             >
               <option value="mva">Motor vehicle accident</option>
               <option value="slip_fall">Slip &amp; fall</option>
@@ -135,7 +139,7 @@ export function EditCaseForm({
             </select>
           </div>
           <div>
-            <label className="block text-[11px] font-medium text-stone-600 mb-1">
+            <label className="block text-[11px] font-medium text-eggplant-700 mb-1">
               Date of accident
             </label>
             <input
@@ -143,7 +147,7 @@ export function EditCaseForm({
               name="date_of_injury"
               value={doa}
               onChange={(e) => setDoa(e.target.value)}
-              className="w-full px-2 py-1.5 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+              className="w-full px-2 py-1.5 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40"
             />
           </div>
           <Select
@@ -172,7 +176,7 @@ export function EditCaseForm({
           />
         </div>
         <div className="mt-3">
-          <label className="block text-[11px] font-medium text-stone-600 mb-1">
+          <label className="block text-[11px] font-medium text-eggplant-700 mb-1">
             Case name
           </label>
           <input
@@ -183,13 +187,13 @@ export function EditCaseForm({
               userEditedDesc.current = true;
               setDescription(e.target.value);
             }}
-            className="w-full px-2 py-1.5 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+            className="w-full px-2 py-1.5 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40"
           />
         </div>
       </section>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 border-b border-stone-200 overflow-x-auto">
+      <div className="flex items-center gap-1 border-b border-vice-border overflow-x-auto">
         {(
           [
             ["providers", "Providers"],
@@ -207,8 +211,8 @@ export function EditCaseForm({
             className={[
               "px-5 py-2 text-sm font-medium transition-colors -mb-px whitespace-nowrap",
               tab === t
-                ? "text-amber-800 border-b-2 border-amber-600"
-                : "text-stone-500 border-b-2 border-transparent hover:text-stone-900",
+                ? "text-eggplant-800 border-b-2 border-neon-mint"
+                : "text-vice-muted border-b-2 border-transparent hover:text-eggplant-900",
             ].join(" ")}
           >
             {label}
@@ -235,26 +239,26 @@ export function EditCaseForm({
         {tab === "auth" && <AuthTab c={c} />}
       </div>
 
-      <div className="flex items-center justify-end gap-3 pt-2 border-t border-stone-200">
+      <div className="flex items-center justify-end gap-3 pt-2 border-t border-vice-border">
         <Link
           href={`/cases/${c.id}`}
-          className="px-4 py-2 text-sm border border-stone-300 text-stone-700 rounded-md hover:bg-stone-100"
+          className="px-4 py-2 text-sm border border-vice-border text-eggplant-800 rounded-md hover:bg-neon-mint-100"
         >
           Cancel
         </Link>
         <button
           type="submit"
-          className="px-6 py-2 text-sm bg-gradient-to-b from-amber-400 to-amber-600 text-stone-900 font-semibold rounded-md hover:from-amber-300 hover:to-amber-500 shadow-sm"
+          className="px-6 py-2 text-sm bg-gradient-to-b from-neon-pink to-neon-mint text-eggplant-900 font-semibold rounded-md hover:brightness-110 shadow-sm"
         >
           Save changes
         </button>
       </div>
 
-      <p className="text-[11px] text-stone-400 text-right">
+      <p className="text-[11px] text-vice-muted text-right">
         Linked patient: {patientName} ·{" "}
         <Link
           href={`/patients/${patientId}`}
-          className="underline hover:text-stone-700"
+          className="underline hover:text-eggplant-800"
         >
           open patient
         </Link>
@@ -318,24 +322,16 @@ function AttorneyTab({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
       <Card title="Attorney (LOP)">
-        <SelectFromList
+        <AttorneyPicker
           label="Attorney"
           name="attorney_id"
-          defaultValue={v(c, "attorney_id")}
-          options={attorneys.map((a) => ({
-            value: a.id,
-            label: a.firm_name
-              ? `${a.attorney_name} (${a.firm_name})`
-              : a.attorney_name,
-          }))}
+          attorneys={attorneys}
+          defaultAttorneyId={v(c, "attorney_id")}
         />
         <div className="grid grid-cols-2 gap-3">
           <Checkbox label="LOP signed" name="lop_signed" defaultChecked={vb(c, "lop_signed")} />
           <Field label="LOP signed date" name="lop_signed_date" type="date" defaultValue={v(c, "lop_signed_date")} />
         </div>
-        <p className="text-[11px] text-stone-500">
-          Add or manage attorneys under Lists → Attorneys.
-        </p>
       </Card>
     </div>
   );
@@ -399,7 +395,7 @@ function ConditionTab({
 
       <Card title="Pain & symptoms">
         <div>
-          <label className="block text-[11px] font-medium text-stone-600 mb-1">
+          <label className="block text-[11px] font-medium text-eggplant-700 mb-1">
             Pain locations
           </label>
           <div className="grid grid-cols-3 gap-1.5">
@@ -416,13 +412,13 @@ function ConditionTab({
         </div>
         <div className="grid grid-cols-2 gap-3 pt-2">
           <div>
-            <label className="block text-[11px] font-medium text-stone-600 mb-1">
+            <label className="block text-[11px] font-medium text-eggplant-700 mb-1">
               Pain level (0–10)
             </label>
             <select
               name="pain_level"
               defaultValue={v(c, "pain_level")}
-              className="w-full px-2 py-1.5 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+              className="w-full px-2 py-1.5 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40"
             >
               <option value="">—</option>
               {Array.from({ length: 11 }, (_, i) => (
@@ -448,7 +444,7 @@ function DiagnosisTab({ codes }: { codes: string[] }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
       <Card title="ICD-10 diagnosis codes">
-        <p className="text-xs text-stone-500">
+        <p className="text-xs text-vice-muted">
           Search by code (e.g. <span className="font-mono">S13.4</span>) or
           keyword (e.g. <span className="italic">lumbar sprain</span>). Click
           🔍 or start typing.
@@ -483,7 +479,12 @@ function PolicyTab({
   return (
     <div className="grid grid-cols-1 gap-3">
       <Card title="Primary insurance">
-        <SelectFromList label="Carrier" name="primary_carrier_id" defaultValue={v(c, "primary_carrier_id")} options={carriers.map((cr) => ({ value: cr.id, label: cr.name }))} />
+        <CarrierPicker
+          label="Carrier"
+          name="primary_carrier_id"
+          carriers={carriers}
+          defaultCarrierId={v(c, "primary_carrier_id")}
+        />
         <Field label="Claim number" name="primary_claim_number" defaultValue={v(c, "primary_claim_number")} />
         <Field label="Policy number" name="primary_policy_number" defaultValue={v(c, "primary_policy_number")} />
         <div className="grid grid-cols-2 gap-3">
@@ -502,7 +503,7 @@ function PolicyTab({
           <Checkbox label="Accept assignment" name="accept_assignment" defaultChecked={vb(c, "accept_assignment")} />
           <Checkbox label="Deductible met" name="deductible_met" defaultChecked={vb(c, "deductible_met")} />
         </div>
-        <div className="grid grid-cols-2 gap-3 pt-1 border-t border-stone-200">
+        <div className="grid grid-cols-2 gap-3 pt-1 border-t border-vice-border">
           <Field label="Adjuster name" name="primary_adjuster_name" defaultValue={v(c, "primary_adjuster_name")} />
           <Field label="Adjuster phone" name="primary_adjuster_phone" type="tel" defaultValue={v(c, "primary_adjuster_phone")} />
         </div>
@@ -542,8 +543,8 @@ function AuthTab({ c }: { c: CaseRow }) {
 // ============================================
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="p-4 rounded-lg bg-white border border-stone-200 shadow-sm">
-      <h2 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-700 mb-3">
+    <section className="p-4 rounded-lg bg-white border border-vice-border shadow-sm">
+      <h2 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neon-pink mb-3">
         {title}
       </h2>
       <div className="space-y-3">{children}</div>
@@ -566,12 +567,12 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-[11px] font-medium text-stone-600 mb-1">{label}</label>
+      <label className="block text-[11px] font-medium text-eggplant-700 mb-1">{label}</label>
       <input
         type={type}
         name={name}
         defaultValue={defaultValue}
-        className="w-full px-2 py-1.5 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500/40 focus:border-amber-500"
+        className="w-full px-2 py-1.5 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 placeholder-vice-muted focus:outline-none focus:ring-1 focus:ring-neon-mint/40 focus:border-neon-mint"
         {...rest}
       />
     </div>
@@ -591,12 +592,12 @@ function TextArea({
 }) {
   return (
     <div>
-      <label className="block text-[11px] font-medium text-stone-600 mb-1">{label}</label>
+      <label className="block text-[11px] font-medium text-eggplant-700 mb-1">{label}</label>
       <textarea
         name={name}
         rows={rows}
         defaultValue={defaultValue}
-        className="w-full px-2 py-1.5 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-500/40 focus:border-amber-500"
+        className="w-full px-2 py-1.5 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 placeholder-vice-muted focus:outline-none focus:ring-1 focus:ring-neon-mint/40 focus:border-neon-mint"
       />
     </div>
   );
@@ -615,11 +616,11 @@ function Select({
 }) {
   return (
     <div>
-      <label className="block text-[11px] font-medium text-stone-600 mb-1">{label}</label>
+      <label className="block text-[11px] font-medium text-eggplant-700 mb-1">{label}</label>
       <select
         name={name}
         defaultValue={defaultValue}
-        className="w-full px-2 py-1.5 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+        className="w-full px-2 py-1.5 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>{o.label}</option>
@@ -642,11 +643,11 @@ function SelectFromList({
 }) {
   return (
     <div>
-      <label className="block text-[11px] font-medium text-stone-600 mb-1">{label}</label>
+      <label className="block text-[11px] font-medium text-eggplant-700 mb-1">{label}</label>
       <select
         name={name}
         defaultValue={defaultValue}
-        className="w-full px-2 py-1.5 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+        className="w-full px-2 py-1.5 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40"
       >
         <option value="">— None —</option>
         {options.map((o) => (
@@ -670,11 +671,11 @@ function ProviderSelect({
 }) {
   return (
     <div>
-      <label className="block text-[11px] font-medium text-stone-600 mb-1">{label}</label>
+      <label className="block text-[11px] font-medium text-eggplant-700 mb-1">{label}</label>
       <select
         name={name}
         defaultValue={defaultValue}
-        className="w-full px-2 py-1.5 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+        className="w-full px-2 py-1.5 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40"
       >
         <option value="">— None —</option>
         {providers.map((p) => (
@@ -699,13 +700,13 @@ function Checkbox({
   defaultChecked?: boolean;
 }) {
   return (
-    <label className="flex items-center gap-2 text-xs text-stone-700 cursor-pointer select-none">
+    <label className="flex items-center gap-2 text-xs text-eggplant-800 cursor-pointer select-none">
       <input
         type="checkbox"
         name={name}
         value={value}
         defaultChecked={defaultChecked}
-        className="rounded border-stone-400 bg-white text-amber-600 focus:ring-amber-500/40"
+        className="rounded border-vice-muted bg-white text-neon-mint focus:ring-neon-mint/40"
       />
       {label}
     </label>
@@ -725,23 +726,23 @@ function DateRange({
 }) {
   return (
     <div className="grid grid-cols-[1fr_1fr_1fr] items-end gap-2">
-      <div className="text-[11px] font-medium text-stone-600">{label}</div>
+      <div className="text-[11px] font-medium text-eggplant-700">{label}</div>
       <div>
-        <label className="block text-[10px] text-stone-500 mb-0.5">From</label>
+        <label className="block text-[10px] text-vice-muted mb-0.5">From</label>
         <input
           type="date"
           name={`${name}_from`}
           defaultValue={fromVal}
-          className="w-full px-2 py-1 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+          className="w-full px-2 py-1 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40"
         />
       </div>
       <div>
-        <label className="block text-[10px] text-stone-500 mb-0.5">To</label>
+        <label className="block text-[10px] text-vice-muted mb-0.5">To</label>
         <input
           type="date"
           name={`${name}_to`}
           defaultValue={toVal}
-          className="w-full px-2 py-1 text-sm bg-stone-50 border border-stone-300 rounded text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+          className="w-full px-2 py-1 text-sm bg-vice-surface border border-vice-border rounded text-eggplant-900 focus:outline-none focus:ring-1 focus:ring-neon-mint/40"
         />
       </div>
     </div>

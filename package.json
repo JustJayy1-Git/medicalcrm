@@ -4,12 +4,21 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:webpack": "next dev --webpack",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "db:check": "node scripts/check-supabase.mjs",
+    "db:migrate-0012": "node scripts/apply-0012.mjs",
+    "db:migrate-0015": "node scripts/apply-0015.mjs",
+    "cms1500:copy-blank": "node scripts/copy-cms1500-blank.mjs",
+    "cms1500:render-bg": "node scripts/render-cms1500-bg.mjs",
+    "sync-intake-forms": "node scripts/sync-intake-forms.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.4",
+    "pdf-lib": "^1.17.1",
+    "server-only": "^0.0.1",
     "next": "16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4"
@@ -19,6 +28,8 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "pg": "^8.16.0",
+    "supabase": "^2.100.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

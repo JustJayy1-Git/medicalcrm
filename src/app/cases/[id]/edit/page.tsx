@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { AppShell } from "@/components/app-shell";
+import { ATTORNEY_PICKER_SELECT } from "@/lib/attorney";
+import { CARRIER_PICKER_SELECT } from "@/lib/insurance-carrier";
 import { EditCaseForm, type CaseRow } from "./edit-form";
 
 export const dynamic = "force-dynamic";
@@ -16,12 +17,7 @@ export default async function EditCasePage({
   const { id } = await params;
   const { error } = await searchParams;
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const [
+const [
     { data: c },
     { data: carriers },
     { data: attorneys },
@@ -37,10 +33,14 @@ export default async function EditCasePage({
       )
       .eq("id", id)
       .maybeSingle(),
-    supabase.from("insurance_carriers").select("id, name").order("name"),
+    supabase
+      .from("insurance_carriers")
+      .select(CARRIER_PICKER_SELECT)
+      .order("sort_rank")
+      .order("name"),
     supabase
       .from("attorneys")
-      .select("id, attorney_name, firm_name")
+      .select(ATTORNEY_PICKER_SELECT)
       .order("attorney_name"),
     supabase
       .from("providers")
@@ -64,22 +64,21 @@ export default async function EditCasePage({
   const patient = Array.isArray(c.patient) ? c.patient[0] : c.patient;
 
   return (
-    <AppShell user={user} active="/cases">
-      <div className="px-6 py-4 max-w-[1400px] mx-auto">
+    <div className="px-6 py-4 max-w-[1400px] mx-auto">
         {/* Patient banner — always visible so you never lose context */}
         {patient && (
-          <div className="mb-3 flex items-center justify-between p-3 rounded-lg bg-amber-50 border border-amber-200">
+          <div className="mb-3 flex items-center justify-between p-3 rounded-lg bg-neon-mint-100 border border-neon-mint-100">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-amber-700">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-neon-pink">
                 Patient
               </p>
               <Link
                 href={`/patients/${patient.id}`}
-                className="text-base font-semibold text-stone-900 hover:text-amber-800"
+                className="text-base font-semibold text-eggplant-900 hover:text-eggplant-800"
               >
                 {patient.last_name}, {patient.first_name}
                 {patient.chart_number ? (
-                  <span className="text-stone-500 font-mono text-xs ml-2">
+                  <span className="text-vice-muted font-mono text-xs ml-2">
                     {patient.chart_number}
                   </span>
                 ) : null}
@@ -87,7 +86,7 @@ export default async function EditCasePage({
             </div>
             <Link
               href={`/patients/${patient.id}`}
-              className="text-xs text-amber-700 hover:text-amber-800 font-medium"
+              className="text-xs text-neon-pink hover:text-eggplant-800 font-medium"
             >
               Open patient →
             </Link>
@@ -97,14 +96,14 @@ export default async function EditCasePage({
         <div className="mb-3">
           <Link
             href={`/cases/${id}`}
-            className="text-xs text-stone-500 hover:text-stone-900"
+            className="text-xs text-vice-muted hover:text-eggplant-900"
           >
             ← Back to case
           </Link>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-700 mt-2 mb-0.5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-neon-pink mt-2 mb-0.5">
             Edit case
           </p>
-          <h1 className="text-xl font-sans font-semibold text-stone-900 tabular-nums">
+          <h1 className="text-xl font-sans font-semibold text-eggplant-900 tabular-nums">
             {c.case_number ?? id.slice(0, 8)} · {c.description ?? "(no name)"}
           </h1>
         </div>
@@ -123,6 +122,5 @@ export default async function EditCasePage({
           errorMsg={error ?? null}
         />
       </div>
-    </AppShell>
-  );
+);
 }
