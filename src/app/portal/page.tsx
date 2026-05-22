@@ -15,7 +15,7 @@ export default async function PortalHomePage({
   const errorMessage =
     error === "device"
       ? DEVICE_SETUP_HINT
-      : error
+      : error && !/next_redirect/i.test(error)
         ? decodeURIComponent(error)
         : null;
 
