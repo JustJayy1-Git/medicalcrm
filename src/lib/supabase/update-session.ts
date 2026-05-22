@@ -4,7 +4,11 @@ import { isKioskRole } from "@/lib/auth-profile";
 import { signInKioskDevice } from "@/lib/portal/device-auth";
 
 const PUBLIC_PREFIXES = ["/login", "/auth", "/portal/login"];
-const PUBLIC_EXACT = new Set(["/"]);
+const PUBLIC_EXACT = new Set(["/", "/portal"]);
+
+function isPortalWelcomePath(pathname: string) {
+  return pathname === "/portal";
+}
 
 function isPublicPath(pathname: string) {
   if (PUBLIC_EXACT.has(pathname)) return true;
@@ -64,7 +68,7 @@ export async function updateSession(request: NextRequest) {
     const { pathname, search } = request.nextUrl;
     const isPublic = isPublicPath(pathname);
 
-    if (!user && isPortalPath(pathname) && !isPortalLoginPath(pathname)) {
+    if (!user && isPortalPath(pathname) && !isPortalLoginPath(pathname) && !isPortalWelcomePath(pathname)) {
       const kioskUser = await signInKioskDevice(supabase);
       if (kioskUser) {
         user = kioskUser;
@@ -96,7 +100,14 @@ export async function updateSession(request: NextRequest) {
       role = profile?.role ?? null;
     }
 
-    if (user && isPortalPath(pathname) && !isKioskRole(role) && !isPortalLoginPath(pathname)) {
+    if (user && isPortalWelcomePath(pathname) && !isKioskRole(role)) {
+      const dashboard = request.nextUrl.clone();
+      dashboard.pathname = "/dashboard";
+      dashboard.search = "";
+      return NextResponse.redirect(dashboard);
+    }
+
+    if (user && isPortalPath(pathname) && !isKioskRole(role) && !isPortalLoginPath(pathname) && !isPortalWelcomePath(pathname)) {
       const dashboard = request.nextUrl.clone();
       dashboard.pathname = "/dashboard";
       dashboard.search = "";

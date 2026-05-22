@@ -8,6 +8,16 @@ export function kioskDeviceCredentials() {
   return { email, password };
 }
 
+export async function ensurePortalUser(
+  supabase: SupabaseClient,
+): Promise<User | null> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) return user;
+  return signInKioskDevice(supabase);
+}
+
 export async function signInKioskDevice(
   supabase: SupabaseClient,
 ): Promise<User | null> {
