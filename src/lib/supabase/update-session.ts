@@ -23,6 +23,10 @@ function isPortalLoginPath(pathname: string) {
   return pathname === "/portal/login" || pathname.startsWith("/portal/login/");
 }
 
+function isPortalApiPath(pathname: string) {
+  return pathname.startsWith("/portal/api/");
+}
+
 function isKioskAllowedPath(pathname: string) {
   return (
     isPortalPath(pathname) ||
@@ -68,11 +72,11 @@ export async function updateSession(request: NextRequest) {
     const { pathname, search } = request.nextUrl;
     const isPublic = isPublicPath(pathname);
 
-    if (!user && isPortalPath(pathname) && !isPortalLoginPath(pathname) && !isPortalWelcomePath(pathname)) {
+    if (!user && isPortalPath(pathname) && !isPortalLoginPath(pathname)) {
       const kioskUser = await signInKioskDevice(supabase);
       if (kioskUser) {
         user = kioskUser;
-      } else {
+      } else if (!isPortalWelcomePath(pathname) && !isPortalApiPath(pathname)) {
         const portalLogin = request.nextUrl.clone();
         portalLogin.pathname = "/portal/login";
         portalLogin.searchParams.set("next", pathname + search);
@@ -109,7 +113,11 @@ export async function updateSession(request: NextRequest) {
       if (kioskUser) {
         user = kioskUser;
         role = "kiosk";
-      } else if (!isPortalWelcomePath(pathname) && !isPortalLoginPath(pathname)) {
+      } else if (
+        !isPortalWelcomePath(pathname) &&
+        !isPortalLoginPath(pathname) &&
+        !isPortalApiPath(pathname)
+      ) {
         const portalLogin = request.nextUrl.clone();
         portalLogin.pathname = "/portal/login";
         portalLogin.searchParams.set("next", pathname + search);

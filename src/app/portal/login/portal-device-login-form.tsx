@@ -1,73 +1,30 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { useFormStatus } from "react-dom";
+import { portalDeviceSignIn } from "./actions";
+
+function SignInButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-neon-mint to-neon-pink text-eggplant-950 disabled:opacity-60"
+    >
+      {pending ? "Signing in…" : "Sign in this iPad"}
+    </button>
+  );
+}
 
 /** One-time iPad setup — staff signs in the kiosk account. Patients never use this page. */
 export function PortalDeviceLoginForm({
   afterLogin,
-  setupError,
+  errorMessage,
 }: {
   afterLogin: string;
-  setupError?: "device" | null;
+  errorMessage?: string | null;
 }) {
-  const router = useRouter();
-  const supabase = createClient();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(
-    setupError === "device"
-      ? "This iPad is not configured yet. Staff: sign in with the kiosk account below."
-      : null,
-  );
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    setLoading(false);
-
-    if (signInError) {
-      setError(signInError.message);
-      return;
-    }
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setError("Sign-in failed. Try again.");
-      return;
-    }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    if (profile?.role !== "kiosk") {
-      await supabase.auth.signOut();
-      setError(
-        "That account is for staff CRM, not the iPad. Use the kiosk account here, or sign in at /login on a computer.",
-      );
-      return;
-    }
-
-    router.push(afterLogin);
-    router.refresh();
-  }
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-eggplant-950 via-eggplant-900 to-[#1a1d24] px-6 py-10">
       <Image src="/logo.png" alt="Pro Injury" width={88} height={88} priority className="mb-6" />
@@ -81,17 +38,17 @@ export function PortalDeviceLoginForm({
       </p>
 
       <form
-        onSubmit={handleSubmit}
+        action={portalDeviceSignIn}
         className="w-full max-w-sm bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4"
       >
+        <input type="hidden" name="afterLogin" value={afterLogin} />
         <label className="block">
           <span className="block text-sm text-white/70 mb-1">Kiosk email</span>
           <input
             type="email"
+            name="email"
             required
             autoComplete="username"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
             className="w-full px-4 py-3 rounded-lg bg-eggplant-950 border border-white/15 text-white"
           />
         </label>
@@ -99,27 +56,20 @@ export function PortalDeviceLoginForm({
           <span className="block text-sm text-white/70 mb-1">Kiosk password</span>
           <input
             type="password"
+            name="password"
             required
             autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
             className="w-full px-4 py-3 rounded-lg bg-eggplant-950 border border-white/15 text-white"
           />
         </label>
 
-        {error ? (
+        {errorMessage ? (
           <p className="text-sm text-red-300 bg-red-950/40 border border-red-900/50 rounded-lg px-3 py-2">
-            {error}
+            {errorMessage}
           </p>
         ) : null}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-neon-mint to-neon-pink text-eggplant-950 disabled:opacity-60"
-        >
-          {loading ? "Signing in…" : "Sign in this iPad"}
-        </button>
+        <SignInButton />
       </form>
 
       <p className="mt-8 text-xs text-white/30 text-center max-w-sm">

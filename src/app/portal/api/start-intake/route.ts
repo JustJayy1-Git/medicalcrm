@@ -8,7 +8,11 @@ export async function POST() {
   const { supabase, user } = await createPortalClient();
   if (!user) {
     return NextResponse.json(
-      { error: "Kiosk device is not configured. Set KIOSK_DEVICE_EMAIL and KIOSK_DEVICE_PASSWORD on the server." },
+      {
+        error:
+          "Kiosk not configured. Add KIOSK_DEVICE_EMAIL and KIOSK_DEVICE_PASSWORD in Vercel (kiosk user, role=kiosk), then redeploy.",
+        code: "KIOSK_NOT_CONFIGURED",
+      },
       { status: 503 },
     );
   }
