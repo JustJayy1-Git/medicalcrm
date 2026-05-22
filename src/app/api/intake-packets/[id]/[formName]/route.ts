@@ -1,15 +1,12 @@
 import { isFormSlug } from "@/lib/intake-packet/form-slugs";
 import { loadForm, saveForm } from "@/lib/intake-packet/form-persistence";
-import { createClient } from "@/lib/supabase/server";
+import { createPortalClient } from "@/lib/portal/portal-supabase";
 import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ id: string; formName: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await createPortalClient();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id, formName } = await params;
@@ -27,10 +24,7 @@ export async function GET(_request: Request, { params }: Params) {
 }
 
 export async function POST(request: Request, { params }: Params) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await createPortalClient();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id, formName } = await params;

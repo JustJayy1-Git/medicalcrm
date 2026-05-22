@@ -100,18 +100,21 @@ export async function updateSession(request: NextRequest) {
       role = profile?.role ?? null;
     }
 
-    if (user && isPortalWelcomePath(pathname) && !isKioskRole(role)) {
-      const dashboard = request.nextUrl.clone();
-      dashboard.pathname = "/dashboard";
-      dashboard.search = "";
-      return NextResponse.redirect(dashboard);
-    }
-
-    if (user && isPortalPath(pathname) && !isKioskRole(role) && !isPortalLoginPath(pathname) && !isPortalWelcomePath(pathname)) {
-      const dashboard = request.nextUrl.clone();
-      dashboard.pathname = "/dashboard";
-      dashboard.search = "";
-      return NextResponse.redirect(dashboard);
+    // iPad /portal must never run as staff — swap to kiosk device session.
+    if (user && isPortalPath(pathname) && !isKioskRole(role)) {
+      await supabase.auth.signOut();
+      user = null;
+      role = null;
+      const kioskUser = await signInKioskDevice(supabase);
+      if (kioskUser) {
+        user = kioskUser;
+        role = "kiosk";
+      } else if (!isPortalWelcomePath(pathname) && !isPortalLoginPath(pathname)) {
+        const portalLogin = request.nextUrl.clone();
+        portalLogin.pathname = "/portal/login";
+        portalLogin.searchParams.set("next", pathname + search);
+        return NextResponse.redirect(portalLogin);
+      }
     }
 
     if (user && isKioskRole(role)) {

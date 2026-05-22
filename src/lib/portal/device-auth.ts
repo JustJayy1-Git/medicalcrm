@@ -1,4 +1,5 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
+import { getProfileRole, isKioskRole } from "@/lib/auth-profile";
 
 /** Server-only kiosk device credentials (Vercel env). Patients never type these. */
 export function kioskDeviceCredentials() {
@@ -8,13 +9,26 @@ export function kioskDeviceCredentials() {
   return { email, password };
 }
 
+async function isKioskUser(
+  supabase: SupabaseClient,
+  user: User,
+): Promise<boolean> {
+  const role = await getProfileRole(supabase, user.id);
+  return isKioskRole(role);
+}
+
 export async function ensurePortalUser(
   supabase: SupabaseClient,
 ): Promise<User | null> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (user) return user;
+
+  if (user) {
+    if (await isKioskUser(supabase, user)) return user;
+    await supabase.auth.signOut();
+  }
+
   return signInKioskDevice(supabase);
 }
 
@@ -33,5 +47,11 @@ export async function signInKioskDevice(
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user || !(await isKioskUser(supabase, user))) {
+    await supabase.auth.signOut();
+    console.error("Kiosk device credentials are not a kiosk role user");
+    return null;
+  }
+
   return user;
 }

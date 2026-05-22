@@ -42,6 +42,28 @@ export function PortalDeviceLoginForm({
       return;
     }
 
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      setError("Sign-in failed. Try again.");
+      return;
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profile?.role !== "kiosk") {
+      await supabase.auth.signOut();
+      setError(
+        "That account is for staff CRM, not the iPad. Use the kiosk account here, or sign in at /login on a computer.",
+      );
+      return;
+    }
+
     router.push(afterLogin);
     router.refresh();
   }

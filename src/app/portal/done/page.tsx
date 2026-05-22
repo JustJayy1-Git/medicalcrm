@@ -1,6 +1,6 @@
 import { completePacket } from "@/lib/intake-packet/form-persistence";
 import { StaffExitButton } from "@/components/portal/staff-exit-button";
-import { createClient } from "@/lib/supabase/server";
+import { createPortalClient } from "@/lib/portal/portal-supabase";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -13,8 +13,8 @@ export default async function PortalDonePage({
   const packetId = packet ? Number(packet) : NaN;
 
   if (Number.isFinite(packetId)) {
-    const supabase = await createClient();
-    await completePacket(supabase, packetId);
+    const { supabase, user } = await createPortalClient();
+    if (user) await completePacket(supabase, packetId);
   }
 
   return (

@@ -283,9 +283,65 @@ export async function loadPacketForms(supabase: SupabaseClient, packetId: number
 }
 
 export async function completePacket(supabase: SupabaseClient, packetId: number) {
+  const { data: packet, error: packetErr } = await supabase
+    .from("intake_packets")
+    .select("patient_id, date_of_accident, status")
+    .eq("id", packetId)
+    .single();
+
+  if (packetErr) throw packetErr;
+
+  const intake = await loadForm(supabase, packetId, "intake");
+  const doi =
+    packet.date_of_accident ?? emptyDate(intake.meta_date_of_accident);
+
+  if (packet.patient_id) {
+    const name = String(intake.patient_name ?? "").trim();
+    const names = name ? splitPatientName(name) : null;
+    const patientUpdate: Record<string, string | null> = {};
+    if (names) {
+      patientUpdate.first_name = names.first_name;
+      patientUpdate.last_name = names.last_name;
+      if (names.middle_name) patientUpdate.middle_name = names.middle_name;
+    }
+    const dob = emptyDate(intake.dob);
+    if (dob) patientUpdate.date_of_birth = dob;
+    if (intake.phone_cell) patientUpdate.phone = String(intake.phone_cell);
+    if (intake.email) patientUpdate.email = String(intake.email);
+    if (intake.addr_street) patientUpdate.address_line1 = String(intake.addr_street);
+    if (intake.addr_city) patientUpdate.city = String(intake.addr_city);
+    if (intake.addr_state) patientUpdate.state = String(intake.addr_state);
+    if (intake.addr_zip) patientUpdate.zip = String(intake.addr_zip);
+    if (Object.keys(patientUpdate).length > 0) {
+      await supabase.from("patients").update(patientUpdate).eq("id", packet.patient_id);
+    }
+  }
+
   const { error } = await supabase
     .from("intake_packets")
-    .update({ status: "completed" })
+    .update({ status: "completed", date_of_accident: doi })
     .eq("id", packetId);
   if (error) throw error;
+
+  if (packet.patient_id) {
+    const { data: openCase } = await supabase
+      .from("cases")
+      .select("id")
+      .eq("patient_id", packet.patient_id)
+      .in("status", ["open", "active"])
+      .maybeSingle();
+
+    if (!openCase) {
+      const summary = intake.acc_summary ? String(intake.acc_summary).trim() : "";
+      await supabase.from("cases").insert({
+        patient_id: packet.patient_id,
+        case_type: "mva",
+        status: "open",
+        billing_method: "insurance",
+        date_of_injury: doi,
+        description: summary ? summary.slice(0, 500) : "Portal intake",
+        how_it_happened: summary || null,
+      });
+    }
+  }
 }

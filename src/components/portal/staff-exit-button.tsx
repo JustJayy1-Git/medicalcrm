@@ -72,7 +72,7 @@ export function StaffExitButton() {
                     setError((j as { error?: string }).error ?? "Incorrect PIN");
                     return;
                   }
-                  router.replace("/login");
+                  router.replace("/portal");
                   router.refresh();
                 }}
                 className="px-4 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-neon-mint to-neon-pink text-eggplant-950 disabled:opacity-50"

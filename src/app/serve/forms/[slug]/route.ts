@@ -2,7 +2,7 @@ import { isFormSlug } from "@/lib/intake-packet/form-slugs";
 import { getFormBySlug } from "@/lib/intake-packet/forms-registry.server";
 import { resolveFormsDir } from "@/lib/intake-packet/forms-path";
 import { injectApiBridge } from "@/lib/intake-packet/html-bridge";
-import { createClient } from "@/lib/supabase/server";
+import { createPortalClient } from "@/lib/portal/portal-supabase";
 import fs from "fs";
 import path from "path";
 import { NextResponse } from "next/server";
@@ -10,10 +10,7 @@ import { NextResponse } from "next/server";
 type Params = { params: Promise<{ slug: string }> };
 
 export async function GET(request: Request, { params }: Params) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user } = await createPortalClient();
   if (!user) return new NextResponse("Unauthorized", { status: 401 });
 
   const { slug } = await params;
