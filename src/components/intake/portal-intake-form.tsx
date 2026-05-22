@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { submitPortalIntake } from "@/app/portal/actions";
+import { submitPortalIntake } from "@/app/portal/submit-intake";
 
 const SECTIONS = [
   { id: "identity", label: "1. Your name" },
