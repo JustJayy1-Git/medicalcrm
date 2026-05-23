@@ -1,5 +1,5 @@
 import { createPortalPacket, formatDbError } from "@/lib/intake-packet/form-persistence";
-import { FORM_ORDER } from "@/lib/intake-packet/form-slugs";
+import { PORTAL_FORM_ORDER } from "@/lib/intake-packet/form-slugs";
 import { kioskSignInErrorMessage } from "@/lib/portal/device-auth";
 import { createPortalClient } from "@/lib/portal/portal-supabase";
 import { NextResponse, type NextRequest } from "next/server";
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const { packetId } = await createPortalPacket(supabase, user.id);
-    const first = FORM_ORDER[0];
+    const first = PORTAL_FORM_ORDER[0];
     return NextResponse.redirect(
       portalUrl(request, `/portal/packet/${packetId}/forms/${first}`),
       303,

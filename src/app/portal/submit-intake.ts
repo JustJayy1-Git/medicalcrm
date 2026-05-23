@@ -5,7 +5,7 @@ import {
   saveForm,
   type FormPayload,
 } from "@/lib/intake-packet/form-persistence";
-import { FORM_ORDER } from "@/lib/intake-packet/form-slugs";
+import { PORTAL_FORM_ORDER } from "@/lib/intake-packet/form-slugs";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -73,6 +73,6 @@ export async function submitPortalIntake(formData: FormData): Promise<void> {
 
   await saveForm(supabase, packetId, "intake", payload);
 
-  const first = FORM_ORDER[0];
+  const first = PORTAL_FORM_ORDER[0];
   redirect(`/portal/packet/${packetId}/forms/${first}`);
 }

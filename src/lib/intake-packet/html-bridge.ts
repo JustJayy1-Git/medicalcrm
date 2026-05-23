@@ -1,7 +1,51 @@
-import { INTAKE_STORAGE_KEY } from "./form-slugs";
+import { INTAKE_STORAGE_KEY, type FormSlug } from "./form-slugs";
 
 /** Screen-only zoom for portal / iPad (print layout unchanged). */
 const KIOSK_PAGE_ZOOM = 1.32;
+
+const HEADER_ALIGN_CSS = `
+<style id="pro-injury-header-align">
+@media screen {
+  html.portal-kiosk .page .header {
+    display: grid !important;
+    grid-template-columns: 74px minmax(160px, 1fr) minmax(210px, 280px) !important;
+    gap: 12px 16px !important;
+    padding: 12px 24px !important;
+    align-items: center !important;
+  }
+  html.portal-kiosk .header-logo {
+    width: 74px !important;
+    height: 74px !important;
+    flex-shrink: 0;
+  }
+  html.portal-kiosk .brand-block { min-width: 0; align-self: center; }
+  html.portal-kiosk .brand-block .brand {
+    font-size: 24px !important;
+    line-height: 1.08 !important;
+    margin: 0 !important;
+  }
+  html.portal-kiosk .brand-block .tagline {
+    font-size: 9px !important;
+    letter-spacing: 0.18em !important;
+    margin-top: 3px !important;
+  }
+  html.portal-kiosk .accent-rule {
+    width: 100% !important;
+    max-width: 200px !important;
+    margin-top: 5px !important;
+    height: 2px !important;
+    border: 0 !important;
+  }
+  html.portal-kiosk .contact-block {
+    text-align: right !important;
+    font-size: 9px !important;
+    line-height: 1.42 !important;
+    justify-self: end;
+    align-self: center;
+  }
+  html.portal-kiosk .contact-block .addr { margin-bottom: 3px !important; }
+}
+</style>`;
 
 const KIOSK_DISPLAY_CSS = `
 <style id="pro-injury-kiosk-display">
@@ -41,6 +85,7 @@ const KIOSK_DISPLAY_CSS = `
     font-size: 13px !important;
     cursor: pointer;
   }
+  html.portal-kiosk .field input[type=text],
   html.portal-kiosk .field input[type=email],
   html.portal-kiosk .field input[type=tel],
   html.portal-kiosk .field input[type=date],
@@ -77,6 +122,56 @@ const KIOSK_DISPLAY_CSS = `
 }
 </style>`;
 
+const PORTAL_PAGER: [FormSlug, string][] = [
+  ["intake", "01 Intake"],
+  ["aob", "02 AOB"],
+  ["hipaa", "03 HIPAA"],
+  ["fraud", "04 Fraud"],
+  ["financial", "05 Financial"],
+  ["treatment", "06 Treatment"],
+  ["records", "07 Records"],
+];
+
+const FULL_PAGER: [FormSlug, string][] = [
+  ["intake", "01 Intake"],
+  ["disclosure", "02 PIP Disclosure"],
+  ["aob", "03 AOB"],
+  ["hipaa", "04 HIPAA"],
+  ["fraud", "05 Fraud"],
+  ["financial", "06 Financial"],
+  ["treatment", "07 Treatment"],
+  ["records", "08 Records"],
+];
+
+function patchPagerAndPageCounts(
+  html: string,
+  activeSlug: FormSlug,
+  portalMode: boolean,
+): string {
+  const pages = portalMode ? PORTAL_PAGER : FULL_PAGER;
+  const total = pages.length;
+  const pageIndex = pages.findIndex(([slug]) => slug === activeSlug);
+  const pageNum = pageIndex >= 0 ? pageIndex + 1 : 1;
+  const pageStr = String(pageNum).padStart(2, "0");
+  const totalStr = String(total).padStart(2, "0");
+
+  const pagerLinks = pages
+    .map(([slug, label]) => {
+      const cls = slug === activeSlug ? "page-link active" : "page-link";
+      const arrow = slug === "records" ? " →" : "";
+      return `<a class="${cls}" href="${slug}.html">${label}${arrow}</a>`;
+    })
+    .join("");
+
+  let out = html.replace(/<div class="pager">[\s\S]*?<\/div>/, `<div class="pager">${pagerLinks}</div>`);
+  out = out.replace(/Page \d{2} of \d{2}/g, `Page ${pageStr} of ${totalStr}`);
+  out = out.replace(
+    /<span class="badge">\d{2}<span class="of"> \/ \d{2}<\/span><\/span>/,
+    `<span class="badge">${pageStr}<span class="of"> / ${totalStr}</span></span>`,
+  );
+  return out;
+}
+
 function injectKioskDisplay(html: string): string {
   let out = html.replace(/<html(\s[^>]*)?>/i, (match) => {
     if (/class=/i.test(match)) {
@@ -87,15 +182,25 @@ function injectKioskDisplay(html: string): string {
     }
     return match.replace("<html", '<html class="portal-kiosk"');
   });
-  out = out.replace("</head>", `${KIOSK_DISPLAY_CSS}\n</head>`);
+  out = out.replace("</head>", `${HEADER_ALIGN_CSS}\n${KIOSK_DISPLAY_CSS}\n</head>`);
   return out;
 }
 
 /** Patches vanilla HTML form scripts to use CRM API instead of localStorage. */
 export function injectApiBridge(
   html: string,
-  opts: { packetId: string; formSlug: string; storeKey: string; needsIntakePrefill: boolean },
+  opts: {
+    packetId: string;
+    formSlug: FormSlug;
+    storeKey: string;
+    needsIntakePrefill: boolean;
+    portalMode?: boolean;
+  },
 ): string {
+  let patched = patchPagerAndPageCounts(html, opts.formSlug, opts.portalMode ?? true);
+  const portalNavSlugs =
+    opts.portalMode !== false ? PORTAL_PAGER.map(([slug]) => slug) : null;
+
   const bridge = `
 <script id="pro-injury-api-bridge">
 (function(){
@@ -104,6 +209,7 @@ export function injectApiBridge(
   const INTAKE_KEY = ${JSON.stringify(INTAKE_STORAGE_KEY)};
   const API_URL = '/api/intake-packets/' + PACKET_ID + '/' + FORM_SLUG;
   const NEEDS_INTAKE_PREFILL = ${opts.needsIntakePrefill ? "true" : "false"};
+  const PORTAL_NAV_ONLY = ${portalNavSlugs ? JSON.stringify(portalNavSlugs) : "null"};
 
   async function apiGet(url){
     const r = await fetch(url, { credentials: 'same-origin' });
@@ -177,6 +283,7 @@ export function injectApiBridge(
   function wirePager(){
     document.querySelectorAll('a.page-link[href$=".html"]').forEach(function(a){
       var slug = a.getAttribute('href').replace('.html','');
+      if(PORTAL_NAV_ONLY && PORTAL_NAV_ONLY.indexOf(slug) === -1) return;
       a.addEventListener('click', function(e){
         e.preventDefault();
         var nav = function(){ 
@@ -318,7 +425,7 @@ export function injectApiBridge(
 })();
 </script>`;
 
-  let out = html.replace("</head>", `${bridge}\n</head>`);
+  let out = patched.replace("</head>", `${bridge}\n</head>`);
 
   // Disable legacy localStorage-only listeners (hijack script handles persistence).
   out = out.replace(

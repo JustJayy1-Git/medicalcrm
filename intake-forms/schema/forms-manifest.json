@@ -13,7 +13,7 @@
       "table_name": "patient_intake",
       "title": "Patient Intake",
       "localStorage_key": "proInjury.intake.v1",
-      "field_count": 35,
+      "field_count": 39,
       "fields": [
         {
           "name": "meta_todays_date",
@@ -217,6 +217,34 @@
           "name": "pip_adjuster",
           "kind": "input",
           "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "attorney_firm",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "attorney_name",
+          "kind": "input",
+          "type": "text",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "attorney_phone",
+          "kind": "input",
+          "type": "tel",
+          "value": null,
+          "maxlength": null
+        },
+        {
+          "name": "attorney_email",
+          "kind": "input",
+          "type": "email",
           "value": null,
           "maxlength": null
         },

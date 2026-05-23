@@ -209,8 +209,8 @@ export async function buildCasePayloadFromPortalForms(
 
   const attorneyId = await findAttorneyId(
     supabase,
-    str(financial.attorney_name),
-    str(financial.attorney_firm),
+    str(intake.attorney_name) ?? str(financial.attorney_name),
+    str(intake.attorney_firm) ?? str(financial.attorney_firm),
   );
   if (attorneyId) payload.attorney_id = attorneyId;
 
@@ -239,14 +239,21 @@ export async function buildCasePayloadFromPortalForms(
   if (str(intake.pip_carrier) && !carrierId) {
     comments.push(`Insurance carrier (intake): ${intake.pip_carrier}`);
   }
-  if (str(financial.attorney_firm) && !attorneyId) {
-    comments.push(`Attorney firm (intake): ${financial.attorney_firm}`);
+  const attorneyFirm = str(intake.attorney_firm) ?? str(financial.attorney_firm);
+  const attorneyName = str(intake.attorney_name) ?? str(financial.attorney_name);
+  const attorneyPhone = str(intake.attorney_phone) ?? str(financial.attorney_phone);
+  const attorneyEmail = str(intake.attorney_email);
+  if (attorneyFirm && !attorneyId) {
+    comments.push(`Attorney firm (intake): ${attorneyFirm}`);
   }
-  if (str(financial.attorney_name) && !attorneyId) {
-    comments.push(`Attorney (intake): ${financial.attorney_name}`);
+  if (attorneyName && !attorneyId) {
+    comments.push(`Attorney (intake): ${attorneyName}`);
   }
-  if (str(financial.attorney_phone)) {
-    comments.push(`Attorney phone (intake): ${financial.attorney_phone}`);
+  if (attorneyPhone) {
+    comments.push(`Attorney phone (intake): ${attorneyPhone}`);
+  }
+  if (attorneyEmail) {
+    comments.push(`Attorney email (intake): ${attorneyEmail}`);
   }
   if (comments.length > 0) payload.comments = comments.join("\n");
 

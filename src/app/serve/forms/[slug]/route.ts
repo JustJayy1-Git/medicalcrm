@@ -19,6 +19,7 @@ export async function GET(request: Request, { params }: Params) {
   const url = new URL(request.url);
   const packetId = url.searchParams.get("packetId");
   if (!packetId) return new NextResponse("packetId required", { status: 400 });
+  const portalMode = url.searchParams.get("portal") === "1";
 
   const def = getFormBySlug(slug);
   const filePath = path.join(resolveFormsDir(), def.file);
@@ -28,6 +29,7 @@ export async function GET(request: Request, { params }: Params) {
     formSlug: slug,
     storeKey: def.localStorageKey,
     needsIntakePrefill: slug !== "intake",
+    portalMode,
   });
 
   return new NextResponse(patched, {

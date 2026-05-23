@@ -1,6 +1,12 @@
 "use client";
 
-import { FORM_ORDER, type FormSlug } from "@/lib/intake-packet/form-slugs";
+import {
+  FULL_FORM_COUNT,
+  getFormNavigationOrder,
+  getPortalPageNumber,
+  PORTAL_FORM_COUNT,
+  type FormSlug,
+} from "@/lib/intake-packet/form-slugs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
@@ -56,9 +62,12 @@ export function PortalFormFrame({
 }) {
   const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const idx = FORM_ORDER.indexOf(slug);
-  const prev = idx > 0 ? FORM_ORDER[idx - 1] : null;
-  const next = idx < FORM_ORDER.length - 1 ? FORM_ORDER[idx + 1] : null;
+  const navOrder = getFormNavigationOrder(mode);
+  const idx = navOrder.indexOf(slug);
+  const prev = idx > 0 ? navOrder[idx - 1] : null;
+  const next = idx < navOrder.length - 1 ? navOrder[idx + 1] : null;
+  const totalPages = mode === "kiosk" ? PORTAL_FORM_COUNT : FULL_FORM_COUNT;
+  const displayPage = mode === "kiosk" ? getPortalPageNumber(slug) || page : page;
 
   const basePath =
     mode === "staff" ? `/intake-packets/${packetId}/forms` : `/portal/packet/${packetId}/forms`;
@@ -94,6 +103,8 @@ export function PortalFormFrame({
       ? `/intake-packets/${packetId}`
       : `/portal/done?packet=${packetId}`;
 
+  const iframeSrc = `/serve/forms/${slug}?packetId=${packetId}${mode === "kiosk" ? "&portal=1" : ""}`;
+
   return (
     <div className="min-h-screen flex flex-col bg-[#1a1d24]">
       <header className="flex items-center justify-between gap-3 px-4 py-2 bg-[#0c0f15] border-b border-[#2a2f3a] shrink-0">
@@ -105,7 +116,7 @@ export function PortalFormFrame({
             Pro Injury
           </Link>
           <span className="text-[10px] text-[#c8d2e0]/70 uppercase tracking-widest">
-            Page {String(page).padStart(2, "0")} of 08
+            Page {String(displayPage).padStart(2, "0")} of {String(totalPages).padStart(2, "0")}
           </span>
         </div>
         <div className="flex items-center gap-3">
@@ -133,7 +144,7 @@ export function PortalFormFrame({
         ref={iframeRef}
         title={title}
         className="flex-1 w-full min-h-0 border-0 bg-[#1a1d24]"
-        src={`/serve/forms/${slug}?packetId=${packetId}`}
+        src={iframeSrc}
         style={{ touchAction: "pan-x pan-y pinch-zoom" }}
       />
     </div>

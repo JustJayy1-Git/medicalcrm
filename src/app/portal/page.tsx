@@ -20,34 +20,61 @@ export default async function PortalHomePage({
         : null;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-eggplant-950 via-eggplant-900 to-[#1a1d24] px-6">
-      <header className="absolute top-0 right-0 p-4">
+    <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#0c0f15] px-6 py-12">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-40"
+        aria-hidden
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 50% at 50% -10%, #41B6E6 0%, transparent 55%), radial-gradient(ellipse 60% 40% at 100% 100%, #DB3EB1 0%, transparent 50%), radial-gradient(ellipse 50% 35% at 0% 80%, #41B6E6 0%, transparent 45%)",
+        }}
+      />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#41B6E6] to-transparent opacity-60" />
+
+      <header className="absolute top-0 right-0 p-4 z-10">
         <StaffExitButton />
       </header>
 
-      <Image src="/logo.png" alt="Pro Injury" width={96} height={96} priority className="mb-6" />
-      <h1 className="text-3xl md:text-4xl font-serif font-semibold text-white text-center mb-3">
-        Patient intake
-      </h1>
-      <p className="text-white/60 text-center max-w-md mb-2 text-lg">
-        New patient?
-      </p>
-      <p className="text-white/45 text-center max-w-md mb-6 text-sm">
-        Tap below to start the 8 intake forms. No login needed.
-      </p>
+      <div className="relative z-10 flex flex-col items-center max-w-lg w-full text-center">
+        <Image src="/logo.png" alt="Pro Injury" width={104} height={104} priority className="mb-8 drop-shadow-lg" />
 
-      {errorMessage ? (
-        <p className="mb-4 px-4 py-3 text-sm text-red-200 bg-red-950/50 border border-red-900/50 rounded-xl max-w-sm text-center">
-          {errorMessage}
+        <p className="text-[11px] font-bold uppercase tracking-[0.35em] text-[#41B6E6] mb-3">
+          Pro Injury Medical &amp; Rehabilitation
         </p>
-      ) : null}
 
-      <StartIntakeForm />
+        <h1 className="font-serif text-4xl md:text-5xl font-semibold text-white leading-tight mb-1">
+          Patient Intake
+        </h1>
+        <p className="font-serif text-2xl md:text-3xl font-normal text-white/55 mb-8">
+          Admisión del Paciente
+        </p>
 
-      <p className="mt-8 text-xs text-white/35 text-center max-w-sm">
-        Staff: use the <span className="text-white/50">Staff</span> button (top right) and your PIN to
-        exit kiosk mode.
-      </p>
+        <div className="w-24 h-0.5 bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] mb-8 rounded-full" />
+
+        <p className="text-lg md:text-xl font-semibold text-white mb-1">
+          New Patient
+        </p>
+        <p className="text-base text-[#41B6E6]/90 font-medium mb-6">Paciente Nuevo</p>
+
+        <p className="text-[#c8d2e0]/90 text-base md:text-lg leading-relaxed mb-2">
+          Thank you for choosing Pro Injury. We are grateful for your trust and look forward to caring for you.
+        </p>
+        <p className="text-[#c8d2e0]/65 text-sm md:text-base leading-relaxed mb-10 italic">
+          Gracias por elegir Pro Injury. Agradecemos su confianza y esperamos poder atenderle.
+        </p>
+
+        {errorMessage ? (
+          <p className="mb-6 px-4 py-3 text-sm text-red-200 bg-red-950/50 border border-red-900/50 rounded-xl max-w-sm text-center">
+            {errorMessage}
+          </p>
+        ) : null}
+
+        <StartIntakeForm />
+
+        <p className="mt-10 text-[10px] text-[#c8d2e0]/35 text-center max-w-xs leading-relaxed">
+          Staff: use the <span className="text-[#c8d2e0]/55">Staff</span> button (top right) and your PIN to exit kiosk mode.
+        </p>
+      </div>
     </div>
   );
 }

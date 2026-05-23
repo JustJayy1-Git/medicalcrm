@@ -578,14 +578,26 @@ s05 = section("04", "Personal Auto Insurance", "Seguro de auto personal",
 # (3rd Party Insurance section removed)
 s06 = ""
 
-# 05 Accident Details
-s07 = section("05", "Accident Details", "Detalles del Accidente",
+# 05 Attorney Information
+s06b = section("05", "Attorney Information", "Información del abogado",
+    row("r2",
+        tf("attorney_firm","Law Firm / Attorney Office","Bufete del abogado"),
+        tf("attorney_name","Attorney Name","Nombre del abogado"),
+    )
+    + row("r2",
+        tf("attorney_phone","Attorney Phone","Teléfono del abogado","tel"),
+        tf("attorney_email","Attorney Email","Correo del abogado","email"),
+    )
+)
+
+# 06 Accident Details
+s07 = section("06", "Accident Details", "Detalles del Accidente",
     tf("acc_crash_report","Crash Report #","# reporte")
     + ta("acc_summary","Brief Summary of Accident","Resumen breve", rows=2)
 )
 
-# 06 Medical History
-s08 = section("06", "Medical History", "Historia Médica",
+# 07 Medical History
+s08 = section("07", "Medical History", "Historia Médica",
     row("r3",
         tf("inj_initial","Initial Injuries / Complaints","Lesiones / quejas iniciales"),
         tf("acc_prior_surgeries","Prior Surgeries","Cirugías previas"),
@@ -593,7 +605,7 @@ s08 = section("06", "Medical History", "Historia Médica",
     )
 )
 
-all_sections = s01 + s02 + s03 + s04 + s05 + s06 + s07 + s08
+all_sections = s01 + s02 + s03 + s04 + s05 + s06 + s06b + s07 + s08
 
 out = (HTML
        .replace("__WATERMARK__", WATERMARK_IMG)
