@@ -3,6 +3,7 @@ import type { FormSlug } from "./form-slugs";
 import { getFormBySlug, getFormDefs, type FormDef } from "./forms-registry.server";
 import {
   buildPatientUpdateFromIntake,
+  syncCaseFromIntakeSave,
   syncPortalIntakeToCrm,
 } from "./portal-crm-sync";
 
@@ -174,10 +175,25 @@ export async function createPortalPacket(
 
   if (pErr) throw pErr;
 
+  const { data: caseRow, error: cErr } = await supabase
+    .from("cases")
+    .insert({
+      patient_id: patient.id,
+      case_type: "mva",
+      status: "open",
+      billing_method: "insurance",
+      description: "Portal intake in progress",
+    })
+    .select("id")
+    .single();
+
+  if (cErr) throw cErr;
+
   const { data: packet, error: kErr } = await supabase
     .from("intake_packets")
     .insert({
       patient_id: patient.id,
+      case_id: caseRow.id,
       status: "in_progress",
       source: "portal",
     })
@@ -186,7 +202,11 @@ export async function createPortalPacket(
 
   if (kErr) throw kErr;
 
-  return { packetId: packet.id as number, patientId: patient.id as string };
+  return {
+    packetId: packet.id as number,
+    patientId: patient.id as string,
+    caseId: caseRow.id as string,
+  };
 }
 
 export async function loadForm(
@@ -256,12 +276,7 @@ export async function saveForm(
         await supabase.from("patients").update(patientUpdate).eq("id", pkt.patient_id);
       }
 
-      if (payload.meta_date_of_accident) {
-        await supabase
-          .from("intake_packets")
-          .update({ date_of_accident: emptyDate(payload.meta_date_of_accident) })
-          .eq("id", packetId);
-      }
+      await syncCaseFromIntakeSave(supabase, packetId, pkt.patient_id, payload);
     }
   }
 

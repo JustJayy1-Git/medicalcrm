@@ -210,30 +210,9 @@
           "maxlength": null
         },
         {
-          "name": "pip_address",
-          "kind": "input",
-          "type": "text",
-          "value": null,
-          "maxlength": null
-        },
-        {
           "name": "pip_adjuster",
           "kind": "input",
           "type": "text",
-          "value": null,
-          "maxlength": null
-        },
-        {
-          "name": "pip_phone",
-          "kind": "input",
-          "type": "tel",
-          "value": null,
-          "maxlength": null
-        },
-        {
-          "name": "pip_fax",
-          "kind": "input",
-          "type": "tel",
           "value": null,
           "maxlength": null
         },

@@ -174,11 +174,22 @@ export function injectApiBridge(
         patient_dob: intake.dob,
         patient_phone: intake.phone_cell,
         patient_email: intake.email,
-        date_of_accident: intake.meta_date_of_accident
+        date_of_accident: intake.meta_date_of_accident,
+        meta_todays_date: intake.meta_todays_date,
+        meta_date_of_accident: intake.meta_date_of_accident,
+        meta_referred_by: intake.meta_referred_by,
+        meta_type_of_accident: intake.meta_type_of_accident,
+        patient_name_print: intake.patient_name,
+        insured_name_print: intake.patient_name,
+        financial_name_print: intake.patient_name,
+        records_name_print: intake.patient_name
       };
       for(const k in map){
-        const el = form.querySelector('[name='+k+']');
-        if(el && !el.value && map[k]) el.value = map[k];
+        if(!map[k]) continue;
+        form.querySelectorAll('[name="'+k+'"]').forEach(function(el){
+          if(el.type === 'radio' || el.type === 'checkbox') return;
+          if(!el.value) el.value = map[k];
+        });
       }
     } catch(e){ console.error(e); }
   }`

@@ -552,20 +552,15 @@ s04 = section("03", "Emergency Response", "Respuesta de Emergencia",
     )
 )
 
-# 04 PIP Auto Insurance
-s05 = section("04", "PIP Auto Insurance", "Seguro PIP",
-    row("r3",
-        tf("pip_carrier","PIP Carrier","Aseguradora"),
+# 04 Personal Auto Insurance
+s05 = section("04", "Personal Auto Insurance", "Seguro de auto personal",
+    row("r2",
+        tf("pip_carrier","Insurance Carrier","Aseguradora"),
         tf("pip_policy","Policy Number","# póliza"),
-        tf("pip_claim","Claim Number","# reclamo"),
-    )
-    + row("r-2-1",
-        tf("pip_address","Insurance Address","Dirección de la aseguradora"),
-        tf("pip_adjuster","PIP Adjuster","Ajustador"),
     )
     + row("r2",
-        tf("pip_phone","Phone","Teléfono","tel"),
-        tf("pip_fax","Fax","Fax","tel"),
+        tf("pip_claim","Claim Number","# reclamo"),
+        tf("pip_adjuster","Adjuster","Ajustador"),
     )
 )
 

@@ -52,6 +52,9 @@ function inferCaseType(accidentType: unknown): string {
   const t = str(accidentType)?.toLowerCase() ?? "";
   if (t.includes("work") || t.includes("comp")) return "workers_comp";
   if (t.includes("slip") || t.includes("fall") || t.includes("premise")) return "slip_fall";
+  if (t.includes("car") || t.includes("auto") || t.includes("mva") || t.includes("vehicle")) {
+    return "mva";
+  }
   if (t.includes("other")) return "other";
   return "mva";
 }
@@ -180,8 +183,6 @@ export async function buildCasePayloadFromPortalForms(
   if (policy) payload.primary_policy_number = policy;
   const adjuster = str(intake.pip_adjuster);
   if (adjuster) payload.primary_adjuster_name = adjuster;
-  const adjPhone = str(intake.pip_phone);
-  if (adjPhone) payload.primary_adjuster_phone = adjPhone;
 
   const carrierId = await findCarrierId(supabase, str(intake.pip_carrier));
   if (carrierId) payload.primary_carrier_id = carrierId;
@@ -216,10 +217,8 @@ export async function buildCasePayloadFromPortalForms(
 
   const comments: string[] = [];
   if (str(intake.pip_carrier) && !carrierId) {
-    comments.push(`PIP carrier (intake): ${intake.pip_carrier}`);
+    comments.push(`Insurance carrier (intake): ${intake.pip_carrier}`);
   }
-  if (str(intake.pip_address)) comments.push(`PIP carrier address: ${intake.pip_address}`);
-  if (str(intake.pip_fax)) comments.push(`PIP fax: ${intake.pip_fax}`);
   if (str(financial.attorney_firm) && !attorneyId) {
     comments.push(`Attorney firm (intake): ${financial.attorney_firm}`);
   }
@@ -232,6 +231,54 @@ export async function buildCasePayloadFromPortalForms(
   if (comments.length > 0) payload.comments = comments.join("\n");
 
   return payload;
+}
+
+/** Create or update the CRM case while the patient fills page 1 on the iPad. */
+export async function syncCaseFromIntakeSave(
+  supabase: SupabaseClient,
+  packetId: number,
+  patientId: string,
+  intake: FormPayload,
+): Promise<string | null> {
+  const { data: packet, error: packetErr } = await supabase
+    .from("intake_packets")
+    .select("case_id, date_of_accident")
+    .eq("id", packetId)
+    .single();
+
+  if (packetErr) throw packetErr;
+
+  const doi = emptyDate(intake.meta_date_of_accident) ?? emptyDate(packet?.date_of_accident);
+  const casePayload = await buildCasePayloadFromPortalForms(supabase, intake, {}, {}, doi);
+  casePayload.patient_id = patientId;
+
+  let caseId: string | null = (packet?.case_id as string | null) ?? null;
+
+  if (caseId) {
+    const { error: caseErr } = await supabase.from("cases").update(casePayload).eq("id", caseId);
+    if (caseErr) throw caseErr;
+  } else {
+    const { data: created, error: insertErr } = await supabase
+      .from("cases")
+      .insert(casePayload)
+      .select("id")
+      .single();
+    if (insertErr) throw insertErr;
+    caseId = created.id as string;
+  }
+
+  const packetUpdate: Record<string, unknown> = {};
+  if (caseId && caseId !== packet?.case_id) packetUpdate.case_id = caseId;
+  if (doi) packetUpdate.date_of_accident = doi;
+  if (Object.keys(packetUpdate).length > 0) {
+    const { error: pktErr } = await supabase
+      .from("intake_packets")
+      .update(packetUpdate)
+      .eq("id", packetId);
+    if (pktErr) throw pktErr;
+  }
+
+  return caseId;
 }
 
 export type PortalCrmSyncResult = {
