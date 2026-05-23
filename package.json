@@ -13,6 +13,7 @@
     "db:migrate-0016": "node scripts/apply-0016.mjs",
     "db:migrate-0017": "node scripts/apply-0017.mjs",
     "db:migrate-0018": "node scripts/apply-0018.mjs",
+    "db:migrate-0019": "node scripts/apply-0019.mjs",
     "cms1500:copy-blank": "node scripts/copy-cms1500-blank.mjs",
     "cms1500:render-bg": "node scripts/render-cms1500-bg.mjs",
     "sync-intake-forms": "node scripts/sync-intake-forms.mjs",

@@ -1,5 +1,6 @@
 "use server";
 
+import { isAttachmentKind } from "@/lib/case-attachments";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { randomUUID } from "node:crypto";
@@ -24,16 +25,7 @@ export async function uploadAttachment(input: UploadInput): Promise<{ ok: true; 
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Not signed in." };
 
-  const allowedKinds = new Set([
-    "insurance_card_front",
-    "insurance_card_back",
-    "id_card",
-    "lop_letter",
-    "police_report",
-    "medical_record",
-    "other",
-  ]);
-  if (!allowedKinds.has(input.kind)) {
+  if (!isAttachmentKind(input.kind)) {
     return { ok: false, error: "Invalid attachment kind." };
   }
 
@@ -75,6 +67,7 @@ export async function uploadAttachment(input: UploadInput): Promise<{ ok: true; 
 
   revalidatePath(`/cases/${input.caseId}`);
   revalidatePath(`/cases/${input.caseId}/edit`);
+  revalidatePath(`/patients/${input.patientId}`);
   return { ok: true, id: data.id };
 }
 
@@ -89,7 +82,7 @@ export async function deleteAttachment(
 
   const { data: row, error: getErr } = await supabase
     .from("case_attachments")
-    .select("id, case_id, storage_path")
+    .select("id, case_id, patient_id, storage_path")
     .eq("id", id)
     .maybeSingle();
   if (getErr) return { ok: false, error: getErr.message };
@@ -104,6 +97,7 @@ export async function deleteAttachment(
 
   revalidatePath(`/cases/${row.case_id}`);
   revalidatePath(`/cases/${row.case_id}/edit`);
+  if (row.patient_id) revalidatePath(`/patients/${row.patient_id}`);
   return { ok: true };
 }
 

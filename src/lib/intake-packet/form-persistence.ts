@@ -6,6 +6,7 @@ import {
   syncCaseFromIntakeSave,
   syncPortalIntakeToCrm,
 } from "./portal-crm-sync";
+import { saveIntakePacketToPatientFile } from "./save-intake-attachment";
 
 export type FormPayload = Record<string, unknown>;
 
@@ -354,9 +355,34 @@ export async function loadPacketForms(supabase: SupabaseClient, packetId: number
 }
 
 export async function completePacket(supabase: SupabaseClient, packetId: number) {
-  const intake = await loadForm(supabase, packetId, "intake");
-  const financial = await loadForm(supabase, packetId, "financial");
-  const hipaa = await loadForm(supabase, packetId, "hipaa");
+  const loaded = await loadPacketForms(supabase, packetId);
+  const intake = loaded.forms.intake ?? {};
+  const financial = loaded.forms.financial ?? {};
+  const hipaa = loaded.forms.hipaa ?? {};
 
-  await syncPortalIntakeToCrm(supabase, packetId, { intake, financial, hipaa });
+  const result = await syncPortalIntakeToCrm(supabase, packetId, {
+    intake,
+    financial,
+    hipaa,
+  });
+
+  if (!result.caseId) return;
+
+  const { data: patient } = await supabase
+    .from("patients")
+    .select("first_name, last_name")
+    .eq("id", result.patientId)
+    .maybeSingle();
+
+  const patientName = patient
+    ? `${patient.first_name} ${patient.last_name}`.trim()
+    : String(intake.patient_name ?? "Patient");
+
+  await saveIntakePacketToPatientFile({
+    packetId,
+    patientId: result.patientId,
+    caseId: result.caseId,
+    patientName,
+    forms: loaded.forms,
+  });
 }

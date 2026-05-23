@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DeletePatientButton } from "@/components/patients/delete-patient-button";
+import { PatientFilesPanel } from "@/components/patient-files-panel";
 import { isPortalPlaceholderPatient } from "@/lib/patient-placeholder";
 import { PatientTabs } from "./patient-tabs";
 
@@ -49,6 +50,17 @@ const { data: patient, error } = await supabase
     )
     .eq("patient_id", id)
     .order("date_of_injury", { ascending: false });
+
+  const { data: attachments } = await supabase
+    .from("case_attachments")
+    .select("id, kind, label, mime_type, size_bytes, created_at, case_id")
+    .eq("patient_id", id)
+    .order("created_at", { ascending: false });
+
+  const defaultCaseId =
+    cases?.find((c) => c.status === "open" || c.status === "active")?.id ??
+    cases?.[0]?.id ??
+    null;
 
   return (
     <div className="px-8 py-6 max-w-6xl mx-auto">
@@ -107,6 +119,13 @@ const { data: patient, error } = await supabase
             <CasesTab
               patientId={id}
               cases={cases ?? []}
+            />
+          }
+          files={
+            <PatientFilesPanel
+              patientId={id}
+              defaultCaseId={defaultCaseId}
+              initial={attachments ?? []}
             />
           }
           visits={

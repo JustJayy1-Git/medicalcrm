@@ -47,6 +47,68 @@ const HEADER_ALIGN_CSS = `
 }
 </style>`;
 
+const FILLABLE_FIELD_CSS = `
+<style id="pro-injury-fillable-fields">
+@media screen {
+  html.portal-kiosk .field input[type=text],
+  html.portal-kiosk .field input[type=email],
+  html.portal-kiosk .field input[type=tel],
+  html.portal-kiosk .field input[type=number],
+  html.portal-kiosk .field input[type=time],
+  html.portal-kiosk .field input[type=date],
+  html.portal-kiosk .field textarea,
+  html.portal-kiosk .meta-cell input,
+  html.portal-kiosk .meta-cell select,
+  html.portal-kiosk .footer .initials input {
+    background: rgba(65, 182, 230, 0.1) !important;
+    box-shadow: inset 0 1px 4px rgba(65, 182, 230, 0.12), 0 0 0 1px rgba(65, 182, 230, 0.28) !important;
+    border-radius: 3px !important;
+    border-bottom-color: rgba(65, 182, 230, 0.55) !important;
+  }
+  html.portal-kiosk .field input:focus,
+  html.portal-kiosk .field textarea:focus,
+  html.portal-kiosk .meta-cell input:focus,
+  html.portal-kiosk .meta-cell select:focus,
+  html.portal-kiosk .footer .initials input:focus {
+    background: rgba(65, 182, 230, 0.16) !important;
+    box-shadow: inset 0 1px 6px rgba(65, 182, 230, 0.18), 0 0 0 2px rgba(219, 62, 177, 0.35) !important;
+    outline: none !important;
+  }
+  html.portal-kiosk .pro-signature-pad {
+    margin-top: 4px;
+  }
+  html.portal-kiosk .pro-signature-pad canvas {
+    display: block;
+    width: 100%;
+    height: 88px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: inset 0 1px 6px rgba(65, 182, 230, 0.15), 0 0 0 1px rgba(65, 182, 230, 0.35);
+    border-radius: 4px;
+    touch-action: none;
+    cursor: crosshair;
+  }
+  html.portal-kiosk .pro-signature-pad .pro-sig-hint {
+    font-size: 9px;
+    color: #555;
+    margin-top: 3px;
+    letter-spacing: 0.04em;
+  }
+  html.portal-kiosk .pro-signature-pad .pro-sig-clear {
+    margin-top: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid rgba(65, 182, 230, 0.45);
+    background: rgba(65, 182, 230, 0.08);
+    color: #0c0f15;
+    cursor: pointer;
+  }
+}
+</style>`;
+
 const KIOSK_DISPLAY_CSS = `
 <style id="pro-injury-kiosk-display">
 @media screen {
@@ -182,7 +244,7 @@ function injectKioskDisplay(html: string): string {
     }
     return match.replace("<html", '<html class="portal-kiosk"');
   });
-  out = out.replace("</head>", `${HEADER_ALIGN_CSS}\n${KIOSK_DISPLAY_CSS}\n</head>`);
+  out = out.replace("</head>", `${HEADER_ALIGN_CSS}\n${FILLABLE_FIELD_CSS}\n${KIOSK_DISPLAY_CSS}\n</head>`);
   return out;
 }
 
@@ -279,6 +341,76 @@ export function injectApiBridge(
     },
     getCachedForm(){ return this._cachedForm || {}; }
   };
+
+  function initSignaturePads(){
+    var sigInputs = document.querySelectorAll('.sig-cell.signature input[type=text], input[name$="_signature"]');
+    sigInputs.forEach(function(input){
+      if(input.dataset.sigPad === '1') return;
+      input.dataset.sigPad = '1';
+      input.type = 'hidden';
+      var wrap = document.createElement('div');
+      wrap.className = 'pro-signature-pad';
+      var canvas = document.createElement('canvas');
+      canvas.width = 520;
+      canvas.height = 120;
+      var ctx = canvas.getContext('2d');
+      var drawing = false;
+      var last = null;
+      function pos(ev){
+        var r = canvas.getBoundingClientRect();
+        var cx = ev.clientX !== undefined ? ev.clientX : (ev.touches && ev.touches[0] ? ev.touches[0].clientX : 0);
+        var cy = ev.clientY !== undefined ? ev.clientY : (ev.touches && ev.touches[0] ? ev.touches[0].clientY : 0);
+        return { x: (cx - r.left) * (canvas.width / r.width), y: (cy - r.top) * (canvas.height / r.height) };
+      }
+      function paint(){
+        input.value = canvas.toDataURL('image/png');
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      function start(ev){ ev.preventDefault(); drawing = true; last = pos(ev); }
+      function move(ev){
+        if(!drawing || !last) return;
+        ev.preventDefault();
+        var p = pos(ev);
+        ctx.strokeStyle = '#111';
+        ctx.lineWidth = 2.2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(last.x, last.y);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+        last = p;
+        paint();
+      }
+      function end(){ drawing = false; last = null; }
+      canvas.addEventListener('pointerdown', start);
+      canvas.addEventListener('pointermove', move);
+      canvas.addEventListener('pointerup', end);
+      canvas.addEventListener('pointerleave', end);
+      canvas.addEventListener('pointercancel', end);
+      var hint = document.createElement('div');
+      hint.className = 'pro-sig-hint';
+      hint.textContent = 'Sign with finger or Apple Pencil';
+      var clearBtn = document.createElement('button');
+      clearBtn.type = 'button';
+      clearBtn.className = 'pro-sig-clear';
+      clearBtn.textContent = 'Clear signature';
+      clearBtn.addEventListener('click', function(){
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        input.value = '';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+      if(input.value && String(input.value).indexOf('data:image') === 0){
+        var img = new Image();
+        img.onload = function(){ ctx.drawImage(img, 0, 0, canvas.width, canvas.height); };
+        img.src = input.value;
+      }
+      input.parentNode.insertBefore(wrap, input);
+      wrap.appendChild(canvas);
+      wrap.appendChild(hint);
+      wrap.appendChild(clearBtn);
+    });
+  }
 
   function wirePager(){
     document.querySelectorAll('a.page-link[href$=".html"]').forEach(function(a){
@@ -384,6 +516,7 @@ export function injectApiBridge(
           setIndicator('saved');
         }
         if(NEEDS_INTAKE_PREFILL) applyIntakePrefill(intake, form);
+        initSignaturePads();
       } catch(e){
         console.error(e);
       }
@@ -421,6 +554,7 @@ export function injectApiBridge(
   document.addEventListener('DOMContentLoaded', function(){
     wirePager();
     hijackPersistence();
+    setTimeout(initSignaturePads, 300);
   });
 })();
 </script>`;
