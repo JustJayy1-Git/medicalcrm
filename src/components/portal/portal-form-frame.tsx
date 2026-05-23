@@ -3,8 +3,43 @@
 import { FORM_ORDER, type FormSlug } from "@/lib/intake-packet/form-slugs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { StaffExitButton } from "./staff-exit-button";
+
+function flushIframeSave(iframe: HTMLIFrameElement | null): Promise<boolean> {
+  return new Promise((resolve) => {
+    const win = iframe?.contentWindow;
+    if (!win) {
+      resolve(true);
+      return;
+    }
+
+    if (typeof win.__proInjuryFlushSave === "function") {
+      void win.__proInjuryFlushSave()
+        .then((ok) => resolve(ok !== false))
+        .catch(() => resolve(false));
+      return;
+    }
+
+    const requestId = `${Date.now()}-${Math.random()}`;
+    const timeout = window.setTimeout(() => {
+      window.removeEventListener("message", onMessage);
+      resolve(true);
+    }, 2500);
+
+    const onMessage = (e: MessageEvent) => {
+      if (e.source !== win) return;
+      if (e.data?.type !== "pro-injury-flush-done") return;
+      if (e.data.requestId !== requestId) return;
+      window.clearTimeout(timeout);
+      window.removeEventListener("message", onMessage);
+      resolve(Boolean(e.data.ok));
+    };
+
+    window.addEventListener("message", onMessage);
+    win.postMessage({ type: "pro-injury-flush-save", requestId }, "*");
+  });
+}
 
 export function PortalFormFrame({
   packetId,
@@ -20,19 +55,44 @@ export function PortalFormFrame({
   mode?: "kiosk" | "staff";
 }) {
   const router = useRouter();
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const idx = FORM_ORDER.indexOf(slug);
+  const prev = idx > 0 ? FORM_ORDER[idx - 1] : null;
   const next = idx < FORM_ORDER.length - 1 ? FORM_ORDER[idx + 1] : null;
-  const src = `/serve/forms/${slug}?packetId=${packetId}`;
+
+  const basePath =
+    mode === "staff" ? `/intake-packets/${packetId}/forms` : `/portal/packet/${packetId}/forms`;
+
+  const navigateTo = useCallback(
+    async (href: string) => {
+      await flushIframeSave(iframeRef.current);
+      router.push(href);
+    },
+    [router],
+  );
 
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
       if (e.data?.type !== "pro-injury-nav") return;
       const target = e.data.slug as FormSlug;
-      router.push(`/portal/packet/${packetId}/forms/${target}`);
+      void navigateTo(`${basePath}/${target}`);
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [packetId, router]);
+  }, [basePath, navigateTo]);
+
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    return () => {
+      void flushIframeSave(iframe);
+    };
+  }, [slug]);
+
+  const nextHref = next
+    ? `${basePath}/${next}`
+    : mode === "staff"
+      ? `/intake-packets/${packetId}`
+      : `/portal/done?packet=${packetId}`;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#1a1d24]">
@@ -49,39 +109,39 @@ export function PortalFormFrame({
           </span>
         </div>
         <div className="flex items-center gap-3">
-          {next ? (
-            <Link
-              href={
-                mode === "staff"
-                  ? `/intake-packets/${packetId}/forms/${next}`
-                  : `/portal/packet/${packetId}/forms/${next}`
-              }
-              className="text-xs font-bold uppercase px-3 py-1.5 rounded-md bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] text-white"
+          {prev ? (
+            <button
+              type="button"
+              onClick={() => void navigateTo(`${basePath}/${prev}`)}
+              className="text-xs font-bold uppercase px-3 py-1.5 rounded-md border border-[#2a2f3a] text-[#c8d2e0] hover:text-white hover:border-[#41B6E6]"
             >
-              Next →
-            </Link>
-          ) : (
-            <Link
-              href={
-                mode === "staff"
-                  ? `/intake-packets/${packetId}`
-                  : `/portal/done?packet=${packetId}`
-              }
-              className="text-xs font-bold uppercase px-3 py-1.5 rounded-md bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] text-white"
-            >
-              Finish
-            </Link>
-          )}
+              ← Back
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => void navigateTo(nextHref)}
+            className="text-xs font-bold uppercase px-3 py-1.5 rounded-md bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] text-white"
+          >
+            {next ? "Next →" : "Finish"}
+          </button>
           {mode === "kiosk" ? <StaffExitButton /> : null}
         </div>
       </header>
       <p className="sr-only">{title}</p>
       <iframe
+        ref={iframeRef}
         title={title}
         className="flex-1 w-full min-h-0 border-0 bg-[#1a1d24]"
-        src={src}
+        src={`/serve/forms/${slug}?packetId=${packetId}`}
         style={{ touchAction: "pan-x pan-y pinch-zoom" }}
       />
     </div>
   );
+}
+
+declare global {
+  interface Window {
+    __proInjuryFlushSave?: () => Promise<boolean>;
+  }
 }

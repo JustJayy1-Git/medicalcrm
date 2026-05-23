@@ -92,9 +92,9 @@ export function injectApiBridge(
 (function(){
   const PACKET_ID = ${JSON.stringify(opts.packetId)};
   const FORM_SLUG = ${JSON.stringify(opts.formSlug)};
-  const STORE_KEY = ${JSON.stringify(opts.storeKey)};
   const INTAKE_KEY = ${JSON.stringify(INTAKE_STORAGE_KEY)};
   const API_URL = '/api/intake-packets/' + PACKET_ID + '/' + FORM_SLUG;
+  const NEEDS_INTAKE_PREFILL = ${opts.needsIntakePrefill ? "true" : "false"};
 
   async function apiGet(url){
     const r = await fetch(url, { credentials: 'same-origin' });
@@ -113,19 +113,53 @@ export function injectApiBridge(
     return r.json();
   };
 
+  function intakePrefillMap(intake){
+    return {
+      patient_name: intake.patient_name,
+      patient_dob: intake.dob,
+      patient_phone: intake.phone_cell,
+      patient_email: intake.email,
+      date_of_accident: intake.meta_date_of_accident,
+      meta_todays_date: intake.meta_todays_date,
+      meta_date_of_accident: intake.meta_date_of_accident,
+      meta_referred_by: intake.meta_referred_by,
+      meta_type_of_accident: intake.meta_type_of_accident,
+      patient_name_print: intake.patient_name,
+      insured_name_print: intake.patient_name,
+      financial_name_print: intake.patient_name,
+      records_name_print: intake.patient_name
+    };
+  }
+
+  function applyIntakePrefill(intake, form){
+    if(!intake || !form) return;
+    const map = intakePrefillMap(intake);
+    for(const k in map){
+      if(!map[k]) continue;
+      form.querySelectorAll('[name="'+k+'"]').forEach(function(el){
+        if(el.type === 'radio' || el.type === 'checkbox') return;
+        if(!el.value) el.value = map[k];
+      });
+    }
+  }
+
   window.__proInjuryBridge = {
     ready: false,
+    intake: {},
     async preload(){
       try {
         const packet = await apiGet('/api/intake-packets/' + PACKET_ID);
         const cached = packet.forms && packet.forms[FORM_SLUG] ? packet.forms[FORM_SLUG] : {};
         const intake = packet.forms && packet.forms.intake ? packet.forms.intake : {};
-        localStorage.setItem(INTAKE_KEY, JSON.stringify(intake));
+        this.intake = intake;
+        try { localStorage.setItem(INTAKE_KEY, JSON.stringify(intake)); } catch(e){}
         this._cachedForm = cached;
         this.ready = true;
+        return { cached, intake };
       } catch(e) {
         console.error(e);
         this.ready = true;
+        return { cached: {}, intake: {} };
       }
     },
     getCachedForm(){ return this._cachedForm || {}; }
@@ -136,75 +170,151 @@ export function injectApiBridge(
       var slug = a.getAttribute('href').replace('.html','');
       a.addEventListener('click', function(e){
         e.preventDefault();
-        if(window.parent !== window){
-          window.parent.postMessage({ type: 'pro-injury-nav', slug: slug }, '*');
+        var nav = function(){ 
+          if(window.parent !== window){
+            window.parent.postMessage({ type: 'pro-injury-nav', slug: slug }, '*');
+          } else {
+            location.href = '/portal/packet/' + PACKET_ID + '/forms/' + slug;
+          }
+        };
+        if(typeof window.__proInjuryFlushSave === 'function'){
+          window.__proInjuryFlushSave().finally(nav);
         } else {
-          location.href = '/portal/packet/' + PACKET_ID + '/forms/' + slug;
+          nav();
         }
       });
     });
   }
 
-  document.addEventListener('DOMContentLoaded', wirePager);
+  function hijackPersistence(){
+    var form = document.querySelector('form');
+    if(!form || form.dataset.proInjuryHijacked === '1') return;
+    form.dataset.proInjuryHijacked = '1';
+
+    var indicator = document.getElementById('savedIndicator');
+    var saveTimer = null;
+
+    function setIndicator(state){
+      if(!indicator) return;
+      if(state==='saving'){ indicator.textContent = '●  saving…'; indicator.style.color = '#41B6E6'; }
+      else if(state==='saved'){ indicator.textContent = '●  saved'; indicator.style.color = '#7fdf7f'; }
+      else { indicator.textContent = '●  unsaved'; indicator.style.color = '#c8d2e0'; }
+    }
+
+    function collect(){
+      var data = {};
+      form.querySelectorAll('[name]').forEach(function(el){
+        var name = el.name;
+        if(el.type === 'checkbox'){
+          var boxes = form.querySelectorAll('[name="'+name+'"][type=checkbox]');
+          if(boxes.length > 1){
+            if(!(name in data)) data[name] = [];
+            if(el.checked && !data[name].includes(el.value)) data[name].push(el.value);
+          } else {
+            data[name] = el.checked;
+          }
+        } else if(el.type === 'radio'){
+          if(el.checked) data[name] = el.value;
+          else if(!(name in data)) data[name] = '';
+        } else {
+          data[name] = el.value;
+        }
+      });
+      return data;
+    }
+
+    function apply(data){
+      if(!data) return;
+      form.querySelectorAll('[name]').forEach(function(el){
+        var v = data[el.name];
+        if(v === undefined) return;
+        if(el.type === 'checkbox'){
+          if(Array.isArray(v)) el.checked = v.includes(el.value);
+          else el.checked = !!v;
+        } else if(el.type === 'radio'){
+          el.checked = (v === el.value);
+        } else {
+          el.value = v ?? '';
+        }
+      });
+    }
+
+    async function saveNow(){
+      setIndicator('saving');
+      try {
+        await window.__proInjuryApiSave(collect());
+        setIndicator('saved');
+        return true;
+      } catch(e){
+        console.error(e);
+        setIndicator('unsaved');
+        return false;
+      }
+    }
+
+    function debounceSave(){
+      setIndicator('saving');
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(saveNow, 400);
+    }
+
+    async function loadNow(){
+      try {
+        var loaded = await window.__proInjuryBridge.preload();
+        var cached = loaded.cached || {};
+        var intake = loaded.intake || {};
+        if(cached && Object.keys(cached).length){
+          apply(cached);
+          setIndicator('saved');
+        }
+        if(NEEDS_INTAKE_PREFILL) applyIntakePrefill(intake, form);
+      } catch(e){
+        console.error(e);
+      }
+    }
+
+    window.__proInjuryFlushSave = async function(){
+      clearTimeout(saveTimer);
+      saveTimer = null;
+      return saveNow();
+    };
+
+    window.__proInjuryCollect = collect;
+    window.__proInjuryApply = apply;
+
+    form.addEventListener('input', debounceSave, true);
+    form.addEventListener('change', debounceSave, true);
+
+    loadNow();
+  }
+
+  window.addEventListener('message', function(e){
+    if(!e.data || e.data.type !== 'pro-injury-flush-save') return;
+    var reply = function(ok){
+      if(window.parent !== window){
+        window.parent.postMessage({ type: 'pro-injury-flush-done', ok: ok, requestId: e.data.requestId }, '*');
+      }
+    };
+    if(typeof window.__proInjuryFlushSave === 'function'){
+      window.__proInjuryFlushSave().then(function(ok){ reply(!!ok); }).catch(function(){ reply(false); });
+    } else {
+      reply(false);
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function(){
+    wirePager();
+    hijackPersistence();
+  });
 })();
 </script>`;
 
   let out = html.replace("</head>", `${bridge}\n</head>`);
 
+  // Disable legacy localStorage-only listeners (hijack script handles persistence).
   out = out.replace(
-    /function save\(\)\{[\s\S]*?\n  \}/,
-    `function save(){
-    try {
-      window.__proInjuryApiSave(collect()).then(() => setIndicator('saved')).catch(() => setIndicator('unsaved'));
-    } catch(e){ console.error(e); }
-  }`,
-  );
-
-  out = out.replace(
-    /function load\(\)\{[\s\S]*?\n  \}/,
-    opts.needsIntakePrefill
-      ? `async function load(){
-    try {
-      await window.__proInjuryBridge.preload();
-      const cached = window.__proInjuryBridge.getCachedForm();
-      if(cached && Object.keys(cached).length){ apply(cached); setIndicator('saved'); }
-      const intake = JSON.parse(localStorage.getItem(INTAKE_KEY) || '{}');
-      const map = {
-        patient_name: intake.patient_name,
-        patient_dob: intake.dob,
-        patient_phone: intake.phone_cell,
-        patient_email: intake.email,
-        date_of_accident: intake.meta_date_of_accident,
-        meta_todays_date: intake.meta_todays_date,
-        meta_date_of_accident: intake.meta_date_of_accident,
-        meta_referred_by: intake.meta_referred_by,
-        meta_type_of_accident: intake.meta_type_of_accident,
-        patient_name_print: intake.patient_name,
-        insured_name_print: intake.patient_name,
-        financial_name_print: intake.patient_name,
-        records_name_print: intake.patient_name
-      };
-      for(const k in map){
-        if(!map[k]) continue;
-        form.querySelectorAll('[name="'+k+'"]').forEach(function(el){
-          if(el.type === 'radio' || el.type === 'checkbox') return;
-          if(!el.value) el.value = map[k];
-        });
-      }
-    } catch(e){ console.error(e); }
-  }`
-      : `async function load(){
-    try {
-      await window.__proInjuryBridge.preload();
-      const cached = window.__proInjuryBridge.getCachedForm();
-      if(cached && Object.keys(cached).length){ apply(cached); setIndicator('saved'); }
-    } catch(e){ console.error(e); }
-  }`,
-  );
-
-  out = out.replace(
-    /localStorage\.removeItem\(STORE_KEY\)/g,
-    "window.__proInjuryApiSave({}).then(() => {}).catch(() => {})",
+    /form\.addEventListener\(['"]input['"],\s*debounceSave\);\s*form\.addEventListener\(['"]change['"],\s*debounceSave\);\s*load\(\);/g,
+    "/* persistence: pro-injury hijack */",
   );
 
   out = out.replace(
