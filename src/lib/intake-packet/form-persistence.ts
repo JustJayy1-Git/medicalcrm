@@ -1,6 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { FormSlug } from "./form-slugs";
 import { getFormBySlug, getFormDefs, type FormDef } from "./forms-registry.server";
+import {
+  buildPatientUpdateFromIntake,
+  syncPortalIntakeToCrm,
+} from "./portal-crm-sync";
 
 export type FormPayload = Record<string, unknown>;
 
@@ -103,7 +107,7 @@ export async function getPacketMeta(supabase: SupabaseClient, packetId: number) 
   const { data, error } = await supabase
     .from("intake_packets")
     .select(
-      "id, patient_id, date_of_accident, status, created_at, patients(first_name, last_name, date_of_birth, phone, email)",
+      "id, patient_id, case_id, date_of_accident, status, created_at, patients(first_name, last_name, date_of_birth, phone, email)",
     )
     .eq("id", packetId)
     .maybeSingle();
@@ -116,6 +120,7 @@ export async function getPacketMeta(supabase: SupabaseClient, packetId: number) 
   return {
     id: data.id,
     patient_id: data.patient_id,
+    case_id: data.case_id as string | null,
     date_of_accident: data.date_of_accident,
     status: data.status,
     created_at: data.created_at,
@@ -246,18 +251,7 @@ export async function saveForm(
       .single();
 
     if (pkt?.patient_id) {
-      const name = String(payload.patient_name ?? "").trim();
-      const names = name ? splitPatientName(name) : null;
-      const patientUpdate: Record<string, string | null> = {};
-      if (names) {
-        patientUpdate.first_name = names.first_name;
-        patientUpdate.last_name = names.last_name;
-        if (names.middle_name) patientUpdate.middle_name = names.middle_name;
-      }
-      const dob = emptyDate(payload.dob);
-      if (dob) patientUpdate.date_of_birth = dob;
-      if (payload.phone_cell) patientUpdate.phone = String(payload.phone_cell);
-      if (payload.email) patientUpdate.email = String(payload.email);
+      const patientUpdate = buildPatientUpdateFromIntake(payload);
       if (Object.keys(patientUpdate).length > 0) {
         await supabase.from("patients").update(patientUpdate).eq("id", pkt.patient_id);
       }
@@ -283,65 +277,9 @@ export async function loadPacketForms(supabase: SupabaseClient, packetId: number
 }
 
 export async function completePacket(supabase: SupabaseClient, packetId: number) {
-  const { data: packet, error: packetErr } = await supabase
-    .from("intake_packets")
-    .select("patient_id, date_of_accident, status")
-    .eq("id", packetId)
-    .single();
-
-  if (packetErr) throw packetErr;
-
   const intake = await loadForm(supabase, packetId, "intake");
-  const doi =
-    packet.date_of_accident ?? emptyDate(intake.meta_date_of_accident);
+  const financial = await loadForm(supabase, packetId, "financial");
+  const hipaa = await loadForm(supabase, packetId, "hipaa");
 
-  if (packet.patient_id) {
-    const name = String(intake.patient_name ?? "").trim();
-    const names = name ? splitPatientName(name) : null;
-    const patientUpdate: Record<string, string | null> = {};
-    if (names) {
-      patientUpdate.first_name = names.first_name;
-      patientUpdate.last_name = names.last_name;
-      if (names.middle_name) patientUpdate.middle_name = names.middle_name;
-    }
-    const dob = emptyDate(intake.dob);
-    if (dob) patientUpdate.date_of_birth = dob;
-    if (intake.phone_cell) patientUpdate.phone = String(intake.phone_cell);
-    if (intake.email) patientUpdate.email = String(intake.email);
-    if (intake.addr_street) patientUpdate.address_line1 = String(intake.addr_street);
-    if (intake.addr_city) patientUpdate.city = String(intake.addr_city);
-    if (intake.addr_state) patientUpdate.state = String(intake.addr_state);
-    if (intake.addr_zip) patientUpdate.zip = String(intake.addr_zip);
-    if (Object.keys(patientUpdate).length > 0) {
-      await supabase.from("patients").update(patientUpdate).eq("id", packet.patient_id);
-    }
-  }
-
-  const { error } = await supabase
-    .from("intake_packets")
-    .update({ status: "completed", date_of_accident: doi })
-    .eq("id", packetId);
-  if (error) throw error;
-
-  if (packet.patient_id) {
-    const { data: openCase } = await supabase
-      .from("cases")
-      .select("id")
-      .eq("patient_id", packet.patient_id)
-      .in("status", ["open", "active"])
-      .maybeSingle();
-
-    if (!openCase) {
-      const summary = intake.acc_summary ? String(intake.acc_summary).trim() : "";
-      await supabase.from("cases").insert({
-        patient_id: packet.patient_id,
-        case_type: "mva",
-        status: "open",
-        billing_method: "insurance",
-        date_of_injury: doi,
-        description: summary ? summary.slice(0, 500) : "Portal intake",
-        how_it_happened: summary || null,
-      });
-    }
-  }
+  await syncPortalIntakeToCrm(supabase, packetId, { intake, financial, hipaa });
 }

@@ -36,6 +36,14 @@ export default async function IntakePacketDetailPage({ params }: Props) {
             </Link>
           </>
         ) : null}
+        {meta.case_id ? (
+          <>
+            {" · "}
+            <Link href={`/cases/${meta.case_id}`} className="text-neon-pink hover:underline">
+              Open case
+            </Link>
+          </>
+        ) : null}
       </p>
 
       <ol className="space-y-2">
