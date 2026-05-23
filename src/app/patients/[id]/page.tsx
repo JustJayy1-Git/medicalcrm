@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { DeletePatientButton } from "@/components/patients/delete-patient-button";
+import { isPortalPlaceholderPatient } from "@/lib/patient-placeholder";
 import { PatientTabs } from "./patient-tabs";
 
 export const dynamic = "force-dynamic";
@@ -21,10 +23,13 @@ const STATUS_PILL: Record<string, string> = {
 
 export default async function PatientPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
   const { id } = await params;
+  const { error: pageError } = await searchParams;
   const supabase = await createClient();
 const { data: patient, error } = await supabase
     .from("patients")
@@ -33,6 +38,9 @@ const { data: patient, error } = await supabase
     .maybeSingle();
 
   if (error || !patient) notFound();
+
+  const isPlaceholder = isPortalPlaceholderPatient(patient.first_name, patient.last_name);
+  const displayName = `${patient.last_name}, ${patient.first_name}`;
 
   const { data: cases } = await supabase
     .from("cases")
@@ -63,6 +71,7 @@ const { data: patient, error } = await supabase
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <DeletePatientButton patientId={id} patientName={displayName} />
             <Link
               href={`/patients/${id}/edit`}
               className="px-3 py-1.5 text-xs border border-vice-border text-eggplant-800 rounded-md hover:bg-neon-mint-100"
@@ -77,6 +86,19 @@ const { data: patient, error } = await supabase
             </Link>
           </div>
         </div>
+
+        {isPlaceholder ? (
+          <p className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-900">
+            This is an unfinished iPad intake placeholder — not a real patient yet. You can{" "}
+            <strong>Delete patient</strong> to remove it, or finish the forms on the iPad.
+          </p>
+        ) : null}
+
+        {pageError ? (
+          <p className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            {decodeURIComponent(pageError)}
+          </p>
+        ) : null}
 
         {/* Tabs */}
         <PatientTabs

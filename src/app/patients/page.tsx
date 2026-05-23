@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { CleanPlaceholderPatientsButton } from "@/components/patients/clean-placeholder-patients-button";
+import { portalPlaceholderPatientFilter } from "@/lib/patient-placeholder";
 
 export const dynamic = "force-dynamic";
 
@@ -22,18 +23,25 @@ function age(dob: string | null) {
 export default async function PatientsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; deleted?: string; cleaned?: string; error?: string }>;
 }) {
   const supabase = await createClient();
-const params = await searchParams;
+  const params = await searchParams;
   const q = params.q?.trim();
 
   let query = supabase
     .from("patients")
     .select("id, first_name, last_name, date_of_birth, phone, email, status, chart_number, created_at")
+    .or(portalPlaceholderPatientFilter())
     .order("last_name", { ascending: true })
     .order("first_name", { ascending: true })
     .limit(200);
+
+  const { count: placeholderCount } = await supabase
+    .from("patients")
+    .select("id", { count: "exact", head: true })
+    .eq("first_name", "Intake")
+    .like("last_name", "Pending%");
 
   if (q) {
     query = query.or(
@@ -62,7 +70,7 @@ const params = await searchParams;
           </Link>
         </div>
 
-        <form className="mb-6" method="get">
+        <form className="mb-4" method="get">
           <input
             name="q"
             type="search"
@@ -71,6 +79,36 @@ const params = await searchParams;
             className="w-full max-w-md px-4 py-2 bg-white border border-vice-border rounded-lg text-sm text-eggplant-900 placeholder-vice-muted focus:outline-none focus:ring-2 focus:ring-neon-mint/40 focus:border-neon-mint"
           />
         </form>
+
+        {params.deleted === "1" ? (
+          <p className="mb-4 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm text-emerald-800">
+            Patient deleted.
+          </p>
+        ) : null}
+        {params.cleaned ? (
+          <p className="mb-4 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm text-emerald-800">
+            Removed {params.cleaned} unfinished iPad placeholder
+            {params.cleaned === "1" ? "" : "s"}.
+          </p>
+        ) : null}
+        {params.error ? (
+          <p className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            {decodeURIComponent(params.error)}
+          </p>
+        ) : null}
+
+        {(placeholderCount ?? 0) > 0 ? (
+          <div className="mb-4 flex flex-wrap items-center gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-900">
+            <span>
+              {placeholderCount} unfinished iPad intake
+              {placeholderCount === 1 ? "" : "s"} hidden (shows as &quot;Intake Pending&quot;).{" "}
+              <Link href="/intake-packets" className="text-neon-pink font-medium hover:underline">
+                View intake packets
+              </Link>
+            </span>
+            <CleanPlaceholderPatientsButton count={placeholderCount ?? 0} />
+          </div>
+        ) : null}
 
         {error && (
           <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
