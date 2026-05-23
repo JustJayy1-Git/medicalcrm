@@ -9,6 +9,24 @@ import {
 
 export type FormPayload = Record<string, unknown>;
 
+/** Supabase/PostgREST errors are plain objects — not always `instanceof Error`. */
+export function formatDbError(err: unknown): string {
+  if (err && typeof err === "object" && "message" in err) {
+    const message = String((err as { message: unknown }).message);
+    if (message) return message;
+  }
+  if (err instanceof Error && err.message) return err.message;
+  return "Could not start intake";
+}
+
+function isMissingColumnError(message: string, column: string): boolean {
+  const m = message.toLowerCase();
+  return (
+    m.includes(column.toLowerCase()) &&
+    (m.includes("column") || m.includes("schema cache") || m.includes("could not find"))
+  );
+}
+
 function emptyDate(value: unknown): string | null {
   if (value === null || value === undefined || value === "") return null;
   return String(value);
@@ -175,6 +193,7 @@ export async function createPortalPacket(
 
   if (pErr) throw pErr;
 
+  let caseId: string | null = null;
   const { data: caseRow, error: cErr } = await supabase
     .from("cases")
     .insert({
@@ -187,25 +206,66 @@ export async function createPortalPacket(
     .select("id")
     .single();
 
-  if (cErr) throw cErr;
+  if (!cErr && caseRow?.id) {
+    caseId = caseRow.id as string;
+  } else if (cErr) {
+    console.error("createPortalPacket: case insert failed:", cErr.message);
+  }
 
-  const { data: packet, error: kErr } = await supabase
-    .from("intake_packets")
-    .insert({
-      patient_id: patient.id,
-      case_id: caseRow.id,
-      status: "in_progress",
-      source: "portal",
-    })
-    .select("id")
-    .single();
+  const basePacket = {
+    patient_id: patient.id,
+    status: "in_progress" as const,
+    source: "portal" as const,
+  };
 
-  if (kErr) throw kErr;
+  async function rollbackCreated() {
+    if (caseId) await supabase.from("cases").delete().eq("id", caseId);
+    await supabase.from("patients").delete().eq("id", patient.id);
+  }
+
+  let packetId: number;
+
+  if (caseId) {
+    const { data: packet, error: kErr } = await supabase
+      .from("intake_packets")
+      .insert({ ...basePacket, case_id: caseId })
+      .select("id")
+      .single();
+
+    if (!kErr && packet) {
+      packetId = packet.id as number;
+    } else if (kErr && isMissingColumnError(kErr.message, "case_id")) {
+      const { data: packet2, error: kErr2 } = await supabase
+        .from("intake_packets")
+        .insert(basePacket)
+        .select("id")
+        .single();
+      if (kErr2) {
+        await rollbackCreated();
+        throw kErr2;
+      }
+      packetId = packet2!.id as number;
+    } else {
+      await rollbackCreated();
+      throw kErr ?? new Error("Could not create intake packet");
+    }
+  } else {
+    const { data: packet, error: kErr } = await supabase
+      .from("intake_packets")
+      .insert(basePacket)
+      .select("id")
+      .single();
+    if (kErr) {
+      await supabase.from("patients").delete().eq("id", patient.id);
+      throw kErr;
+    }
+    packetId = packet!.id as number;
+  }
 
   return {
-    packetId: packet.id as number,
+    packetId,
     patientId: patient.id as string,
-    caseId: caseRow.id as string,
+    caseId,
   };
 }
 

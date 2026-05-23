@@ -240,19 +240,33 @@ export async function syncCaseFromIntakeSave(
   patientId: string,
   intake: FormPayload,
 ): Promise<string | null> {
-  const { data: packet, error: packetErr } = await supabase
+  let linkedCaseId: string | null = null;
+  let packetDoi: string | null = null;
+
+  const { data: packetLinked, error: linkedErr } = await supabase
     .from("intake_packets")
     .select("case_id, date_of_accident")
     .eq("id", packetId)
     .single();
 
-  if (packetErr) throw packetErr;
+  if (!linkedErr && packetLinked) {
+    linkedCaseId = (packetLinked.case_id as string | null) ?? null;
+    packetDoi = (packetLinked.date_of_accident as string | null) ?? null;
+  } else {
+    const { data: packetBasic, error: basicErr } = await supabase
+      .from("intake_packets")
+      .select("date_of_accident")
+      .eq("id", packetId)
+      .single();
+    if (basicErr) throw basicErr;
+    packetDoi = (packetBasic?.date_of_accident as string | null) ?? null;
+  }
 
-  const doi = emptyDate(intake.meta_date_of_accident) ?? emptyDate(packet?.date_of_accident);
+  const doi = emptyDate(intake.meta_date_of_accident) ?? emptyDate(packetDoi);
   const casePayload = await buildCasePayloadFromPortalForms(supabase, intake, {}, {}, doi);
   casePayload.patient_id = patientId;
 
-  let caseId: string | null = (packet?.case_id as string | null) ?? null;
+  let caseId: string | null = linkedCaseId;
 
   if (caseId) {
     const { error: caseErr } = await supabase.from("cases").update(casePayload).eq("id", caseId);
@@ -268,9 +282,24 @@ export async function syncCaseFromIntakeSave(
   }
 
   const packetUpdate: Record<string, unknown> = {};
-  if (caseId && caseId !== packet?.case_id) packetUpdate.case_id = caseId;
   if (doi) packetUpdate.date_of_accident = doi;
-  if (Object.keys(packetUpdate).length > 0) {
+
+  if (caseId && caseId !== linkedCaseId) {
+    const { error: linkErr } = await supabase
+      .from("intake_packets")
+      .update({ ...packetUpdate, case_id: caseId })
+      .eq("id", packetId);
+    if (linkErr && !String(linkErr.message).toLowerCase().includes("case_id")) {
+      throw linkErr;
+    }
+    if (linkErr && Object.keys(packetUpdate).length > 0) {
+      const { error: doiErr } = await supabase
+        .from("intake_packets")
+        .update(packetUpdate)
+        .eq("id", packetId);
+      if (doiErr) throw doiErr;
+    }
+  } else if (Object.keys(packetUpdate).length > 0) {
     const { error: pktErr } = await supabase
       .from("intake_packets")
       .update(packetUpdate)

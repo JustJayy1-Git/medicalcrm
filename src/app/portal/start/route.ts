@@ -1,4 +1,4 @@
-import { createPortalPacket } from "@/lib/intake-packet/form-persistence";
+import { createPortalPacket, formatDbError } from "@/lib/intake-packet/form-persistence";
 import { FORM_ORDER } from "@/lib/intake-packet/form-slugs";
 import { kioskSignInErrorMessage } from "@/lib/portal/device-auth";
 import { createPortalClient } from "@/lib/portal/portal-supabase";
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       303,
     );
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Could not start intake";
+    const message = formatDbError(err);
     const url = portalUrl(request, "/portal");
     url.searchParams.set("error", message);
     return NextResponse.redirect(url, 303);
