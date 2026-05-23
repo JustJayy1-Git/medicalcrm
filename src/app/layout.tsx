@@ -14,11 +14,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Pro Injury CRM",
+  title: "LUKARIENZ",
   description:
-    "Patient management, scheduling, and billing for injury practices.",
+    "LUKARIENZ — patient management, scheduling, and billing for injury practices.",
   icons: {
-    icon: "/logo.png",
+    icon: "/logo-mono.jpg",
   },
 };
 

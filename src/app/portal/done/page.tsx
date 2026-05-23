@@ -1,4 +1,5 @@
 import { completePacket } from "@/lib/intake-packet/form-persistence";
+import { PortalBackground } from "@/components/portal/portal-background";
 import { StaffExitButton } from "@/components/portal/staff-exit-button";
 import { createPortalClient } from "@/lib/portal/portal-supabase";
 import Image from "next/image";
@@ -18,21 +19,26 @@ export default async function PortalDonePage({
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-eggplant-950 to-[#1a1d24] px-6 text-center">
-      <header className="absolute top-0 right-0 p-4">
+    <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#0c0f15] px-6 text-center">
+      <PortalBackground />
+      <header className="absolute top-0 right-0 p-4 z-10">
         <StaffExitButton />
       </header>
-      <Image src="/logo.png" alt="Pro Injury" width={80} height={80} className="mb-6" />
-      <h1 className="text-3xl font-serif text-white mb-3">Thank you</h1>
-      <p className="text-white/65 max-w-md mb-10">
-        Your intake forms have been submitted. Please return the iPad to the front desk.
-      </p>
-      <Link
-        href="/portal"
-        className="px-10 py-3 font-bold rounded-xl bg-gradient-to-r from-neon-mint to-neon-pink text-eggplant-950"
-      >
-        Start next patient
-      </Link>
+      <div className="relative z-10 flex flex-col items-center">
+        <div className="mb-6 p-2.5 rounded-xl bg-white/95 shadow-lg ring-1 ring-white/20">
+          <Image src="/logo-mono.jpg" alt="Pro Injury" width={80} height={80} className="object-contain" />
+        </div>
+        <h1 className="text-3xl font-serif text-white mb-3">Thank you</h1>
+        <p className="text-[#c8d2e0]/75 max-w-md mb-10">
+          Your intake forms have been submitted. Please return the iPad to the front desk.
+        </p>
+        <Link
+          href="/portal"
+          className="px-10 py-3 font-bold rounded-xl bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] text-white"
+        >
+          Start next patient
+        </Link>
+      </div>
     </div>
   );
 }

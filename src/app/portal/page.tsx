@@ -1,3 +1,4 @@
+import { PortalBackground } from "@/components/portal/portal-background";
 import { StaffExitButton } from "@/components/portal/staff-exit-button";
 import { StartIntakeForm } from "@/components/portal/start-intake-form";
 import Image from "next/image";
@@ -21,22 +22,23 @@ export default async function PortalHomePage({
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#0c0f15] px-6 py-12">
-      <div
-        className="pointer-events-none absolute inset-0 opacity-40"
-        aria-hidden
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 50% at 50% -10%, #41B6E6 0%, transparent 55%), radial-gradient(ellipse 60% 40% at 100% 100%, #DB3EB1 0%, transparent 50%), radial-gradient(ellipse 50% 35% at 0% 80%, #41B6E6 0%, transparent 45%)",
-        }}
-      />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#41B6E6] to-transparent opacity-60" />
+      <PortalBackground />
 
       <header className="absolute top-0 right-0 p-4 z-10">
         <StaffExitButton />
       </header>
 
       <div className="relative z-10 flex flex-col items-center max-w-lg w-full text-center">
-        <Image src="/logo.png" alt="Pro Injury" width={104} height={104} priority className="mb-8 drop-shadow-lg" />
+        <div className="mb-8 p-3 rounded-2xl bg-white/95 shadow-[0_8px_40px_rgba(0,0,0,0.35)] ring-1 ring-white/20">
+          <Image
+            src="/logo-mono.jpg"
+            alt="Pro Injury Medical"
+            width={112}
+            height={112}
+            priority
+            className="object-contain"
+          />
+        </div>
 
         <p className="text-[11px] font-bold uppercase tracking-[0.35em] text-[#41B6E6] mb-3">
           Pro Injury Medical &amp; Rehabilitation
