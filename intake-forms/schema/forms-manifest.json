@@ -38,10 +38,14 @@
         },
         {
           "name": "meta_type_of_accident",
-          "kind": "input",
+          "kind": "select",
           "type": "text",
           "value": null,
-          "maxlength": null
+          "maxlength": null,
+          "options": [
+            "motor_vehicle_accident",
+            "slip_and_fall"
+          ]
         },
         {
           "name": "language",
@@ -211,13 +215,6 @@
         },
         {
           "name": "pip_adjuster",
-          "kind": "input",
-          "type": "text",
-          "value": null,
-          "maxlength": null
-        },
-        {
-          "name": "acc_time_location",
           "kind": "input",
           "type": "text",
           "value": null,

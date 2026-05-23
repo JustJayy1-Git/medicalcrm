@@ -31,7 +31,16 @@ const KIOSK_DISPLAY_CSS = `
   html.portal-kiosk .page-title h1 {
     font-size: 17px !important;
   }
-  html.portal-kiosk .field input[type=text],
+  html.portal-kiosk .field input[type=date],
+  html.portal-kiosk .meta-cell input[type=date] {
+    min-height: 36px !important;
+    cursor: pointer;
+  }
+  html.portal-kiosk .meta-cell select {
+    min-height: 32px !important;
+    font-size: 13px !important;
+    cursor: pointer;
+  }
   html.portal-kiosk .field input[type=email],
   html.portal-kiosk .field input[type=tel],
   html.portal-kiosk .field input[type=date],

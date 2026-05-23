@@ -121,6 +121,13 @@
     padding: 0 2px 2px; outline: none;
   }
   .meta-cell input:focus { background: #f3fafe; border-bottom-color: #41B6E6; }
+  .meta-cell select {
+    margin-top: 4px; width: 100%; height: 22px;
+    border: 0; border-bottom: 1.5px solid #000;
+    background: transparent; font: inherit; color: #000;
+    padding: 0 2px 2px; outline: none; cursor: pointer;
+  }
+  .meta-cell select:focus { background: #f3fafe; border-bottom-color: #41B6E6; }
 
   /* Page title */
   .page-title {
@@ -204,6 +211,10 @@
   }
   .field input:focus, .field textarea:focus {
     background: #f3fafe; border-bottom-color: #41B6E6;
+  }
+  .field input[type=date] {
+    min-height: 28px;
+    cursor: pointer;
   }
   .field textarea {
     height: 38px; line-height: 1.35; resize: vertical;
@@ -328,7 +339,7 @@
     <div class="meta-cell"><div class="lbl">Today's Date <span class="es">/ Fecha de hoy</span></div><input name="meta_todays_date" type="date"></div>
     <div class="meta-cell"><div class="lbl">Date of Accident <span class="es">/ Fecha del accidente</span></div><input name="meta_date_of_accident" type="date"></div>
     <div class="meta-cell"><div class="lbl">Referred By <span class="es">/ Referido por</span></div><input name="meta_referred_by" type="text"></div>
-    <div class="meta-cell"><div class="lbl">Type of Accident <span class="es">/ Tipo de accidente</span></div><input name="meta_type_of_accident" type="text"></div>
+    <div class="meta-cell"><div class="lbl">Type of Accident <span class="es">/ Tipo de accidente</span></div><select name="meta_type_of_accident"><option value="">Select type…</option><option value="motor_vehicle_accident">Motor Vehicle Accident</option><option value="slip_and_fall">Slip and Fall</option></select></div>
   </div>
 
   <!-- PAGE TITLE -->
@@ -354,7 +365,7 @@
         <h2 class="section-title">Personal Information <span class="es">/ Información Personal</span></h2>
         <div class="section-rule"></div>
       </div>
-      <div class="row r-2-1"><div class="field "><label class="lbl">Name <span class="es">Nombre</span></label><input type="text" name="patient_name"></div><div class="field "><label class="lbl">Marital Status <span class="es">Estado civil</span></label><div class="pill-row"><input type="radio" name="marital" id="marital_0" value="single"><label class="pill" for="marital_0">Single</label><input type="radio" name="marital" id="marital_1" value="married"><label class="pill" for="marital_1">Married</label><input type="radio" name="marital" id="marital_2" value="divorced"><label class="pill" for="marital_2">Divorced</label></div></div></div><div class="row r4"><div class="field "><label class="lbl">Address <span class="es">Dirección</span></label><input type="text" name="addr_street"></div><div class="field "><label class="lbl">City <span class="es">Ciudad</span></label><input type="text" name="addr_city"></div><div class="field "><label class="lbl">State <span class="es">Estado</span></label><input type="text" name="addr_state"></div><div class="field "><label class="lbl">ZIP <span class="es">CP</span></label><input type="text" name="addr_zip"></div></div><div class="row r4"><div class="field "><label class="lbl">Gender <span class="es">Género</span></label><div class="pill-row"><input type="radio" name="gender" id="gender_0" value="female"><label class="pill" for="gender_0">Female</label><input type="radio" name="gender" id="gender_1" value="male"><label class="pill" for="gender_1">Male</label></div></div><div class="field "><label class="lbl">Home # <span class="es">Casa</span></label><input type="tel" name="phone_home"></div><div class="field "><label class="lbl">Cell # <span class="es">Celular</span></label><input type="tel" name="phone_cell"></div><div class="field "><label class="lbl">Client <span class="es">Cliente</span></label><div class="pill-row"><input type="radio" name="client_role" id="client_role_0" value="driver"><label class="pill" for="client_role_0">Driver <span class="es">Conductor</span></label><input type="radio" name="client_role" id="client_role_1" value="passenger"><label class="pill" for="client_role_1">Passenger <span class="es">Pasajero</span></label></div></div></div><div class="row r2"><div class="field "><label class="lbl">D.O.B. <span class="es">Fecha de nacimiento</span></label><input type="date" name="dob"></div><div class="field "><label class="lbl">Emergency Contact <span class="es">Contacto de emergencia</span></label><input type="text" name="emergency_contact"></div></div>
+      <div class="row r-2-1"><div class="field "><label class="lbl">Name <span class="es">Nombre</span></label><input type="text" name="patient_name"></div><div class="field "><label class="lbl">Marital Status <span class="es">Estado civil</span></label><div class="pill-row"><input type="radio" name="marital" id="marital_0" value="single"><label class="pill" for="marital_0">Single</label><input type="radio" name="marital" id="marital_1" value="married"><label class="pill" for="marital_1">Married</label><input type="radio" name="marital" id="marital_2" value="divorced"><label class="pill" for="marital_2">Divorced</label></div></div></div><div class="row r4"><div class="field "><label class="lbl">Address <span class="es">Dirección</span></label><input type="text" name="addr_street"></div><div class="field "><label class="lbl">City <span class="es">Ciudad</span></label><input type="text" name="addr_city"></div><div class="field "><label class="lbl">State <span class="es">Estado</span></label><input type="text" name="addr_state"></div><div class="field "><label class="lbl">ZIP <span class="es">CP</span></label><input type="text" name="addr_zip"></div></div><div class="row r4"><div class="field "><label class="lbl">Gender <span class="es">Género</span></label><div class="pill-row"><input type="radio" name="gender" id="gender_0" value="female"><label class="pill" for="gender_0">Female</label><input type="radio" name="gender" id="gender_1" value="male"><label class="pill" for="gender_1">Male</label></div></div><div class="field "><label class="lbl">Home # <span class="es">Casa</span></label><input type="tel" name="phone_home"></div><div class="field "><label class="lbl">Cell # <span class="es">Celular</span></label><input type="tel" name="phone_cell"></div><div class="field "><label class="lbl">Client <span class="es">Cliente</span></label><div class="pill-row"><input type="radio" name="client_role" id="client_role_0" value="driver"><label class="pill" for="client_role_0">Driver <span class="es">Conductor</span></label><input type="radio" name="client_role" id="client_role_1" value="passenger"><label class="pill" for="client_role_1">Passenger <span class="es">Pasajero</span></label></div></div></div><div class="row r2"><div class="field "><label class="lbl">Date of Birth <span class="es">/ Fecha de nacimiento</span></label><input type="date" name="dob"></div><div class="field "><label class="lbl">Emergency Contact <span class="es">Contacto de emergencia</span></label><input type="text" name="emergency_contact"></div></div>
     </div>
     <div class="section">
       <div class="section-head">
@@ -386,7 +397,7 @@
         <h2 class="section-title">Accident Details <span class="es">/ Detalles del Accidente</span></h2>
         <div class="section-rule"></div>
       </div>
-      <div class="row r2"><div class="field "><label class="lbl">Time and Location of Accident <span class="es">Hora y ubicación</span></label><input type="text" name="acc_time_location"></div><div class="field "><label class="lbl">Crash Report # <span class="es"># reporte</span></label><input type="text" name="acc_crash_report"></div></div><div class="field "><label class="lbl">Brief Summary of Accident <span class="es">Resumen breve</span></label><textarea name="acc_summary" rows="2"></textarea></div>
+      <div class="field "><label class="lbl">Crash Report # <span class="es"># reporte</span></label><input type="text" name="acc_crash_report"></div><div class="field "><label class="lbl">Brief Summary of Accident <span class="es">Resumen breve</span></label><textarea name="acc_summary" rows="2"></textarea></div>
     </div>
     <div class="section">
       <div class="section-head">

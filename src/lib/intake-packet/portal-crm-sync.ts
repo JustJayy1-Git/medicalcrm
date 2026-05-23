@@ -50,13 +50,33 @@ function splitPatientName(full: string) {
 
 function inferCaseType(accidentType: unknown): string {
   const t = str(accidentType)?.toLowerCase() ?? "";
-  if (t.includes("work") || t.includes("comp")) return "workers_comp";
-  if (t.includes("slip") || t.includes("fall") || t.includes("premise")) return "slip_fall";
-  if (t.includes("car") || t.includes("auto") || t.includes("mva") || t.includes("vehicle")) {
+  if (t === "slip_and_fall" || t.includes("slip") || t.includes("fall")) return "slip_fall";
+  if (
+    t === "motor_vehicle_accident" ||
+    t.includes("motor") ||
+    t.includes("vehicle") ||
+    t.includes("mva") ||
+    t.includes("auto")
+  ) {
     return "mva";
   }
-  if (t.includes("other")) return "other";
   return "mva";
+}
+
+function accidentTypeLabel(value: unknown): string | null {
+  const t = str(value)?.toLowerCase();
+  if (!t) return null;
+  if (t === "slip_and_fall" || t.includes("slip") || t.includes("fall")) return "Slip and Fall";
+  if (
+    t === "motor_vehicle_accident" ||
+    t.includes("motor") ||
+    t.includes("vehicle") ||
+    t.includes("mva") ||
+    t.includes("auto")
+  ) {
+    return "Motor Vehicle Accident";
+  }
+  return str(value);
 }
 
 /** Map page-1 intake fields → CRM `patients` columns. */
@@ -168,7 +188,7 @@ export async function buildCasePayloadFromPortalForms(
     billing_method: "insurance",
     date_of_injury: doi,
     referral_source: referral,
-    accident_nature: str(intake.meta_type_of_accident),
+    accident_nature: accidentTypeLabel(intake.meta_type_of_accident),
     accident_state: str(intake.addr_state),
     description: summary ? summary.slice(0, 500) : "Portal intake",
     how_it_happened: summary,

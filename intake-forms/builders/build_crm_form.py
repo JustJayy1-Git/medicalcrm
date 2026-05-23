@@ -136,6 +136,13 @@ HTML = r"""<!doctype html>
     padding: 0 2px 2px; outline: none;
   }
   .meta-cell input:focus { background: #f3fafe; border-bottom-color: #41B6E6; }
+  .meta-cell select {
+    margin-top: 4px; width: 100%; height: 22px;
+    border: 0; border-bottom: 1.5px solid #000;
+    background: transparent; font: inherit; color: #000;
+    padding: 0 2px 2px; outline: none; cursor: pointer;
+  }
+  .meta-cell select:focus { background: #f3fafe; border-bottom-color: #41B6E6; }
 
   /* Page title */
   .page-title {
@@ -219,6 +226,10 @@ HTML = r"""<!doctype html>
   }
   .field input:focus, .field textarea:focus {
     background: #f3fafe; border-bottom-color: #41B6E6;
+  }
+  .field input[type=date] {
+    min-height: 28px;
+    cursor: pointer;
   }
   .field textarea {
     height: 38px; line-height: 1.35; resize: vertical;
@@ -343,7 +354,7 @@ HTML = r"""<!doctype html>
     <div class="meta-cell"><div class="lbl">Today's Date <span class="es">/ Fecha de hoy</span></div><input name="meta_todays_date" type="date"></div>
     <div class="meta-cell"><div class="lbl">Date of Accident <span class="es">/ Fecha del accidente</span></div><input name="meta_date_of_accident" type="date"></div>
     <div class="meta-cell"><div class="lbl">Referred By <span class="es">/ Referido por</span></div><input name="meta_referred_by" type="text"></div>
-    <div class="meta-cell"><div class="lbl">Type of Accident <span class="es">/ Tipo de accidente</span></div><input name="meta_type_of_accident" type="text"></div>
+    <div class="meta-cell"><div class="lbl">Type of Accident <span class="es">/ Tipo de accidente</span></div><select name="meta_type_of_accident"><option value="">Select type…</option><option value="motor_vehicle_accident">Motor Vehicle Accident</option><option value="slip_and_fall">Slip and Fall</option></select></div>
   </div>
 
   <!-- PAGE TITLE -->
@@ -532,7 +543,7 @@ s02 = section("02", "Personal Information", "Información Personal",
             [("driver","Driver","Conductor"),("passenger","Passenger","Pasajero")]),
     )
     + row("r2",
-        tf("dob","D.O.B.","Fecha de nacimiento","date"),
+        tf("dob","Date of Birth","Fecha de nacimiento","date"),
         tf("emergency_contact","Emergency Contact","Contacto de emergencia"),
     )
 )
@@ -569,10 +580,7 @@ s06 = ""
 
 # 05 Accident Details
 s07 = section("05", "Accident Details", "Detalles del Accidente",
-    row("r2",
-        tf("acc_time_location","Time and Location of Accident","Hora y ubicación"),
-        tf("acc_crash_report","Crash Report #","# reporte"),
-    )
+    tf("acc_crash_report","Crash Report #","# reporte")
     + ta("acc_summary","Brief Summary of Accident","Resumen breve", rows=2)
 )
 
