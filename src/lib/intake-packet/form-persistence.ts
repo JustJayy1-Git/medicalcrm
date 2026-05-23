@@ -191,13 +191,15 @@ export async function createPortalPacket(
     .select("id")
     .single();
 
-  if (pErr) throw pErr;
+  if (pErr || !patient) throw pErr ?? new Error("Could not create patient");
+
+  const patientId = patient.id;
 
   let caseId: string | null = null;
   const { data: caseRow, error: cErr } = await supabase
     .from("cases")
     .insert({
-      patient_id: patient.id,
+      patient_id: patientId,
       case_type: "mva",
       status: "open",
       billing_method: "insurance",
@@ -213,14 +215,14 @@ export async function createPortalPacket(
   }
 
   const basePacket = {
-    patient_id: patient.id,
+    patient_id: patientId,
     status: "in_progress" as const,
     source: "portal" as const,
   };
 
   async function rollbackCreated() {
     if (caseId) await supabase.from("cases").delete().eq("id", caseId);
-    await supabase.from("patients").delete().eq("id", patient.id);
+    await supabase.from("patients").delete().eq("id", patientId);
   }
 
   let packetId: number;
@@ -256,7 +258,7 @@ export async function createPortalPacket(
       .select("id")
       .single();
     if (kErr) {
-      await supabase.from("patients").delete().eq("id", patient.id);
+      await supabase.from("patients").delete().eq("id", patientId);
       throw kErr;
     }
     packetId = packet!.id as number;
@@ -264,7 +266,7 @@ export async function createPortalPacket(
 
   return {
     packetId,
-    patientId: patient.id as string,
+    patientId,
     caseId,
   };
 }
