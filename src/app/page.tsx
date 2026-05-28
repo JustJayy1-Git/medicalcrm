@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { LogoMark } from "@/components/logo-mark";
 
 const QUOTES = [
   "Every patient you help today changes a life tomorrow.",
@@ -43,13 +43,7 @@ export default function Home() {
 
       {/* Top bar */}
       <header className="relative flex items-center gap-5 px-6 py-4 border-b border-neutral-800/70 backdrop-blur-sm">
-        <Image
-          src="/logo-emblem.png"
-          alt="Pro Injury"
-          width={88}
-          height={88}
-          priority
-        />
+        <LogoMark variant="icon" width={88} height={88} priority className="shrink-0" />
         <span
           className="text-4xl font-sans font-extrabold italic tracking-tight text-neutral-100 inline-block border-b-2 border-neon-mint/70 pb-0.5"
         >
@@ -66,14 +60,7 @@ export default function Home() {
       {/* Main */}
       <main className="relative flex-1 flex items-center justify-center px-6">
         <div className="max-w-2xl text-center">
-          <Image
-            src="/logo.png"
-            alt="Pro Injury"
-            width={84}
-            height={84}
-            priority
-            className="mx-auto mb-5"
-          />
+          <LogoMark variant="header" width={120} height={120} priority className="mx-auto mb-5" />
           <p className="text-xs font-semibold uppercase tracking-[0.4em] text-neon-mint/80 mb-6">
             Pro Injury · Internal Portal
           </p>

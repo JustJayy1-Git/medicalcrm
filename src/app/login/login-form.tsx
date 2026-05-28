@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { LogoMark } from "@/components/logo-mark";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -57,14 +57,7 @@ export function LoginForm({ afterLogin }: { afterLogin: string }) {
 
       <header className="relative flex items-center gap-4 px-6 py-5 border-b border-[#41B6E6]/15 backdrop-blur-sm">
         <a href="/" className="flex items-center gap-4 hover:opacity-90 transition-opacity">
-          <Image
-            src="/logo-mono.jpg"
-            alt="LUKARIENZ"
-            width={52}
-            height={52}
-            priority
-            className="rounded-md ring-1 ring-white/10"
-          />
+          <LogoMark variant="icon" width={52} height={52} priority />
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#41B6E6] leading-none mb-0.5">
               Medical CRM

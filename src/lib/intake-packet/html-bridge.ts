@@ -106,6 +106,37 @@ const FILLABLE_FIELD_CSS = `
     color: #0c0f15;
     cursor: pointer;
   }
+  /* Signature row: Name | Date | Signature (signature last, aligned on baseline) */
+  html.portal-kiosk .sig-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr) minmax(0, 1.5fr) !important;
+    align-items: end !important;
+    gap: 10px !important;
+  }
+  html.portal-kiosk .sig-row.three-equal {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  html.portal-kiosk .sig-cell {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  html.portal-kiosk .sig-cell.signature {
+    align-self: end;
+  }
+  html.portal-kiosk .sig-cell.signature .pro-signature-pad {
+    margin-top: 3px;
+    width: 100%;
+  }
+  html.portal-kiosk .sig-cell.signature .pro-signature-pad canvas {
+    height: 52px !important;
+    min-height: 52px !important;
+  }
+  html.portal-kiosk .sig-cell.signature .pro-sig-hint,
+  html.portal-kiosk .sig-cell.signature .pro-sig-clear {
+    display: none;
+  }
 }
 </style>`;
 
@@ -342,6 +373,24 @@ export function injectApiBridge(
     getCachedForm(){ return this._cachedForm || {}; }
   };
 
+  function normalizeSigRows(){
+    document.querySelectorAll('.sig-row').forEach(function(row){
+      var cells = Array.from(row.querySelectorAll(':scope > .sig-cell'));
+      if(cells.length < 2) return;
+      var sigCell = cells.find(function(c){ return c.classList.contains('signature'); });
+      if(!sigCell) return;
+      var dateCell = cells.find(function(c){
+        return c !== sigCell && c.querySelector('input[type=date]');
+      });
+      var nameCells = cells.filter(function(c){
+        return c !== sigCell && c !== dateCell;
+      });
+      nameCells.forEach(function(c){ row.appendChild(c); });
+      if(dateCell) row.appendChild(dateCell);
+      row.appendChild(sigCell);
+    });
+  }
+
   function initSignaturePads(){
     var sigInputs = document.querySelectorAll('.sig-cell.signature input[type=text], input[name$="_signature"]');
     sigInputs.forEach(function(input){
@@ -516,6 +565,7 @@ export function injectApiBridge(
           setIndicator('saved');
         }
         if(NEEDS_INTAKE_PREFILL) applyIntakePrefill(intake, form);
+        normalizeSigRows();
         initSignaturePads();
       } catch(e){
         console.error(e);
@@ -553,8 +603,12 @@ export function injectApiBridge(
 
   document.addEventListener('DOMContentLoaded', function(){
     wirePager();
+    normalizeSigRows();
     hijackPersistence();
-    setTimeout(initSignaturePads, 300);
+    setTimeout(function(){
+      normalizeSigRows();
+      initSignaturePads();
+    }, 300);
   });
 })();
 </script>`;

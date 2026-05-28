@@ -18,7 +18,8 @@ export const metadata: Metadata = {
   description:
     "LUKARIENZ — patient management, scheduling, and billing for injury practices.",
   icons: {
-    icon: "/logo-mono.jpg",
+    icon: "/logo-icon.png",
+    apple: "/logo-icon.png",
   },
 };
 

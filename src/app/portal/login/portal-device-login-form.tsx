@@ -1,7 +1,7 @@
 "use client";
 
+import { LogoMark } from "@/components/logo-mark";
 import { PortalBackground } from "@/components/portal/portal-background";
-import Image from "next/image";
 import { useFormStatus } from "react-dom";
 import { portalDeviceSignIn } from "./actions";
 
@@ -30,9 +30,7 @@ export function PortalDeviceLoginForm({
     <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#0c0f15] px-6 py-10">
       <PortalBackground />
       <div className="relative z-10 flex flex-col items-center w-full max-w-sm">
-        <div className="mb-6 p-2 rounded-xl bg-white/95 shadow-lg">
-          <Image src="/logo-mono.jpg" alt="Pro Injury" width={88} height={88} priority className="object-contain" />
-        </div>
+        <LogoMark variant="header" width={100} height={100} priority className="mb-6" />
         <h1 className="text-2xl md:text-3xl font-serif font-semibold text-white text-center mb-2">
           Patient intake — iPad setup
         </h1>

@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { LogoMark } from "@/components/logo-mark";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
@@ -41,13 +41,12 @@ export function AppShell({
           href="/dashboard"
           className="flex items-center gap-3 px-5 py-5 border-b border-[#41B6E6]/15 hover:bg-white/[0.03] transition-colors"
         >
-          <Image
-            src="/logo-mono.jpg"
-            alt="LUKARIENZ"
-            width={44}
-            height={44}
+          <LogoMark
+            variant="icon"
+            width={48}
+            height={48}
             priority
-            className="rounded-md object-cover ring-1 ring-white/10"
+            className="shrink-0"
           />
           <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#41B6E6] leading-none mb-1">

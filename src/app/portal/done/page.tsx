@@ -1,8 +1,8 @@
 import { completePacket } from "@/lib/intake-packet/form-persistence";
+import { LogoMark } from "@/components/logo-mark";
 import { PortalBackground } from "@/components/portal/portal-background";
 import { StaffExitButton } from "@/components/portal/staff-exit-button";
 import { createPortalClient } from "@/lib/portal/portal-supabase";
-import Image from "next/image";
 import Link from "next/link";
 
 export default async function PortalDonePage({
@@ -25,9 +25,7 @@ export default async function PortalDonePage({
         <StaffExitButton />
       </header>
       <div className="relative z-10 flex flex-col items-center">
-        <div className="mb-6 p-2.5 rounded-xl bg-white/95 shadow-lg ring-1 ring-white/20">
-          <Image src="/logo-mono.jpg" alt="Pro Injury" width={80} height={80} className="object-contain" />
-        </div>
+        <LogoMark variant="header" width={100} height={100} className="mb-6" />
         <h1 className="text-3xl font-serif text-white mb-3">Thank you</h1>
         <p className="text-[#c8d2e0]/75 max-w-md mb-10">
           Your intake forms have been submitted. Please return the iPad to the front desk.

@@ -1,9 +1,8 @@
 import type { StaticImageData } from "next/image";
-import headerLogo from "@/assets/brand/logo-header.png";
-import iconLogo from "@/assets/brand/logo-icon.png";
-import watermarkLogo from "@/assets/brand/logo-watermark.png";
+import brandLogo from "@/assets/brand/logo-header.png";
 
 type Props = {
+  /** @deprecated All variants use the same transparent logo asset. */
   variant?: "header" | "icon" | "watermark";
   width: number;
   height: number;
@@ -11,25 +10,19 @@ type Props = {
   priority?: boolean;
 };
 
-const SRC: Record<NonNullable<Props["variant"]>, StaticImageData> = {
-  header: headerLogo,
-  icon: iconLogo,
-  watermark: watermarkLogo,
-};
+/** Single transparent logo asset — scaled per placement. */
+const LOGO: StaticImageData = brandLogo;
 
 export function LogoMark({
-  variant = "header",
   width,
   height,
   className = "",
   priority = false,
 }: Props) {
-  const asset = SRC[variant];
-
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={asset.src}
+      src={LOGO.src}
       alt="Pro Injury"
       width={width}
       height={height}

@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "dev:webpack": "next dev --webpack",
-    "build": "node scripts/strip-logo-background.mjs && next build",
+    "build": "node scripts/install-brand-logo.mjs && next build",
+    "install-brand-logo": "node scripts/install-brand-logo.mjs",
     "start": "next start",
     "db:check": "node scripts/check-supabase.mjs",
     "db:migrate-0012": "node scripts/apply-0012.mjs",
@@ -38,6 +39,7 @@
     "@types/react-dom": "^19",
     "pg": "^8.16.0",
     "pngjs": "^7.0.0",
+    "sharp": "^0.34.2",
     "supabase": "^2.100.1",
     "tailwindcss": "^4",
     "typescript": "^5"

@@ -1,7 +1,7 @@
+import { LogoMark } from "@/components/logo-mark";
 import { PortalBackground } from "@/components/portal/portal-background";
 import { StaffExitButton } from "@/components/portal/staff-exit-button";
 import { StartIntakeForm } from "@/components/portal/start-intake-form";
-import Image from "next/image";
 
 const DEVICE_SETUP_HINT =
   "Intake could not start. Ask front desk to set KIOSK_DEVICE_EMAIL and KIOSK_DEVICE_PASSWORD in Vercel (kiosk user with role=kiosk), then redeploy.";
@@ -29,16 +29,13 @@ export default async function PortalHomePage({
       </header>
 
       <div className="relative z-10 flex flex-col items-center max-w-lg w-full text-center">
-        <div className="mb-8 p-3 rounded-2xl bg-white/95 shadow-[0_8px_40px_rgba(0,0,0,0.35)] ring-1 ring-white/20">
-          <Image
-            src="/logo-mono.jpg"
-            alt="Pro Injury Medical"
-            width={112}
-            height={112}
-            priority
-            className="object-contain"
-          />
-        </div>
+        <LogoMark
+          variant="header"
+          width={140}
+          height={140}
+          priority
+          className="mb-8"
+        />
 
         <p className="text-[11px] font-bold uppercase tracking-[0.35em] text-[#41B6E6] mb-3">
           Pro Injury Medical &amp; Rehabilitation
