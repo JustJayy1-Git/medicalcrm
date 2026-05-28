@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:webpack": "next dev --webpack",
-    "build": "next build",
+    "build": "node scripts/strip-logo-background.mjs && next build",
     "start": "next start",
     "db:check": "node scripts/check-supabase.mjs",
     "db:migrate-0012": "node scripts/apply-0012.mjs",
@@ -16,7 +16,8 @@
     "db:migrate-0019": "node scripts/apply-0019.mjs",
     "cms1500:copy-blank": "node scripts/copy-cms1500-blank.mjs",
     "cms1500:render-bg": "node scripts/render-cms1500-bg.mjs",
-    "sync-intake-forms": "node scripts/sync-intake-forms.mjs",
+    "sync-design-logos": "node scripts/sync-design-logos.mjs && node scripts/strip-logo-background.mjs",
+    "strip-logo-background": "node scripts/strip-logo-background.mjs",
     "kiosk:verify": "node scripts/verify-kiosk.mjs",
     "kiosk:fix": "node scripts/verify-kiosk.mjs --fix",
     "kiosk:set-role": "node scripts/set-kiosk-by-email.mjs"
@@ -36,6 +37,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "pg": "^8.16.0",
+    "pngjs": "^7.0.0",
     "supabase": "^2.100.1",
     "tailwindcss": "^4",
     "typescript": "^5"
