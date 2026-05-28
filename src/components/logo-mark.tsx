@@ -13,6 +13,14 @@ type Props = {
 /** Single transparent logo asset — scaled per placement. */
 const LOGO: StaticImageData = brandLogo;
 
+/** Crisp black stroke around the silver logo (follows alpha). */
+const LOGO_OUTLINE =
+  "drop-shadow(0 0 0.6px #000) drop-shadow(0 0 0.6px #000) " +
+  "drop-shadow(1px 0 0 #000) drop-shadow(-1px 0 0 #000) " +
+  "drop-shadow(0 1px 0 #000) drop-shadow(0 -1px 0 #000) " +
+  "drop-shadow(1px 1px 0 #000) drop-shadow(-1px -1px 0 #000) " +
+  "drop-shadow(1px -1px 0 #000) drop-shadow(-1px 1px 0 #000)";
+
 export function LogoMark({
   width,
   height,
@@ -29,7 +37,7 @@ export function LogoMark({
       decoding="async"
       fetchPriority={priority ? "high" : "auto"}
       className={`block object-contain ${className}`.trim()}
-      style={{ background: "transparent" }}
+      style={{ background: "transparent", filter: LOGO_OUTLINE }}
     />
   );
 }
