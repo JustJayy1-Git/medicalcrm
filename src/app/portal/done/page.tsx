@@ -2,7 +2,6 @@ import { completePacket } from "@/lib/intake-packet/form-persistence";
 import { LogoMark } from "@/components/logo-mark";
 import { PortalBackground } from "@/components/portal/portal-background";
 import { StaffExitButton } from "@/components/portal/staff-exit-button";
-import { createPortalClient } from "@/lib/portal/portal-supabase";
 import Link from "next/link";
 
 export default async function PortalDonePage({
@@ -14,8 +13,11 @@ export default async function PortalDonePage({
   const packetId = packet ? Number(packet) : NaN;
 
   if (Number.isFinite(packetId)) {
-    const { supabase, user } = await createPortalClient();
-    if (user) await completePacket(supabase, packetId);
+    try {
+      await completePacket(packetId);
+    } catch (err) {
+      console.error("portal/done completePacket:", err);
+    }
   }
 
   return (

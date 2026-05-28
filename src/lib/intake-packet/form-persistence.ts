@@ -7,6 +7,7 @@ import {
   syncPortalIntakeToCrm,
 } from "./portal-crm-sync";
 import { saveIntakePacketToPatientFile } from "./save-intake-attachment";
+import { createAdminClient } from "@/lib/supabase/server";
 
 export type FormPayload = Record<string, unknown>;
 
@@ -336,10 +337,20 @@ export async function saveForm(
     if (pkt?.patient_id) {
       const patientUpdate = buildPatientUpdateFromIntake(payload);
       if (Object.keys(patientUpdate).length > 0) {
-        await supabase.from("patients").update(patientUpdate).eq("id", pkt.patient_id);
+        const admin = createAdminClient();
+        const { error: patientErr } = await admin
+          .from("patients")
+          .update(patientUpdate)
+          .eq("id", pkt.patient_id);
+        if (patientErr) console.error("saveForm patient sync:", patientErr.message);
       }
 
-      await syncCaseFromIntakeSave(supabase, packetId, pkt.patient_id, payload);
+      try {
+        const admin = createAdminClient();
+        await syncCaseFromIntakeSave(admin, packetId, pkt.patient_id, payload);
+      } catch (err) {
+        console.error("saveForm case sync:", err);
+      }
     }
   }
 
@@ -354,21 +365,25 @@ export async function loadPacketForms(supabase: SupabaseClient, packetId: number
   return { packetId, forms };
 }
 
-export async function completePacket(supabase: SupabaseClient, packetId: number) {
-  const loaded = await loadPacketForms(supabase, packetId);
+export async function completePacket(packetId: number) {
+  const admin = createAdminClient();
+  const loaded = await loadPacketForms(admin, packetId);
   const intake = loaded.forms.intake ?? {};
   const financial = loaded.forms.financial ?? {};
   const hipaa = loaded.forms.hipaa ?? {};
 
-  const result = await syncPortalIntakeToCrm(supabase, packetId, {
+  const result = await syncPortalIntakeToCrm(admin, packetId, {
     intake,
     financial,
     hipaa,
   });
 
-  if (!result.caseId) return;
+  if (!result.caseId) {
+    console.error("completePacket: no case_id after sync for packet", packetId);
+    return result;
+  }
 
-  const { data: patient } = await supabase
+  const { data: patient } = await admin
     .from("patients")
     .select("first_name, last_name")
     .eq("id", result.patientId)
@@ -378,11 +393,17 @@ export async function completePacket(supabase: SupabaseClient, packetId: number)
     ? `${patient.first_name} ${patient.last_name}`.trim()
     : String(intake.patient_name ?? "Patient");
 
-  await saveIntakePacketToPatientFile({
-    packetId,
-    patientId: result.patientId,
-    caseId: result.caseId,
-    patientName,
-    forms: loaded.forms,
-  });
+  try {
+    await saveIntakePacketToPatientFile({
+      packetId,
+      patientId: result.patientId,
+      caseId: result.caseId,
+      patientName,
+      forms: loaded.forms,
+    });
+  } catch (err) {
+    console.error("completePacket: intake file attachment failed:", err);
+  }
+
+  return result;
 }

@@ -1,3 +1,5 @@
+"use client";
+
 /** Decorative Miami Vice background for iPad portal screens. */
 export function PortalBackground() {
   return (

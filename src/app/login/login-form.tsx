@@ -1,9 +1,9 @@
 "use client";
 
-import { LogoMark } from "@/components/logo-mark";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { PortalBackground } from "@/components/portal/portal-background";
 
 export function LoginForm({ afterLogin }: { afterLogin: string }) {
   const router = useRouter();
@@ -37,14 +37,7 @@ export function LoginForm({ afterLogin }: { afterLogin: string }) {
 
   return (
     <section className="relative min-h-screen flex flex-col text-white overflow-hidden bg-[#0c0f15]">
-      <div
-        className="pointer-events-none absolute inset-0 opacity-45"
-        aria-hidden
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 50% at 50% 0%, #41B6E6 0%, transparent 55%), radial-gradient(ellipse 60% 40% at 100% 100%, #DB3EB1 0%, transparent 50%)",
-        }}
-      />
+      <PortalBackground />
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.05]"
         aria-hidden
@@ -55,9 +48,14 @@ export function LoginForm({ afterLogin }: { afterLogin: string }) {
         }}
       />
 
-      <header className="relative flex items-center gap-4 px-6 py-5 border-b border-[#41B6E6]/15 backdrop-blur-sm">
-        <a href="/" className="flex items-center gap-4 hover:opacity-90 transition-opacity">
-          <LogoMark variant="icon" width={52} height={52} priority />
+      <header className="relative z-10 flex items-center gap-4 px-6 py-5 border-b border-[#41B6E6]/15 backdrop-blur-sm">
+        <a href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+          <div
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#41B6E6]/20 to-[#DB3EB1]/20 border border-[#41B6E6]/30"
+            aria-hidden
+          >
+            <span className="text-lg font-extrabold tracking-tighter text-white">L</span>
+          </div>
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#41B6E6] leading-none mb-0.5">
               Medical CRM
@@ -69,7 +67,7 @@ export function LoginForm({ afterLogin }: { afterLogin: string }) {
         </a>
       </header>
 
-      <main className="relative flex-1 flex items-center justify-center px-6 py-12">
+      <main className="relative z-10 flex-1 flex items-center justify-center px-6 py-12">
         <section className="w-full max-w-md">
           <section className="bg-[#121820]/85 backdrop-blur-md border border-[#41B6E6]/20 rounded-2xl p-8 shadow-[0_24px_60px_rgba(0,0,0,0.45)]">
             <header className="text-center mb-8">

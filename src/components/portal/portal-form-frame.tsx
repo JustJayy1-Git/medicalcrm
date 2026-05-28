@@ -75,9 +75,16 @@ export function PortalFormFrame({
   const navigateTo = useCallback(
     async (href: string) => {
       await flushIframeSave(iframeRef.current);
+      if (mode === "kiosk" && !next && href.includes("/portal/done")) {
+        try {
+          await fetch(`/api/intake-packets/${packetId}/complete`, { method: "POST" });
+        } catch {
+          // done page retries completion
+        }
+      }
       router.push(href);
     },
-    [router],
+    [router, mode, next, packetId],
   );
 
   useEffect(() => {
