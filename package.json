@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:webpack": "next dev --webpack",
-    "build": "node scripts/install-brand-logo.mjs && next build",
+    "build": "next build",
     "install-brand-logo": "node scripts/install-brand-logo.mjs",
     "start": "next start",
     "db:check": "node scripts/check-supabase.mjs",

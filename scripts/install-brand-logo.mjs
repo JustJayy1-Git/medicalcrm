@@ -54,7 +54,12 @@ async function toTransparentPng(inputPath, outputPath) {
 }
 
 if (!fs.existsSync(source)) {
-  console.error("Missing design/logo-source.png");
+  const bundled = path.join(root, "src/assets/brand/logo-header.png");
+  if (fs.existsSync(bundled)) {
+    console.log("Using committed src/assets/brand/ (no design/logo-source.png)");
+    process.exit(0);
+  }
+  console.error("Missing design/logo-source.png and src/assets/brand/logo-header.png");
   process.exit(1);
 }
 
