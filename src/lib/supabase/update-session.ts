@@ -36,6 +36,37 @@ function isKioskAllowedPath(pathname: string) {
   );
 }
 
+/** Staff CRM entry — kiosk iPad sessions must never hijack these URLs. */
+function isStaffEntryPath(pathname: string) {
+  return (
+    pathname === "/" ||
+    pathname === "/login" ||
+    pathname.startsWith("/login/") ||
+    pathname === "/forgot-password" ||
+    pathname.startsWith("/forgot-password/")
+  );
+}
+
+function copyResponseCookies(from: NextResponse, to: NextResponse) {
+  from.cookies.getAll().forEach(({ name, value, ...options }) => {
+    to.cookies.set(name, value, options);
+  });
+}
+
+/** Sign out kiosk and reload staff URL so Set-Cookie clears the iPad session. */
+function redirectAfterKioskSignOut(
+  request: NextRequest,
+  response: NextResponse,
+  pathname: string,
+) {
+  const dest = request.nextUrl.clone();
+  dest.pathname = pathname;
+  dest.search = "";
+  const redirectResponse = NextResponse.redirect(dest, 303);
+  copyResponseCookies(response, redirectResponse);
+  return redirectResponse;
+}
+
 /** Refresh Supabase session cookies and enforce auth without losing the current URL. */
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -126,12 +157,12 @@ export async function updateSession(request: NextRequest) {
     }
 
     if (user && isKioskRole(role)) {
-      if (
-        !isKioskAllowedPath(pathname) &&
-        pathname !== "/login" &&
-        !isPortalLoginPath(pathname) &&
-        !pathname.startsWith("/auth/")
-      ) {
+      if (isStaffEntryPath(pathname)) {
+        // iPad kiosk cookie on lukarienz.com or /login → clear and reload staff page.
+        await supabase.auth.signOut();
+        return redirectAfterKioskSignOut(request, response, pathname);
+      }
+      if (!isKioskAllowedPath(pathname) && !pathname.startsWith("/auth/")) {
         const portal = request.nextUrl.clone();
         portal.pathname = "/portal";
         portal.search = "";
@@ -140,6 +171,11 @@ export async function updateSession(request: NextRequest) {
     }
 
     if (user && pathname === "/login") {
+      if (isKioskRole(role)) {
+        await supabase.auth.signOut();
+        return redirectAfterKioskSignOut(request, response, "/login");
+      }
+
       const next = request.nextUrl.searchParams.get("next");
       const dest = request.nextUrl.clone();
       if (next && next.startsWith("/portal") && !next.startsWith("//")) {
@@ -148,9 +184,6 @@ export async function updateSession(request: NextRequest) {
       } else if (next && next.startsWith("/") && !next.startsWith("//")) {
         dest.pathname = next.split("?")[0];
         dest.search = next.includes("?") ? next.slice(next.indexOf("?")) : "";
-      } else if (isKioskRole(role)) {
-        dest.pathname = "/portal";
-        dest.search = "";
       } else {
         dest.pathname = "/dashboard";
         dest.search = "";
