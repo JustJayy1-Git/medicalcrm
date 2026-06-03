@@ -57,82 +57,60 @@ button:focus-visible {
   border-color: var(--crm-cyan);
 }
 
-/* Staff landing / login decorative animations */
-@keyframes staff-sun-pulse {
+/* Staff landing — gentle natural motion */
+@keyframes staff-sky-drift {
   0%,
   100% {
     opacity: 0.35;
-    transform: scale(1);
   }
   50% {
-    opacity: 0.55;
-    transform: scale(1.06);
+    opacity: 0.5;
   }
 }
 
-@keyframes staff-sun-rays {
-  from {
-    transform: rotate(0deg);
+@keyframes staff-sun-glow {
+  0%,
+  100% {
+    opacity: 0.15;
   }
-  to {
-    transform: rotate(360deg);
+  50% {
+    opacity: 0.28;
   }
 }
 
 @keyframes staff-palm-sway-left {
   0%,
   100% {
-    transform: rotate(-1.5deg);
+    transform: rotate(-0.6deg);
   }
   50% {
-    transform: rotate(2.5deg);
+    transform: rotate(0.8deg);
   }
 }
 
 @keyframes staff-palm-sway-right {
   0%,
   100% {
-    transform: rotate(1.5deg);
+    transform: rotate(0.6deg);
   }
   50% {
-    transform: rotate(-2.5deg);
+    transform: rotate(-0.8deg);
   }
 }
 
-@keyframes staff-spine-glow {
-  0%,
-  100% {
-    opacity: 0.25;
-  }
-  50% {
-    opacity: 0.7;
-  }
+.staff-anim-sky-drift {
+  animation: staff-sky-drift 12s ease-in-out infinite;
 }
 
-@keyframes staff-spine-scan {
-  0% {
-    transform: translateY(-8%);
-    opacity: 0;
-  }
-  15% {
-    opacity: 0.85;
-  }
-  85% {
-    opacity: 0.85;
-  }
-  100% {
-    transform: translateY(108%);
-    opacity: 0;
-  }
+.staff-anim-sun-glow {
+  animation: staff-sun-glow 6s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .staff-anim-sun-pulse,
-  .staff-anim-sun-rays,
+  .staff-anim-sky-drift,
+  .staff-anim-sun-glow,
   .staff-anim-palm-left,
-  .staff-anim-palm-right,
-  .staff-anim-spine-glow,
-  .staff-anim-spine-scan {
+  .staff-anim-palm-right {
     animation: none !important;
   }
 }
