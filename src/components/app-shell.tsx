@@ -16,13 +16,21 @@ const NAV = [
   { href: "/insurance", label: "Insurance", description: "Carriers & policies", icon: "🛡️" },
   { href: "/attorneys", label: "Attorneys", description: "Law firms & LOP", icon: "⚖️" },
   { href: "/templates", label: "Templates", description: "Document library", icon: "📋" },
-  { href: "/billing", label: "Billing", description: "Charges & payments", icon: "💰" },
+  { href: "/billing", label: "Billing", description: "Charges & ledgers", icon: "💰" },
+  { href: "/billing/payments", label: "Payments", description: "Post & apply payments", icon: "💳" },
   { href: "/claims", label: "Claims", description: "Insurance claims", icon: "🧾" },
   { href: "/reports", label: "Reports", description: "Ledgers & CMS-1500", icon: "📊" },
 ] as const;
 
 function isNavActive(pathname: string, href: string) {
   if (href === "/dashboard") return pathname === "/dashboard";
+  if (href === "/billing") {
+    return (
+      pathname === "/billing" ||
+      (pathname.startsWith("/billing/") &&
+        !pathname.startsWith("/billing/payments"))
+    );
+  }
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 

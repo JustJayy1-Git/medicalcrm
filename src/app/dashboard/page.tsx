@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { DashboardCharts } from "@/components/dashboard/dashboard-charts";
 import { fetchDashboardSnapshot } from "@/lib/dashboard-stats";
 
 export const dynamic = "force-dynamic";
@@ -30,13 +31,13 @@ function StatCard({
 
   const inner = (
     <div
-      className={`p-5 rounded-xl bg-white border border-vice-border shadow-sm ring-1 transition-all ${ring} ${href ? "hover:shadow-md" : ""}`}
+      className={`p-4 rounded-xl bg-white border border-vice-border shadow-sm ring-1 transition-all ${ring} ${href ? "hover:shadow-md" : ""}`}
     >
-      <p className="text-xs uppercase tracking-wider text-eggplant-500 mb-2">
+      <p className="text-[10px] uppercase tracking-wider text-eggplant-500 mb-1">
         {label}
       </p>
-      <p className="text-3xl font-semibold text-eggplant-900">{value}</p>
-      <p className="text-sm text-eggplant-500 mt-2 leading-snug">{hint}</p>
+      <p className="text-2xl font-semibold text-eggplant-900 tabular-nums">{value}</p>
+      <p className="text-xs text-eggplant-500 mt-1 leading-snug">{hint}</p>
     </div>
   );
 
@@ -58,6 +59,8 @@ export default async function DashboardPage() {
   const stats = await fetchDashboardSnapshot(supabase);
   const { monthly: m } = stats;
 
+  const referralsInNewCases = m.referralBreakdown.reduce((s, r) => s + r.count, 0);
+
   const { data: recentCases } = await supabase
     .from("cases")
     .select(
@@ -68,6 +71,11 @@ export default async function DashboardPage() {
     .order("updated_at", { ascending: false })
     .limit(8);
 
+  const newCasesHint =
+    referralsInNewCases > 0
+      ? `${referralsInNewCases} referral${referralsInNewCases === 1 ? "" : "s"} · ${m.newPatients} new chart${m.newPatients === 1 ? "" : "s"}`
+      : `${m.newPatients} new patient chart${m.newPatients === 1 ? "" : "s"} opened`;
+
   return (
     <div className="px-8 py-8 max-w-7xl mx-auto">
       <p className="text-xs font-semibold uppercase tracking-[0.3em] text-neon-pink mb-3">
@@ -76,17 +84,17 @@ export default async function DashboardPage() {
       <h1 className="text-3xl font-serif font-semibold text-eggplant-900 mb-1">
         Practice overview
       </h1>
-      <p className="text-eggplant-500 mb-8 max-w-2xl">
-        Active treatment and billing at a glance, plus how many new cases came in
-        this month and where referrals are coming from.
+      <p className="text-eggplant-500 mb-6 max-w-2xl">
+        Visual snapshot of treatment, billing, and new cases this month — including
+        referral sources.
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-6">
         <StatCard
           accent="cyan"
           label="Active patients treating"
           value={String(stats.activePatientsTreating)}
-          hint={`${stats.openActiveCases} open / active case${stats.openActiveCases === 1 ? "" : "s"}`}
+          hint={`${stats.openActiveCases} open / active cases`}
           href="/cases"
         />
         <StatCard
@@ -95,8 +103,8 @@ export default async function DashboardPage() {
           value={String(stats.unbilledChargeCount)}
           hint={
             stats.unbilledChargeCount > 0
-              ? `${money(stats.unbilledChargeTotal)} unbilled · CMS-1500`
-              : "No unbilled charges — all caught up"
+              ? `${money(stats.unbilledChargeTotal)} unbilled`
+              : "All caught up"
           }
           href="/reports/cms-1500"
         />
@@ -106,8 +114,8 @@ export default async function DashboardPage() {
           value={String(stats.billedAwaitingPaymentCount)}
           hint={
             stats.billedAwaitingPaymentCount > 0
-              ? `${money(stats.billedAwaitingPaymentBalance)} open after billing`
-              : "Nothing outstanding on billed lines"
+              ? `${money(stats.billedAwaitingPaymentBalance)} open`
+              : "Nothing outstanding"
           }
           href="/reports/ar-aging"
         />
@@ -115,80 +123,23 @@ export default async function DashboardPage() {
           accent="cyan"
           label={`New cases — ${m.monthLabel}`}
           value={String(m.newCases)}
-          hint={`${m.newPatients} new patient chart${m.newPatients === 1 ? "" : "s"} opened`}
+          hint={newCasesHint}
           href="/cases"
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-        <StatCard
-          label={`Patients seen — ${m.monthLabel}`}
-          value={String(m.patientsSeen)}
-          hint={`${m.visitCount} completed visit${m.visitCount === 1 ? "" : "s"} this month`}
-          href="/cases"
-        />
-        <StatCard
-          accent="amber"
-          label={`Referrals recorded — ${m.monthLabel}`}
-          value={String(m.referralsRecorded)}
-          hint={
-            m.referralsRecorded > 0
-              ? `${m.referralBreakdown.length} source${m.referralBreakdown.length === 1 ? "" : "s"} · see breakdown below`
-              : "Add “Referred by” on intake or case"
-          }
-        />
-      </div>
-
-      <div className="p-6 rounded-xl bg-white border border-vice-border shadow-sm mb-8">
-        <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
-          <div>
-            <h2 className="text-lg font-semibold text-eggplant-900">
-              Referral sources — {m.monthLabel}
-            </h2>
-            <p className="text-sm text-eggplant-500 mt-1">
-              New cases opened this month, grouped by how they heard about Pro Injury
-              (from iPad intake or case “Referred by”).
-            </p>
-          </div>
-          <p className="text-sm text-eggplant-600">
-            <span className="font-semibold text-eggplant-900">{m.newCases}</span> new
-            cases
-          </p>
-        </div>
-
-        {m.referralBreakdown.length === 0 ? (
-          <p className="text-sm text-eggplant-400">
-            No referral source recorded for new cases this month yet. It is captured
-            on the HIPAA intake form and the case edit screen under{" "}
-            <span className="font-medium">Referred by</span>.
-          </p>
-        ) : (
-          <ul className="space-y-3">
-            {m.referralBreakdown.map((row) => {
-              const pct =
-                m.referralsRecorded > 0
-                  ? Math.round((row.count / m.referralsRecorded) * 100)
-                  : 0;
-              return (
-                <li key={row.key}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="font-medium text-eggplant-800">{row.label}</span>
-                    <span className="text-eggplant-500">
-                      {row.count} ({pct}%)
-                    </span>
-                  </div>
-                  <div className="h-2 rounded-full bg-vice-surface overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-neon-mint to-neon-pink"
-                      style={{ width: `${Math.max(pct, 4)}%` }}
-                    />
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
+      <DashboardCharts
+        activePatients={stats.activePatientsTreating}
+        openCases={stats.openActiveCases}
+        unbilledCount={stats.unbilledChargeCount}
+        unbilledTotal={stats.unbilledChargeTotal}
+        awaitingCount={stats.billedAwaitingPaymentCount}
+        awaitingTotal={stats.billedAwaitingPaymentBalance}
+        newCases={m.newCases}
+        newPatients={m.newPatients}
+        monthLabel={m.monthLabel}
+        referralBreakdown={m.referralBreakdown}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="p-6 rounded-xl bg-white border border-vice-border shadow-sm">
@@ -207,8 +158,8 @@ export default async function DashboardPage() {
               </Link>
             </li>
             <li>
-              <Link href="/cases" className="text-neon-pink hover:underline font-medium">
-                Cases → transaction entry
+              <Link href="/billing/payments" className="text-neon-pink hover:underline font-medium">
+                Post payments
               </Link>
             </li>
             <li>

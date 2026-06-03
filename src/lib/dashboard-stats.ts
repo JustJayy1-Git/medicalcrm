@@ -14,9 +14,6 @@ export type MonthlyActivity = {
   monthLabel: string;
   newCases: number;
   newPatients: number;
-  patientsSeen: number;
-  visitCount: number;
-  referralsRecorded: number;
   referralBreakdown: ReferralRow[];
 };
 
@@ -89,11 +86,7 @@ export async function fetchMonthlyActivity(
 ): Promise<MonthlyActivity> {
   const { start, end, monthLabel } = currentMonthRange();
 
-  const [
-    { data: monthCases },
-    { data: monthPatients },
-    { data: monthVisits },
-  ] = await Promise.all([
+  const [{ data: monthCases }, { data: monthPatients }] = await Promise.all([
     supabase
       .from("cases")
       .select(
@@ -108,12 +101,6 @@ export async function fetchMonthlyActivity(
       .or(portalPlaceholderPatientFilter())
       .gte("created_at", `${start}T00:00:00.000Z`)
       .lte("created_at", `${end}T23:59:59.999Z`),
-    supabase
-      .from("visits")
-      .select("patient_id")
-      .gte("visit_date", start)
-      .lte("visit_date", end)
-      .neq("status", "cancelled"),
   ]);
 
   const realCases = (monthCases ?? []).filter((row) => {
@@ -122,12 +109,10 @@ export async function fetchMonthlyActivity(
   });
 
   const referralCounts = new Map<string, { label: string; count: number }>();
-  let referralsRecorded = 0;
 
   for (const row of realCases) {
     const raw = row.referral_source as string | null;
     if (!raw?.trim()) continue;
-    referralsRecorded += 1;
     const key = normalizeReferralKey(raw);
     const label = referralLabel(key, raw);
     const prev = referralCounts.get(key);
@@ -139,17 +124,10 @@ export async function fetchMonthlyActivity(
     .map(([key, v]) => ({ key, label: v.label, count: v.count }))
     .sort((a, b) => b.count - a.count);
 
-  const seenPatients = new Set(
-    (monthVisits ?? []).map((v) => v.patient_id).filter(Boolean),
-  );
-
   return {
     monthLabel,
     newCases: realCases.length,
     newPatients: monthPatients?.length ?? 0,
-    patientsSeen: seenPatients.size,
-    visitCount: monthVisits?.length ?? 0,
-    referralsRecorded,
     referralBreakdown,
   };
 }
