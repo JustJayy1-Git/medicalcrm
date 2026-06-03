@@ -1,6 +1,7 @@
 "use client";
 
 import { LogoMark } from "@/components/logo-mark";
+import { StaffCrmSideAccents } from "@/components/staff-crm-side-accents";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
@@ -122,7 +123,10 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto bg-vice-surface">{children}</main>
+        <main className="relative flex-1 overflow-auto bg-vice-surface">
+          <StaffCrmSideAccents />
+          <div className="relative z-[1]">{children}</div>
+        </main>
       </div>
     </div>
   );
