@@ -1,4 +1,4 @@
-import { PortalBackground } from "@/components/portal/portal-background";
+import { StaffLandingBackground } from "@/components/staff-landing-background";
 import Link from "next/link";
 
 const QUOTES = [
@@ -19,7 +19,7 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen flex flex-col text-white overflow-hidden bg-[#0c0f15]">
-      <PortalBackground />
+      <StaffLandingBackground />
 
       <header className="relative z-10 flex items-center justify-between px-6 py-5 border-b border-[#41B6E6]/15 backdrop-blur-sm">
         <div className="flex items-center gap-3">

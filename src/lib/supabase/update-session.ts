@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isKioskRole } from "@/lib/auth-profile";
 import { signInKioskDevice } from "@/lib/portal/device-auth";
+import { isStaffCrmPath } from "@/lib/staff-crm-paths";
 
 const PUBLIC_PREFIXES = ["/login", "/auth", "/portal/login"];
 const PUBLIC_EXACT = new Set(["/", "/portal"]);
@@ -163,6 +164,16 @@ export async function updateSession(request: NextRequest) {
         return redirectAfterKioskSignOut(request, response, pathname);
       }
       if (!isKioskAllowedPath(pathname) && !pathname.startsWith("/auth/")) {
+        // Staff CRM URLs (e.g. /patients/new) → staff login, not iPad portal.
+        if (isStaffCrmPath(pathname)) {
+          await supabase.auth.signOut();
+          const login = request.nextUrl.clone();
+          login.pathname = "/login";
+          login.searchParams.set("next", pathname + search);
+          const redirectResponse = NextResponse.redirect(login);
+          copyResponseCookies(response, redirectResponse);
+          return redirectResponse;
+        }
         const portal = request.nextUrl.clone();
         portal.pathname = "/portal";
         portal.search = "";
@@ -179,7 +190,7 @@ export async function updateSession(request: NextRequest) {
       const next = request.nextUrl.searchParams.get("next");
       const dest = request.nextUrl.clone();
       if (next && next.startsWith("/portal") && !next.startsWith("//")) {
-        dest.pathname = "/portal";
+        dest.pathname = "/dashboard";
         dest.search = "";
       } else if (next && next.startsWith("/") && !next.startsWith("//")) {
         dest.pathname = next.split("?")[0];

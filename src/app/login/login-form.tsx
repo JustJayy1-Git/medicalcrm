@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { PortalBackground } from "@/components/portal/portal-background";
+import { StaffLandingBackground } from "@/components/staff-landing-background";
 
 export function LoginForm({ afterLogin }: { afterLogin: string }) {
   const router = useRouter();
@@ -18,6 +18,8 @@ export function LoginForm({ afterLogin }: { afterLogin: string }) {
     e.preventDefault();
     setError(null);
     setLoading(true);
+
+    await supabase.auth.signOut();
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -37,16 +39,7 @@ export function LoginForm({ afterLogin }: { afterLogin: string }) {
 
   return (
     <section className="relative min-h-screen flex flex-col text-white overflow-hidden bg-[#0c0f15]">
-      <PortalBackground />
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.05]"
-        aria-hidden
-        style={{
-          backgroundImage:
-            "linear-gradient(135deg, #fff 1px, transparent 1px), linear-gradient(45deg, #fff 1px, transparent 1px)",
-          backgroundSize: "48px 48px",
-        }}
-      />
+      <StaffLandingBackground />
 
       <header className="relative z-10 flex items-center gap-4 px-6 py-5 border-b border-[#41B6E6]/15 backdrop-blur-sm">
         <a href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
