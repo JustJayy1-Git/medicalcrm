@@ -57,9 +57,7 @@ function StatCard({
 export default async function DashboardPage() {
   const supabase = await createClient();
   const stats = await fetchDashboardSnapshot(supabase);
-  const { monthly: m } = stats;
-
-  const referralsInNewCases = m.referralBreakdown.reduce((s, r) => s + r.count, 0);
+  const { monthly: m, ytdPayments: ytd } = stats;
 
   const { data: recentCases } = await supabase
     .from("cases")
@@ -71,11 +69,6 @@ export default async function DashboardPage() {
     .order("updated_at", { ascending: false })
     .limit(8);
 
-  const newCasesHint =
-    referralsInNewCases > 0
-      ? `${referralsInNewCases} referral${referralsInNewCases === 1 ? "" : "s"} · ${m.newPatients} new chart${m.newPatients === 1 ? "" : "s"}`
-      : `${m.newPatients} new patient chart${m.newPatients === 1 ? "" : "s"} opened`;
-
   return (
     <div className="px-8 py-8 max-w-7xl mx-auto">
       <p className="text-xs font-semibold uppercase tracking-[0.3em] text-neon-pink mb-3">
@@ -85,11 +78,11 @@ export default async function DashboardPage() {
         Practice overview
       </h1>
       <p className="text-eggplant-500 mb-6 max-w-2xl">
-        Visual snapshot of treatment, billing, and new cases this month — including
-        referral sources.
+        Treatment and billing at a glance, plus year-to-date payments and new-case
+        referrals this month.
       </p>
 
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
         <StatCard
           accent="cyan"
           label="Active patients treating"
@@ -119,24 +112,13 @@ export default async function DashboardPage() {
           }
           href="/reports/ar-aging"
         />
-        <StatCard
-          accent="cyan"
-          label={`New cases — ${m.monthLabel}`}
-          value={String(m.newCases)}
-          hint={newCasesHint}
-          href="/cases"
-        />
       </div>
 
       <DashboardCharts
-        activePatients={stats.activePatientsTreating}
-        openCases={stats.openActiveCases}
-        unbilledCount={stats.unbilledChargeCount}
-        unbilledTotal={stats.unbilledChargeTotal}
-        awaitingCount={stats.billedAwaitingPaymentCount}
-        awaitingTotal={stats.billedAwaitingPaymentBalance}
+        year={ytd.year}
+        ytdTotal={ytd.total}
+        ytdByMonth={ytd.byMonth}
         newCases={m.newCases}
-        newPatients={m.newPatients}
         monthLabel={m.monthLabel}
         referralBreakdown={m.referralBreakdown}
       />

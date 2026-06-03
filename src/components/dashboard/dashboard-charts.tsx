@@ -17,7 +17,17 @@ const CHART_COLORS = {
 } as const;
 
 function formatMoney(n: number) {
-  return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+  return n.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  });
+}
+
+function formatMoneyCompact(n: number) {
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `$${(n / 1_000).toFixed(1)}k`;
+  return formatMoney(n);
 }
 
 type DonutChartProps = {
@@ -27,6 +37,7 @@ type DonutChartProps = {
   centerTitle?: string;
   centerValue?: string;
   emptyLabel?: string;
+  formatLegendValue?: (value: number) => string;
 };
 
 export function DonutChart({
@@ -36,6 +47,7 @@ export function DonutChart({
   centerTitle,
   centerValue,
   emptyLabel = "No data yet",
+  formatLegendValue = (v) => String(v),
 }: DonutChartProps) {
   const total = segments.reduce((s, seg) => s + seg.value, 0);
   const r = (size - stroke) / 2;
@@ -105,7 +117,7 @@ export function DonutChart({
         {(centerTitle || centerValue) && (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-3 pointer-events-none">
             {centerValue ? (
-              <span className="text-2xl font-semibold text-eggplant-900 leading-none">
+              <span className="text-xl font-semibold text-eggplant-900 leading-none">
                 {centerValue}
               </span>
             ) : null}
@@ -132,8 +144,8 @@ export function DonutChart({
                 <span className="font-medium text-eggplant-800 truncate flex-1">
                   {seg.label}
                 </span>
-                <span className="text-eggplant-500 tabular-nums shrink-0">
-                  {seg.value} ({pct}%)
+                <span className="text-eggplant-500 tabular-nums shrink-0 text-right">
+                  {formatLegendValue(seg.value)} ({pct}%)
                 </span>
               </li>
             );
@@ -143,73 +155,16 @@ export function DonutChart({
   );
 }
 
-type BarItem = {
-  key: string;
-  label: string;
-  value: number;
-  sublabel?: string;
-  color: string;
-};
-
-export function HorizontalBarChart({
-  items,
-  title,
-}: {
-  items: BarItem[];
-  title?: string;
-}) {
-  const max = Math.max(...items.map((i) => i.value), 1);
-
-  return (
-    <div>
-      {title ? (
-        <h3 className="text-sm font-semibold text-eggplant-800 mb-4">{title}</h3>
-      ) : null}
-      <ul className="space-y-4">
-        {items.map((item) => {
-          const pct = Math.round((item.value / max) * 100);
-          return (
-            <li key={item.key}>
-              <div className="flex justify-between text-sm mb-1.5 gap-2">
-                <span className="font-medium text-eggplant-800">{item.label}</span>
-                <span className="text-eggplant-900 font-semibold tabular-nums shrink-0">
-                  {item.value.toLocaleString()}
-                </span>
-              </div>
-              {item.sublabel ? (
-                <p className="text-xs text-eggplant-500 -mt-1 mb-1.5">{item.sublabel}</p>
-              ) : null}
-              <div className="h-3 rounded-full bg-vice-surface overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-700 ease-out"
-                  style={{
-                    width: `${Math.max(item.value > 0 ? 8 : 0, pct)}%`,
-                    backgroundColor: item.color,
-                  }}
-                />
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-}
-
 export type DashboardChartsProps = {
-  activePatients: number;
-  openCases: number;
-  unbilledCount: number;
-  unbilledTotal: number;
-  awaitingCount: number;
-  awaitingTotal: number;
+  year: number;
+  ytdTotal: number;
+  ytdByMonth: { key: string; label: string; total: number }[];
   newCases: number;
-  newPatients: number;
   monthLabel: string;
   referralBreakdown: { key: string; label: string; count: number }[];
 };
 
-const REFERRAL_PALETTE = [
+const CHART_PALETTE = [
   CHART_COLORS.cyan,
   CHART_COLORS.pink,
   CHART_COLORS.amber,
@@ -219,14 +174,10 @@ const REFERRAL_PALETTE = [
 ];
 
 export function DashboardCharts({
-  activePatients,
-  openCases,
-  unbilledCount,
-  unbilledTotal,
-  awaitingCount,
-  awaitingTotal,
+  year,
+  ytdTotal,
+  ytdByMonth,
   newCases,
-  newPatients,
   monthLabel,
   referralBreakdown,
 }: DashboardChartsProps) {
@@ -238,7 +189,7 @@ export function DashboardCharts({
       key: row.key,
       label: row.label,
       value: row.count,
-      color: REFERRAL_PALETTE[i % REFERRAL_PALETTE.length],
+      color: CHART_PALETTE[i % CHART_PALETTE.length],
     })),
     ...(withoutReferral > 0
       ? [
@@ -252,75 +203,29 @@ export function DashboardCharts({
       : []),
   ];
 
-  const billingSegments: ChartSegment[] = [
-    {
-      key: "unbilled",
-      label: "Unbilled charges",
-      value: unbilledCount,
-      color: CHART_COLORS.amber,
-    },
-    {
-      key: "awaiting",
-      label: "Awaiting payment",
-      value: awaitingCount,
-      color: CHART_COLORS.pink,
-    },
-  ].filter((s) => s.value > 0);
-
-  const billingTotal = unbilledCount + awaitingCount;
+  const ytdSegments: ChartSegment[] = ytdByMonth.map((row, i) => ({
+    key: row.key,
+    label: row.label,
+    value: row.total,
+    color: CHART_PALETTE[i % CHART_PALETTE.length],
+  }));
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
       <div className="p-6 rounded-xl bg-white border border-vice-border shadow-sm">
-        <h2 className="text-lg font-semibold text-eggplant-900 mb-1">Practice volume</h2>
-        <p className="text-sm text-eggplant-500 mb-5">Treatment load and new intake</p>
-        <HorizontalBarChart
-          items={[
-            {
-              key: "active",
-              label: "Active patients treating",
-              value: activePatients,
-              sublabel: `${openCases} open / active cases`,
-              color: CHART_COLORS.cyan,
-            },
-            {
-              key: "new-cases",
-              label: `New cases (${monthLabel})`,
-              value: newCases,
-              sublabel: `${newPatients} new patient chart${newPatients === 1 ? "" : "s"}`,
-              color: CHART_COLORS.mint,
-            },
-            {
-              key: "open-cases",
-              label: "Open / active cases",
-              value: openCases,
-              color: CHART_COLORS.plum,
-            },
-          ]}
-        />
-      </div>
-
-      <div className="p-6 rounded-xl bg-white border border-vice-border shadow-sm">
-        <h2 className="text-lg font-semibold text-eggplant-900 mb-1">Billing workload</h2>
-        <p className="text-sm text-eggplant-500 mb-5">Charges waiting to go out vs. get paid</p>
+        <h2 className="text-lg font-semibold text-eggplant-900 mb-1">
+          Year-to-date payments
+        </h2>
+        <p className="text-sm text-eggplant-500 mb-5">
+          Posted payments in {year}, by month
+        </p>
         <DonutChart
-          segments={billingSegments}
-          centerValue={String(billingTotal)}
-          centerTitle="charge lines"
-          emptyLabel="No pending billing lines"
+          segments={ytdSegments}
+          centerValue={formatMoneyCompact(ytdTotal)}
+          centerTitle="YTD total"
+          emptyLabel="No payments posted this year yet"
+          formatLegendValue={formatMoney}
         />
-        <div className="mt-4 pt-4 border-t border-vice-border grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <p className="text-eggplant-500 text-xs uppercase tracking-wide">Unbilled</p>
-            <p className="font-semibold text-eggplant-900">{unbilledCount}</p>
-            <p className="text-xs text-eggplant-500">{formatMoney(unbilledTotal)}</p>
-          </div>
-          <div>
-            <p className="text-eggplant-500 text-xs uppercase tracking-wide">Awaiting pay</p>
-            <p className="font-semibold text-eggplant-900">{awaitingCount}</p>
-            <p className="text-xs text-eggplant-500">{formatMoney(awaitingTotal)}</p>
-          </div>
-        </div>
       </div>
 
       <div className="p-6 rounded-xl bg-white border border-vice-border shadow-sm">

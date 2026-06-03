@@ -17,6 +17,18 @@ export type MonthlyActivity = {
   referralBreakdown: ReferralRow[];
 };
 
+export type YtdMonthPayment = {
+  key: string;
+  label: string;
+  total: number;
+};
+
+export type YtdPayments = {
+  year: number;
+  total: number;
+  byMonth: YtdMonthPayment[];
+};
+
 export type DashboardSnapshot = {
   activePatientsTreating: number;
   openActiveCases: number;
@@ -25,6 +37,7 @@ export type DashboardSnapshot = {
   billedAwaitingPaymentCount: number;
   billedAwaitingPaymentBalance: number;
   monthly: MonthlyActivity;
+  ytdPayments: YtdPayments;
 };
 
 const REFERRAL_LABELS: Record<string, string> = {
@@ -132,10 +145,67 @@ export async function fetchMonthlyActivity(
   };
 }
 
+const MONTH_SHORT = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+] as const;
+
+export async function fetchYtdPayments(
+  supabase: SupabaseClient,
+  asOf = new Date(),
+): Promise<YtdPayments> {
+  const year = asOf.getFullYear();
+  const start = `${year}-01-01`;
+
+  const { data: paidCharges } = await supabase
+    .from("charges")
+    .select("paid, paid_date")
+    .gte("paid_date", start)
+    .gt("paid", 0)
+    .limit(5000);
+
+  const byMonth = new Map<number, number>();
+  for (const row of paidCharges ?? []) {
+    if (!row.paid_date) continue;
+    const monthIndex = Number(String(row.paid_date).slice(5, 7)) - 1;
+    if (monthIndex < 0 || monthIndex > 11) continue;
+    byMonth.set(monthIndex, (byMonth.get(monthIndex) ?? 0) + Number(row.paid ?? 0));
+  }
+
+  const currentMonth = asOf.getMonth();
+  const byMonthList: YtdMonthPayment[] = [];
+  for (let i = 0; i <= currentMonth; i += 1) {
+    const total = byMonth.get(i) ?? 0;
+    if (total <= 0) continue;
+    byMonthList.push({
+      key: String(i),
+      label: MONTH_SHORT[i],
+      total,
+    });
+  }
+
+  const ytdTotal = [...byMonth.values()].reduce((s, v) => s + v, 0);
+
+  return { year, total: ytdTotal, byMonth: byMonthList };
+}
+
 export async function fetchDashboardSnapshot(
   supabase: SupabaseClient,
 ): Promise<DashboardSnapshot> {
-  const monthly = await fetchMonthlyActivity(supabase);
+  const [monthly, ytdPayments] = await Promise.all([
+    fetchMonthlyActivity(supabase),
+    fetchYtdPayments(supabase),
+  ]);
 
   const [
     { data: openActiveCases },
@@ -186,5 +256,6 @@ export async function fetchDashboardSnapshot(
     billedAwaitingPaymentCount: outstanding.length,
     billedAwaitingPaymentBalance: awaitingBalance,
     monthly,
+    ytdPayments,
   };
 }
