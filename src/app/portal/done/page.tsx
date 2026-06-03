@@ -1,6 +1,6 @@
 import { completePacket } from "@/lib/intake-packet/form-persistence";
 import { LogoMark } from "@/components/logo-mark";
-import { PortalBackground } from "@/components/portal/portal-background";
+import { StaffLandingBackground } from "@/components/staff-landing-background";
 import { StaffExitButton } from "@/components/portal/staff-exit-button";
 import Link from "next/link";
 
@@ -22,12 +22,17 @@ export default async function PortalDonePage({
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#0c0f15] px-6 text-center">
-      <PortalBackground />
+      <StaffLandingBackground />
       <header className="absolute top-0 right-0 p-4 z-10">
         <StaffExitButton />
       </header>
       <div className="relative z-10 flex flex-col items-center">
-        <LogoMark variant="header" width={100} height={100} className="mb-6" />
+        <LogoMark
+          variant="header"
+          width={200}
+          height={200}
+          className="mb-6 w-[min(240px,65vw)] h-auto max-w-[280px]"
+        />
         <h1 className="text-3xl font-serif text-white mb-3">Thank you</h1>
         <p className="text-[#c8d2e0]/75 max-w-md mb-10">
           Your intake forms have been submitted. Please return the iPad to the front desk.

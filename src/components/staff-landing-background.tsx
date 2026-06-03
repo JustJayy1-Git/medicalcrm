@@ -38,7 +38,7 @@ export function StaffLandingBackground() {
       />
 
       {/* Single S-curve spine — behind content */}
-      <div className="absolute left-1/2 top-1/2 h-[min(72vh,520px)] w-[min(100px,14vw)] -translate-x-1/2 -translate-y-1/2 opacity-[0.22]">
+      <div className="absolute left-1/2 top-1/2 h-[min(84vh,640px)] w-[min(140px,22vw)] -translate-x-1/2 -translate-y-1/2 opacity-[0.26]">
         <SpineWatermark className="h-full w-full" />
       </div>
 

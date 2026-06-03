@@ -26,8 +26,8 @@ export default function Home() {
         <div className="flex items-center gap-3">
           <LogoMark
             variant="icon"
-            width={48}
-            height={48}
+            width={64}
+            height={64}
             priority
             className="shrink-0"
           />
@@ -55,10 +55,10 @@ export default function Home() {
         <div className="max-w-2xl w-full text-center">
           <LogoMark
             variant="header"
-            width={120}
-            height={120}
+            width={240}
+            height={240}
             priority
-            className="mx-auto mb-6"
+            className="mx-auto mb-8 w-[min(280px,72vw)] h-auto max-w-[320px]"
           />
           <p className="text-[11px] font-bold uppercase tracking-[0.35em] text-[#41B6E6] mb-4">
             Staff Portal

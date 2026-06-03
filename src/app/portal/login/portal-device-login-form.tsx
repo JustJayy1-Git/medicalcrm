@@ -1,7 +1,7 @@
 "use client";
 
 import { LogoMark } from "@/components/logo-mark";
-import { PortalBackground } from "@/components/portal/portal-background";
+import { StaffLandingBackground } from "@/components/staff-landing-background";
 import { useFormStatus } from "react-dom";
 import { portalDeviceSignIn } from "./actions";
 
@@ -28,9 +28,15 @@ export function PortalDeviceLoginForm({
 }) {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#0c0f15] px-6 py-10">
-      <PortalBackground />
+      <StaffLandingBackground />
       <div className="relative z-10 flex flex-col items-center w-full max-w-sm">
-        <LogoMark variant="header" width={100} height={100} priority className="mb-6" />
+        <LogoMark
+          variant="header"
+          width={200}
+          height={200}
+          priority
+          className="mb-6 w-[min(240px,65vw)] h-auto max-w-[280px]"
+        />
         <h1 className="text-2xl md:text-3xl font-serif font-semibold text-white text-center mb-2">
           Patient intake — iPad setup
         </h1>

@@ -1,5 +1,5 @@
 import { LogoMark } from "@/components/logo-mark";
-import { PortalBackground } from "@/components/portal/portal-background";
+import { StaffLandingBackground } from "@/components/staff-landing-background";
 import { StaffExitButton } from "@/components/portal/staff-exit-button";
 import { StartIntakeForm } from "@/components/portal/start-intake-form";
 
@@ -22,7 +22,7 @@ export default async function PortalHomePage({
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#0c0f15] px-6 py-12">
-      <PortalBackground />
+      <StaffLandingBackground />
 
       <header className="absolute top-0 right-0 p-4 z-10">
         <StaffExitButton />
@@ -31,10 +31,10 @@ export default async function PortalHomePage({
       <div className="relative z-10 flex flex-col items-center max-w-lg w-full text-center">
         <LogoMark
           variant="header"
-          width={140}
-          height={140}
+          width={240}
+          height={240}
           priority
-          className="mb-8"
+          className="mb-8 w-[min(280px,72vw)] h-auto max-w-[320px]"
         />
 
         <p className="text-[11px] font-bold uppercase tracking-[0.35em] text-[#41B6E6] mb-3">

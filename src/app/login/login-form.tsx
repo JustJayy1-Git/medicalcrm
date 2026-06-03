@@ -46,8 +46,8 @@ export function LoginForm({ afterLogin }: { afterLogin: string }) {
         <a href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
           <LogoMark
             variant="icon"
-            width={48}
-            height={48}
+            width={64}
+            height={64}
             className="shrink-0"
           />
           <div>
@@ -67,9 +67,9 @@ export function LoginForm({ afterLogin }: { afterLogin: string }) {
             <header className="text-center mb-8">
               <LogoMark
                 variant="header"
-                width={96}
-                height={96}
-                className="mx-auto mb-5"
+                width={200}
+                height={200}
+                className="mx-auto mb-6 w-[min(240px,65vw)] h-auto max-w-[280px]"
               />
               <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[#41B6E6] mb-3">
                 Staff Sign In
