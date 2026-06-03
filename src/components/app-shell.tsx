@@ -27,10 +27,9 @@ function isNavActive(pathname: string, href: string) {
 }
 
 export function AppShell({
-  user,
   children,
 }: {
-  user: { email?: string | null };
+  user?: { email?: string | null };
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -44,8 +43,8 @@ export function AppShell({
         >
           <LogoMark
             variant="icon"
-            width={48}
-            height={48}
+            width={60}
+            height={60}
             priority
             className="shrink-0"
           />
@@ -107,11 +106,6 @@ export function AppShell({
           </div>
 
           <div className="ml-auto flex items-center gap-3">
-            {user.email ? (
-              <span className="text-xs text-[#41B6E6]/85 hidden sm:inline truncate max-w-[220px]">
-                {user.email}
-              </span>
-            ) : null}
             <form action="/auth/signout" method="post">
               <button
                 type="submit"

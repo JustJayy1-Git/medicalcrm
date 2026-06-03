@@ -1,54 +1,72 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { fetchDashboardSnapshot } from "@/lib/dashboard-stats";
 
-function todayIso() {
-  return new Date().toISOString().slice(0, 10);
+export const dynamic = "force-dynamic";
+
+function money(n: number) {
+  return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
+}
+
+function StatCard({
+  label,
+  value,
+  hint,
+  href,
+  accent = "cyan",
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  href?: string;
+  accent?: "cyan" | "pink" | "amber";
+}) {
+  const ring =
+    accent === "pink"
+      ? "ring-neon-pink/15 hover:ring-neon-pink/30"
+      : accent === "amber"
+        ? "ring-amber-400/15 hover:ring-amber-400/25"
+        : "ring-neon-mint/15 hover:ring-neon-mint/30";
+
+  const inner = (
+    <div
+      className={`p-5 rounded-xl bg-white border border-vice-border shadow-sm ring-1 transition-all ${ring} ${href ? "hover:shadow-md" : ""}`}
+    >
+      <p className="text-xs uppercase tracking-wider text-eggplant-500 mb-2">
+        {label}
+      </p>
+      <p className="text-3xl font-semibold text-eggplant-900">{value}</p>
+      <p className="text-sm text-eggplant-500 mt-2 leading-snug">{hint}</p>
+    </div>
+  );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-neon-mint rounded-xl"
+      >
+        {inner}
+      </Link>
+    );
+  }
+  return inner;
 }
 
 export default async function DashboardPage() {
   const supabase = await createClient();
-  const today = todayIso();
+  const stats = await fetchDashboardSnapshot(supabase);
+  const { monthly: m } = stats;
 
-  const [
-    { count: patientCount },
-    { count: caseCount },
-    { count: openCases },
-    { count: todayVisits },
-    { data: recentCases },
-    { data: openCharges },
-  ] = await Promise.all([
-    supabase.from("patients").select("*", { count: "exact", head: true }),
-    supabase.from("cases").select("*", { count: "exact", head: true }),
-    supabase
-      .from("cases")
-      .select("*", { count: "exact", head: true })
-      .in("status", ["open", "active"]),
-    supabase
-      .from("visits")
-      .select("*", { count: "exact", head: true })
-      .eq("visit_date", today),
-    supabase
-      .from("cases")
-      .select(
-        `id, case_number, updated_at, status,
-         patient:patients(last_name, first_name)`,
-      )
-      .order("updated_at", { ascending: false })
-      .limit(8),
-    supabase.from("charges").select("balance").gt("balance", 0).limit(500),
-  ]);
-
-  const openAr = (openCharges ?? []).reduce(
-    (s, row) => s + Number(row.balance ?? 0),
-    0,
-  );
-
-  const stats = [
-    { label: "Total patients", value: patientCount ?? 0 },
-    { label: "Total cases", value: caseCount ?? 0 },
-    { label: "Open / active cases", value: openCases ?? 0 },
-    { label: "Today's visits", value: todayVisits ?? 0 },
-  ];
+  const { data: recentCases } = await supabase
+    .from("cases")
+    .select(
+      `id, case_number, updated_at, status, referral_source,
+       patient:patients(last_name, first_name)`,
+    )
+    .in("status", ["open", "active"])
+    .order("updated_at", { ascending: false })
+    .limit(8);
 
   return (
     <div className="px-8 py-8 max-w-7xl mx-auto">
@@ -56,24 +74,120 @@ export default async function DashboardPage() {
         Dashboard
       </p>
       <h1 className="text-3xl font-serif font-semibold text-eggplant-900 mb-1">
-        Hey there 👋
+        Practice overview
       </h1>
-      <p className="text-eggplant-500 mb-8">
-        Live practice snapshot · Open A/R ${openAr.toFixed(2)}
+      <p className="text-eggplant-500 mb-8 max-w-2xl">
+        Active treatment and billing at a glance, plus how many new cases came in
+        this month and where referrals are coming from.
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
-        {stats.map((s) => (
-          <div
-            key={s.label}
-            className="p-5 rounded-xl bg-white border border-vice-border shadow-sm ring-1 ring-neon-pink/10"
-          >
-            <p className="text-xs uppercase tracking-wider text-eggplant-500 mb-2">
-              {s.label}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
+        <StatCard
+          accent="cyan"
+          label="Active patients treating"
+          value={String(stats.activePatientsTreating)}
+          hint={`${stats.openActiveCases} open / active case${stats.openActiveCases === 1 ? "" : "s"}`}
+          href="/cases"
+        />
+        <StatCard
+          accent="amber"
+          label="Pending billing to send"
+          value={String(stats.unbilledChargeCount)}
+          hint={
+            stats.unbilledChargeCount > 0
+              ? `${money(stats.unbilledChargeTotal)} unbilled · CMS-1500`
+              : "No unbilled charges — all caught up"
+          }
+          href="/reports/cms-1500"
+        />
+        <StatCard
+          accent="pink"
+          label="Billed — awaiting payment"
+          value={String(stats.billedAwaitingPaymentCount)}
+          hint={
+            stats.billedAwaitingPaymentCount > 0
+              ? `${money(stats.billedAwaitingPaymentBalance)} open after billing`
+              : "Nothing outstanding on billed lines"
+          }
+          href="/reports/ar-aging"
+        />
+        <StatCard
+          accent="cyan"
+          label={`New cases — ${m.monthLabel}`}
+          value={String(m.newCases)}
+          hint={`${m.newPatients} new patient chart${m.newPatients === 1 ? "" : "s"} opened`}
+          href="/cases"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        <StatCard
+          label={`Patients seen — ${m.monthLabel}`}
+          value={String(m.patientsSeen)}
+          hint={`${m.visitCount} completed visit${m.visitCount === 1 ? "" : "s"} this month`}
+          href="/cases"
+        />
+        <StatCard
+          accent="amber"
+          label={`Referrals recorded — ${m.monthLabel}`}
+          value={String(m.referralsRecorded)}
+          hint={
+            m.referralsRecorded > 0
+              ? `${m.referralBreakdown.length} source${m.referralBreakdown.length === 1 ? "" : "s"} · see breakdown below`
+              : "Add “Referred by” on intake or case"
+          }
+        />
+      </div>
+
+      <div className="p-6 rounded-xl bg-white border border-vice-border shadow-sm mb-8">
+        <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-eggplant-900">
+              Referral sources — {m.monthLabel}
+            </h2>
+            <p className="text-sm text-eggplant-500 mt-1">
+              New cases opened this month, grouped by how they heard about Pro Injury
+              (from iPad intake or case “Referred by”).
             </p>
-            <p className="text-3xl font-semibold text-eggplant-900">{s.value}</p>
           </div>
-        ))}
+          <p className="text-sm text-eggplant-600">
+            <span className="font-semibold text-eggplant-900">{m.newCases}</span> new
+            cases
+          </p>
+        </div>
+
+        {m.referralBreakdown.length === 0 ? (
+          <p className="text-sm text-eggplant-400">
+            No referral source recorded for new cases this month yet. It is captured
+            on the HIPAA intake form and the case edit screen under{" "}
+            <span className="font-medium">Referred by</span>.
+          </p>
+        ) : (
+          <ul className="space-y-3">
+            {m.referralBreakdown.map((row) => {
+              const pct =
+                m.referralsRecorded > 0
+                  ? Math.round((row.count / m.referralsRecorded) * 100)
+                  : 0;
+              return (
+                <li key={row.key}>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="font-medium text-eggplant-800">{row.label}</span>
+                    <span className="text-eggplant-500">
+                      {row.count} ({pct}%)
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-vice-surface overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-neon-mint to-neon-pink"
+                      style={{ width: `${Math.max(pct, 4)}%` }}
+                    />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -88,26 +202,18 @@ export default async function DashboardPage() {
               </Link>
             </li>
             <li>
+              <Link href="/intake-packets" className="text-neon-pink hover:underline font-medium">
+                Review iPad intake packets
+              </Link>
+            </li>
+            <li>
               <Link href="/cases" className="text-neon-pink hover:underline font-medium">
                 Cases → transaction entry
               </Link>
             </li>
             <li>
               <Link href="/reports/cms-1500" className="text-neon-pink hover:underline font-medium">
-                CMS-1500 (insurance)
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/reports/attorney-ledger"
-                className="text-neon-pink hover:underline font-medium"
-              >
-                Attorney ledger
-              </Link>
-            </li>
-            <li>
-              <Link href="/billing" className="text-neon-pink hover:underline font-medium">
-                Billing & payments
+                Print CMS-1500 (send billing)
               </Link>
             </li>
           </ul>
@@ -115,10 +221,10 @@ export default async function DashboardPage() {
 
         <div className="p-6 rounded-xl bg-white border border-vice-border shadow-sm">
           <h2 className="text-lg font-semibold text-eggplant-900 mb-2">
-            Recent cases
+            Active cases
           </h2>
           {(recentCases ?? []).length === 0 ? (
-            <p className="text-sm text-eggplant-400">No cases yet.</p>
+            <p className="text-sm text-eggplant-400">No open or active cases.</p>
           ) : (
             <ul className="text-sm space-y-2">
               {recentCases!.map((row) => {
@@ -128,6 +234,9 @@ export default async function DashboardPage() {
                 const label = patient
                   ? `${patient.last_name}, ${patient.first_name}`
                   : "Case";
+                const ref = row.referral_source
+                  ? ` · ${String(row.referral_source).slice(0, 24)}`
+                  : "";
                 return (
                   <li key={row.id}>
                     <Link
@@ -138,6 +247,7 @@ export default async function DashboardPage() {
                     </Link>
                     <span className="text-eggplant-500 text-xs ml-2">
                       {row.case_number ?? row.status}
+                      {ref}
                     </span>
                   </li>
                 );
