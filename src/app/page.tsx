@@ -1,3 +1,4 @@
+import { LogoMark } from "@/components/logo-mark";
 import { StaffLandingBackground } from "@/components/staff-landing-background";
 import Link from "next/link";
 
@@ -23,12 +24,13 @@ export default function Home() {
 
       <header className="relative z-10 flex items-center justify-between px-6 py-5 border-b border-[#41B6E6]/15 backdrop-blur-sm">
         <div className="flex items-center gap-3">
-          <div
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#41B6E6]/20 to-[#DB3EB1]/20 border border-[#41B6E6]/30"
-            aria-hidden
-          >
-            <span className="text-lg font-extrabold tracking-tighter text-white">L</span>
-          </div>
+          <LogoMark
+            variant="icon"
+            width={48}
+            height={48}
+            priority
+            className="shrink-0"
+          />
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#41B6E6] leading-none mb-0.5">
               Medical CRM
@@ -51,6 +53,13 @@ export default function Home() {
 
       <main className="relative z-10 flex-1 flex items-center justify-center px-6 py-16">
         <div className="max-w-2xl w-full text-center">
+          <LogoMark
+            variant="header"
+            width={120}
+            height={120}
+            priority
+            className="mx-auto mb-6"
+          />
           <p className="text-[11px] font-bold uppercase tracking-[0.35em] text-[#41B6E6] mb-4">
             Staff Portal
           </p>

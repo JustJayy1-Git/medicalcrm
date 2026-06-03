@@ -2,51 +2,44 @@
 
 import { PalmSilhouette } from "@/components/staff-landing/palm-silhouette";
 import { SpineWatermark } from "@/components/staff-landing/spine-watermark";
-import { SunsetSun } from "@/components/staff-landing/sunset-sun";
 
 /**
- * Staff landing + sign-in — Miami sunset scene (natural silhouettes).
- * Lovable-style: soft sky, real palms, setting sun; spine as quiet watermark.
+ * Staff landing + sign-in — Miami Vice palette, palms, S-curve spine watermark.
+ * Sun = soft corner glow only (no disc in center).
  */
 export function StaffLandingBackground() {
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden bg-[#0a1628]" aria-hidden>
-      {/* Twilight sky */}
+    <div className="pointer-events-none absolute inset-0 overflow-hidden bg-[#0c0f15]" aria-hidden>
+      {/* Original LUKARIENZ sky — cyan + pink on dark */}
       <div
-        className="absolute inset-0"
-        style={{
-          background: `
-            linear-gradient(180deg,
-              #0c0f15 0%,
-              #0f2840 28%,
-              #1a4a6e 48%,
-              #2d6a8f 62%,
-              #e8785a 78%,
-              #ffb84d 88%,
-              #1a3a4a 100%
-            )`,
-        }}
-      />
-      <div
-        className="staff-anim-sky-drift absolute inset-0 opacity-40"
+        className="absolute inset-0 opacity-50"
         style={{
           background:
-            "radial-gradient(ellipse 90% 40% at 70% 72%, rgba(255,184,77,0.45) 0%, transparent 55%), radial-gradient(ellipse 60% 30% at 20% 80%, rgba(65,182,230,0.25) 0%, transparent 50%)",
+            "radial-gradient(ellipse 85% 55% at 50% -8%, #41B6E6 0%, transparent 58%), radial-gradient(ellipse 65% 45% at 100% 100%, #DB3EB1 0%, transparent 52%), radial-gradient(ellipse 55% 40% at 0% 85%, #41B6E6 0%, transparent 48%)",
         }}
       />
 
-      {/* Horizon glow */}
+      {/* Soft sunlight — top-right corner, ambient only */}
       <div
-        className="absolute inset-x-0 bottom-0 h-[38%]"
+        className="staff-anim-sun-glow absolute -top-24 -right-16 h-[min(380px,55vh)] w-[min(380px,55vw)] rounded-full opacity-100"
         style={{
           background:
-            "linear-gradient(180deg, transparent 0%, rgba(12,15,21,0.4) 40%, #0c0f15 100%)",
+            "radial-gradient(circle at 70% 30%, rgba(126,207,240,0.28) 0%, rgba(65,182,230,0.12) 28%, rgba(219,62,177,0.06) 45%, transparent 68%)",
         }}
       />
 
-      {/* Sun — sits on horizon, right of center */}
-      <div className="absolute bottom-[32%] left-1/2 w-[min(420px,70vw)] -translate-x-1/2 md:bottom-[34%]">
-        <SunsetSun className="w-full h-auto opacity-90" />
+      {/* Secondary accent — top-left, very faint */}
+      <div
+        className="absolute -top-16 -left-12 h-64 w-64 rounded-full opacity-80"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(65,182,230,0.1) 0%, transparent 70%)",
+        }}
+      />
+
+      {/* Single S-curve spine — behind content */}
+      <div className="absolute left-1/2 top-1/2 h-[min(72vh,520px)] w-[min(100px,14vw)] -translate-x-1/2 -translate-y-1/2 opacity-[0.22]">
+        <SpineWatermark className="h-full w-full" />
       </div>
 
       {/* Left palm */}
@@ -57,7 +50,7 @@ export function StaffLandingBackground() {
           animation: "staff-palm-sway-left 14s ease-in-out infinite",
         }}
       >
-        <PalmSilhouette className="h-full w-full opacity-[0.92]" />
+        <PalmSilhouette className="h-full w-full opacity-[0.88]" />
       </div>
 
       {/* Right palm */}
@@ -68,29 +61,20 @@ export function StaffLandingBackground() {
           animation: "staff-palm-sway-right 16s ease-in-out infinite",
         }}
       >
-        <PalmSilhouette className="h-full w-full opacity-[0.88]" flip />
+        <PalmSilhouette className="h-full w-full opacity-[0.84]" flip />
       </div>
 
-      {/* Spine watermark — right edge, very subtle */}
-      <div className="absolute right-[6%] top-1/2 hidden h-[55%] w-16 -translate-y-1/2 opacity-[0.35] md:block lg:right-[12%] lg:w-20">
-        <SpineWatermark className="h-full w-full" />
-      </div>
-
-      {/* Left spine mirror — balance */}
-      <div className="absolute left-[8%] top-1/2 hidden h-[50%] w-14 -translate-y-1/2 opacity-20 md:block lg:left-[14%]">
-        <SpineWatermark className="h-full w-full" style={{ transform: "scaleX(-1)" }} />
-      </div>
-
-      {/* Vignette for readable center content */}
+      {/* Center vignette — keeps copy readable */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse 55% 50% at 50% 45%, transparent 0%, rgba(12,15,21,0.55) 100%)",
+            "radial-gradient(ellipse 50% 45% at 50% 42%, transparent 0%, rgba(12,15,21,0.5) 100%)",
         }}
       />
 
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#41B6E6]/25 to-transparent" />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#41B6E6]/40 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#DB3EB1]/30 to-transparent" />
     </div>
   );
 }

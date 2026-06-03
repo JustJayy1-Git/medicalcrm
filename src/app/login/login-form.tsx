@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { LogoMark } from "@/components/logo-mark";
 import { StaffLandingBackground } from "@/components/staff-landing-background";
 
 export function LoginForm({ afterLogin }: { afterLogin: string }) {
@@ -43,12 +44,12 @@ export function LoginForm({ afterLogin }: { afterLogin: string }) {
 
       <header className="relative z-10 flex items-center gap-4 px-6 py-5 border-b border-[#41B6E6]/15 backdrop-blur-sm">
         <a href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-          <div
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#41B6E6]/20 to-[#DB3EB1]/20 border border-[#41B6E6]/30"
-            aria-hidden
-          >
-            <span className="text-lg font-extrabold tracking-tighter text-white">L</span>
-          </div>
+          <LogoMark
+            variant="icon"
+            width={48}
+            height={48}
+            className="shrink-0"
+          />
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#41B6E6] leading-none mb-0.5">
               Medical CRM
@@ -64,6 +65,12 @@ export function LoginForm({ afterLogin }: { afterLogin: string }) {
         <section className="w-full max-w-md">
           <section className="bg-[#121820]/85 backdrop-blur-md border border-[#41B6E6]/20 rounded-2xl p-8 shadow-[0_24px_60px_rgba(0,0,0,0.45)]">
             <header className="text-center mb-8">
+              <LogoMark
+                variant="header"
+                width={96}
+                height={96}
+                className="mx-auto mb-5"
+              />
               <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[#41B6E6] mb-3">
                 Staff Sign In
               </p>
