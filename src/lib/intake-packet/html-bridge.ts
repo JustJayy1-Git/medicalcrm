@@ -228,6 +228,11 @@ const FILLABLE_FIELD_CSS = `
 const PORTAL_TOOLBAR_CSS = `
 <style id="pro-injury-portal-toolbar">
 @media screen {
+  /* Leftover pager/actions if legacy toolbar markup was only partially replaced */
+  html.portal-kiosk body > .pager,
+  html.portal-kiosk body > .actions {
+    display: none !important;
+  }
   html.portal-kiosk .toolbar.pro-portal-toolbar {
     position: sticky;
     top: 0;
@@ -282,9 +287,9 @@ const KIOSK_DISPLAY_CSS = `
   html.portal-kiosk,
   html.portal-kiosk body {
     overflow-x: hidden;
-    overflow-y: visible;
-    min-height: 100%;
-    -webkit-overflow-scrolling: touch;
+    overflow-y: hidden;
+    height: auto;
+    min-height: 0;
   }
   html.portal-kiosk .page {
     zoom: ${KIOSK_PAGE_ZOOM};
@@ -427,7 +432,10 @@ function injectPortalToolbar(html: string, activeSlug: FormSlug): string {
   </div>
 </div>`;
 
-  return html.replace(/<div class="toolbar">[\s\S]*?<\/div>/i, toolbar);
+  return html.replace(
+    /<div class="toolbar">[\s\S]*?<div class="actions">[\s\S]*?<\/div>\s*<\/div>\s*(?=<form\b)/i,
+    `${toolbar}\n\n`,
+  );
 }
 
 function injectKioskDisplay(html: string): string {

@@ -97,12 +97,17 @@ export function buildPortalBridgeScript(opts: {
     }
   }
 
+  var lastReportedHeight = 0;
   function reportFrameHeight(){
-    var h = Math.max(
-      document.documentElement.scrollHeight,
-      document.body ? document.body.scrollHeight : 0,
-      900
-    );
+    var toolbar = document.querySelector('.pro-portal-toolbar');
+    var form = document.getElementById('proForm');
+    var h = 0;
+    if(toolbar) h += toolbar.offsetHeight;
+    if(form) h += form.offsetHeight;
+    h += 12;
+    if(h < 400) h = 400;
+    if(Math.abs(h - lastReportedHeight) < 4) return;
+    lastReportedHeight = h;
     if(window.parent !== window){
       window.parent.postMessage({ type: 'pro-injury-resize', height: h }, '*');
     }

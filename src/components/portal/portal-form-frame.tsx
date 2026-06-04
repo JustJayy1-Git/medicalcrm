@@ -166,7 +166,7 @@ export function PortalFormFrame({
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
       if (e.data?.type === "pro-injury-resize" && typeof e.data.height === "number") {
-        setIframeHeight(Math.max(900, Math.min(e.data.height + 24, 20000)));
+        setIframeHeight(Math.max(400, Math.min(Math.ceil(e.data.height), 12000)));
         return;
       }
       if (e.data?.type === "pro-injury-nav" && e.data.slug) {
@@ -198,7 +198,7 @@ export function PortalFormFrame({
   }, [slug, validationIssues]);
 
   useEffect(() => {
-    setIframeHeight(1200);
+    setIframeHeight(900);
     const iframe = iframeRef.current;
     return () => {
       void flushIframeSave(iframe);
@@ -214,30 +214,35 @@ export function PortalFormFrame({
   const iframeSrc = `/serve/forms/${slug}?packetId=${packetId}${isKiosk ? "&portal=1" : ""}`;
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#1a1d24]">
-      <header className="sticky top-0 z-20 flex items-center justify-between gap-3 px-4 py-2 bg-[#0c0f15] border-b border-[#2a2f3a] shrink-0">
-        <div className="flex items-center gap-3">
-          <Link
-            href={mode === "staff" ? `/intake-packets/${packetId}` : "/portal"}
-            className="text-xs font-bold uppercase tracking-wider text-[#c8d2e0] hover:text-white"
-          >
-            Pro Injury
-          </Link>
-          <span className="text-[10px] text-[#c8d2e0]/70 uppercase tracking-widest">
-            Page {String(displayPage).padStart(2, "0")} of {String(totalPages).padStart(2, "0")}
-          </span>
+    <div className="h-[100dvh] flex flex-col overflow-hidden bg-[#1a1d24]">
+      {isKiosk ? (
+        <div className="fixed top-2 right-3 z-30 shrink-0">
+          <StaffExitButton />
         </div>
-        <div className="flex items-center gap-3">
-          {!isKiosk && prev ? (
-            <button
-              type="button"
-              onClick={() => void navigateTo(`${basePath}/${prev}`)}
-              className="text-xs font-bold uppercase px-3 py-1.5 rounded-md border border-[#2a2f3a] text-[#c8d2e0] hover:text-white hover:border-[#41B6E6]"
+      ) : (
+        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 px-4 py-2 bg-[#0c0f15] border-b border-[#2a2f3a] shrink-0">
+          <div className="flex items-center gap-3">
+            <Link
+              href={`/intake-packets/${packetId}`}
+              className="text-xs font-bold uppercase tracking-wider text-[#c8d2e0] hover:text-white"
             >
-              ← Back
-            </button>
-          ) : null}
-          {!isKiosk ? (
+              Pro Injury
+            </Link>
+            <span className="text-[10px] text-[#c8d2e0]/70 uppercase tracking-widest">
+              Page {String(displayPage).padStart(2, "0")} of{" "}
+              {String(totalPages).padStart(2, "0")}
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            {prev ? (
+              <button
+                type="button"
+                onClick={() => void navigateTo(`${basePath}/${prev}`)}
+                className="text-xs font-bold uppercase px-3 py-1.5 rounded-md border border-[#2a2f3a] text-[#c8d2e0] hover:text-white hover:border-[#41B6E6]"
+              >
+                ← Back
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={() => void (next ? navigateTo(nextHref) : finishIntake())}
@@ -245,10 +250,9 @@ export function PortalFormFrame({
             >
               {next ? "Next →" : "Finish"}
             </button>
-          ) : null}
-          {isKiosk ? <StaffExitButton /> : null}
-        </div>
-      </header>
+          </div>
+        </header>
+      )}
 
       {validationIssues.length > 0 ? (
         <div className="shrink-0 px-4 py-3 bg-[#7f1d3a] text-white text-sm border-b border-[#DB3EB1]/40">
@@ -266,12 +270,13 @@ export function PortalFormFrame({
       ) : null}
 
       <p className="sr-only">{title}</p>
-      <main className="flex-1 overflow-y-auto overflow-x-hidden">
+      <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-none">
         <iframe
           ref={iframeRef}
           title={title}
           className="w-full border-0 bg-[#1a1d24] block"
           src={iframeSrc}
+          scrolling="no"
           style={{
             height: `${iframeHeight}px`,
             touchAction: "pan-x pan-y pinch-zoom",
