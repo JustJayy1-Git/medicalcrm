@@ -21,59 +21,62 @@ export default async function PortalHomePage({
         : null;
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#0c0f15] px-6 py-12">
+    <div className="portal-landing relative h-[100dvh] max-h-[100dvh] w-full overflow-hidden bg-[#0c0f15] flex flex-col">
       <StaffLandingBackground />
 
-      <header className="absolute top-0 right-0 p-4 z-10">
+      <header className="absolute top-0 right-0 p-3 z-10 shrink-0">
         <StaffExitButton />
       </header>
 
-      <div className="relative z-10 flex flex-col items-center max-w-lg w-full text-center">
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center min-h-0 w-full max-w-lg mx-auto px-5 py-3 text-center gap-[clamp(4px,1.2dvh,10px)]">
         <LogoMark
           variant="header"
-          width={240}
-          height={240}
+          width={160}
+          height={160}
           priority
-          className="mb-8 w-[min(280px,72vw)] h-auto max-w-[320px]"
+          className="portal-landing-logo shrink-0 w-[min(160px,22dvh)] h-auto max-h-[22dvh] object-contain"
         />
 
-        <p className="text-[11px] font-bold uppercase tracking-[0.35em] text-[#41B6E6] mb-3">
+        <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#41B6E6] leading-tight">
           Pro Injury Medical &amp; Rehabilitation
         </p>
 
-        <h1 className="font-serif text-4xl md:text-5xl font-semibold text-white leading-tight mb-1">
-          Patient Intake
-        </h1>
-        <p className="font-serif text-2xl md:text-3xl font-normal text-white/55 mb-8">
-          Admisión del Paciente
-        </p>
+        <div className="leading-tight">
+          <h1 className="font-serif text-[clamp(1.35rem,4.2dvh,2rem)] font-semibold text-white">
+            Patient Intake
+          </h1>
+          <p className="font-serif text-[clamp(1rem,3dvh,1.35rem)] text-white/55">
+            Admisión del Paciente
+          </p>
+        </div>
 
-        <div className="w-24 h-0.5 bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] mb-8 rounded-full" />
+        <div className="w-16 h-0.5 bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] rounded-full shrink-0" />
 
-        <p className="text-lg md:text-xl font-semibold text-white mb-1">
-          New Patient
-        </p>
-        <p className="text-base text-[#41B6E6]/90 font-medium mb-6">Paciente Nuevo</p>
+        <div className="leading-snug">
+          <p className="text-[clamp(0.9rem,2.4dvh,1.05rem)] font-semibold text-white">
+            New Patient · Paciente Nuevo
+          </p>
+        </div>
 
-        <p className="text-[#c8d2e0]/90 text-base md:text-lg leading-relaxed mb-2">
+        <p className="text-[#c8d2e0]/90 text-[clamp(0.7rem,1.9dvh,0.85rem)] leading-snug max-w-sm">
           Thank you for choosing Pro Injury. We are grateful for your trust and look forward to caring for you.
         </p>
-        <p className="text-[#c8d2e0]/65 text-sm md:text-base leading-relaxed mb-10 italic">
+        <p className="text-[#c8d2e0]/65 text-[clamp(0.65rem,1.7dvh,0.8rem)] leading-snug max-w-sm italic -mt-1">
           Gracias por elegir Pro Injury. Agradecemos su confianza y esperamos poder atenderle.
         </p>
 
         {errorMessage ? (
-          <p className="mb-6 px-4 py-3 text-sm text-red-200 bg-red-950/50 border border-red-900/50 rounded-xl max-w-sm text-center">
+          <p className="px-3 py-2 text-xs text-red-200 bg-red-950/50 border border-red-900/50 rounded-lg max-w-sm text-center shrink-0">
             {errorMessage}
           </p>
         ) : null}
 
         <StartIntakeForm />
-
-        <p className="mt-10 text-[10px] text-[#c8d2e0]/35 text-center max-w-xs leading-relaxed">
-          Staff: use the <span className="text-[#c8d2e0]/55">Staff</span> button (top right) and your PIN to exit kiosk mode.
-        </p>
       </div>
+
+      <p className="relative z-10 shrink-0 pb-[max(8px,env(safe-area-inset-bottom))] px-6 text-[9px] text-[#c8d2e0]/35 text-center leading-tight">
+        Staff: use <span className="text-[#c8d2e0]/55">Staff</span> (top right) and your PIN to exit kiosk mode.
+      </p>
     </div>
   );
 }
