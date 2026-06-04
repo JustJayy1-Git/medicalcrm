@@ -38,7 +38,7 @@ function flushIframeSave(iframe: HTMLIFrameElement | null): Promise<boolean> {
     const timeout = window.setTimeout(() => {
       window.removeEventListener("message", onMessage);
       resolve(true);
-    }, 2500);
+    }, 4000);
 
     const onMessage = (e: MessageEvent) => {
       if (e.source !== win) return;
@@ -79,6 +79,7 @@ export function PortalFormFrame({
 }) {
   const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [iframeHeight, setIframeHeight] = useState(1200);
   const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>(
     [],
   );
@@ -88,6 +89,7 @@ export function PortalFormFrame({
   const next = idx < navOrder.length - 1 ? navOrder[idx + 1] : null;
   const totalPages = mode === "kiosk" ? PORTAL_FORM_COUNT : FULL_FORM_COUNT;
   const displayPage = mode === "kiosk" ? getPortalPageNumber(slug) || page : page;
+  const isKiosk = mode === "kiosk";
 
   const basePath =
     mode === "staff" ? `/intake-packets/${packetId}/forms` : `/portal/packet/${packetId}/forms`;
@@ -95,7 +97,8 @@ export function PortalFormFrame({
   const navigateTo = useCallback(
     async (href: string) => {
       setValidationIssues([]);
-      await flushIframeSave(iframeRef.current);
+      const ok = await flushIframeSave(iframeRef.current);
+      if (!ok) return;
       router.push(href);
     },
     [router],
@@ -103,7 +106,8 @@ export function PortalFormFrame({
 
   const finishIntake = useCallback(async () => {
     setValidationIssues([]);
-    await flushIframeSave(iframeRef.current);
+    const ok = await flushIframeSave(iframeRef.current);
+    if (!ok) return;
 
     if (mode === "kiosk") {
       const validateRes = await fetch(`/api/intake-packets/${packetId}/validate`, {
@@ -120,9 +124,6 @@ export function PortalFormFrame({
         setValidationIssues(issues);
         const first = issues[0];
         if (first) {
-          highlightIssuesInIframe(iframeRef.current, first.slug, [
-            first.field,
-          ]);
           if (first.slug !== slug) {
             router.push(`${basePath}/${first.slug}`);
           } else {
@@ -164,13 +165,25 @@ export function PortalFormFrame({
 
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
-      if (e.data?.type !== "pro-injury-nav") return;
-      const target = e.data.slug as FormSlug;
-      void navigateTo(`${basePath}/${target}`);
+      if (e.data?.type === "pro-injury-resize" && typeof e.data.height === "number") {
+        setIframeHeight(Math.max(900, Math.min(e.data.height + 24, 20000)));
+        return;
+      }
+      if (e.data?.type === "pro-injury-nav" && e.data.slug) {
+        void navigateTo(`${basePath}/${e.data.slug as FormSlug}`);
+        return;
+      }
+      if (e.data?.type === "pro-injury-nav-back" && prev) {
+        void navigateTo(`${basePath}/${prev}`);
+        return;
+      }
+      if (e.data?.type === "pro-injury-finish") {
+        void finishIntake();
+      }
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [basePath, navigateTo]);
+  }, [basePath, navigateTo, prev, finishIntake]);
 
   useEffect(() => {
     if (validationIssues.length === 0) return;
@@ -185,6 +198,7 @@ export function PortalFormFrame({
   }, [slug, validationIssues]);
 
   useEffect(() => {
+    setIframeHeight(1200);
     const iframe = iframeRef.current;
     return () => {
       void flushIframeSave(iframe);
@@ -197,11 +211,11 @@ export function PortalFormFrame({
       ? `/intake-packets/${packetId}`
       : `/portal/done?packet=${packetId}`;
 
-  const iframeSrc = `/serve/forms/${slug}?packetId=${packetId}${mode === "kiosk" ? "&portal=1" : ""}`;
+  const iframeSrc = `/serve/forms/${slug}?packetId=${packetId}${isKiosk ? "&portal=1" : ""}`;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#1a1d24]">
-      <header className="flex items-center justify-between gap-3 px-4 py-2 bg-[#0c0f15] border-b border-[#2a2f3a] shrink-0">
+      <header className="sticky top-0 z-20 flex items-center justify-between gap-3 px-4 py-2 bg-[#0c0f15] border-b border-[#2a2f3a] shrink-0">
         <div className="flex items-center gap-3">
           <Link
             href={mode === "staff" ? `/intake-packets/${packetId}` : "/portal"}
@@ -214,7 +228,7 @@ export function PortalFormFrame({
           </span>
         </div>
         <div className="flex items-center gap-3">
-          {prev ? (
+          {!isKiosk && prev ? (
             <button
               type="button"
               onClick={() => void navigateTo(`${basePath}/${prev}`)}
@@ -223,16 +237,16 @@ export function PortalFormFrame({
               ← Back
             </button>
           ) : null}
-          <button
-            type="button"
-            onClick={() =>
-              void (next ? navigateTo(nextHref) : finishIntake())
-            }
-            className="text-xs font-bold uppercase px-3 py-1.5 rounded-md bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] text-white"
-          >
-            {next ? "Next →" : "Finish"}
-          </button>
-          {mode === "kiosk" ? <StaffExitButton /> : null}
+          {!isKiosk ? (
+            <button
+              type="button"
+              onClick={() => void (next ? navigateTo(nextHref) : finishIntake())}
+              className="text-xs font-bold uppercase px-3 py-1.5 rounded-md bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] text-white"
+            >
+              {next ? "Next →" : "Finish"}
+            </button>
+          ) : null}
+          {isKiosk ? <StaffExitButton /> : null}
         </div>
       </header>
 
@@ -252,13 +266,18 @@ export function PortalFormFrame({
       ) : null}
 
       <p className="sr-only">{title}</p>
-      <iframe
-        ref={iframeRef}
-        title={title}
-        className="flex-1 w-full min-h-0 border-0 bg-[#1a1d24]"
-        src={iframeSrc}
-        style={{ touchAction: "pan-x pan-y pinch-zoom" }}
-      />
+      <main className="flex-1 overflow-y-auto overflow-x-hidden">
+        <iframe
+          ref={iframeRef}
+          title={title}
+          className="w-full border-0 bg-[#1a1d24] block"
+          src={iframeSrc}
+          style={{
+            height: `${iframeHeight}px`,
+            touchAction: "pan-x pan-y pinch-zoom",
+          }}
+        />
+      </main>
     </div>
   );
 }

@@ -122,6 +122,10 @@ function normalizeIntakePayload(data: FormPayload): FormPayload {
   if (!String(out.patient_name ?? "").trim() && (first || last)) {
     out.patient_name = [first, middle, last].filter(Boolean).join(" ");
   }
+  const firm = String(out.attorney_firm ?? "").trim();
+  if (!String(out.attorney_name ?? "").trim() && firm) {
+    out.attorney_name = firm;
+  }
   return out;
 }
 
@@ -311,23 +315,23 @@ export async function saveForm(
     if (name in payload) row[name] = toDbValue(name, payload[name], def);
   }
 
-  const db = slug === "intake" ? createAdminClient() : supabase;
+  const admin = createAdminClient();
 
-  const { data: existing } = await db
+  const { data: existing } = await admin
     .from(def.tableName)
     .select("id")
     .eq("packet_id", packetId)
     .maybeSingle();
 
   if (existing) {
-    const { error } = await db.from(def.tableName).update(row).eq("packet_id", packetId);
+    const { error } = await admin.from(def.tableName).update(row).eq("packet_id", packetId);
     if (error) throw error;
   } else {
-    const { error } = await db.from(def.tableName).insert(row);
+    const { error } = await admin.from(def.tableName).insert(row);
     if (error) throw error;
   }
 
-  await supabase
+  await admin
     .from("intake_packets")
     .update({ updated_at: new Date().toISOString() })
     .eq("id", packetId);

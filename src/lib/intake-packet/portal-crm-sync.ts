@@ -274,7 +274,7 @@ export async function buildCasePayloadFromPortalForms(
   }
   const attorneyFirm = str(intake.attorney_firm) ?? str(financial.attorney_firm);
   const attorneyName = str(intake.attorney_name) ?? str(financial.attorney_name);
-  const attorneyPhone = str(financial.attorney_phone);
+  const attorneyPhone = str(intake.attorney_phone) ?? str(financial.attorney_phone);
   const attorneyEmail = str(intake.attorney_email);
   if (attorneyFirm && !attorneyId) {
     comments.push(`Attorney firm (intake): ${attorneyFirm}`);

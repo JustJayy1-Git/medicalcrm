@@ -216,6 +216,59 @@ const FILLABLE_FIELD_CSS = `
     min-height: 88px !important;
     resize: vertical;
   }
+  html.portal-kiosk .field select,
+  html.portal-kiosk .field select[name="inj_treating_facility"] {
+    min-height: 32px !important;
+    font-size: 13px !important;
+    width: 100%;
+  }
+}
+</style>`;
+
+const PORTAL_TOOLBAR_CSS = `
+<style id="pro-injury-portal-toolbar">
+@media screen {
+  html.portal-kiosk .toolbar.pro-portal-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 120;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 10px 16px 12px;
+  }
+  html.portal-kiosk .pro-toolbar-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+  }
+  html.portal-kiosk .pro-toolbar-row .brand {
+    flex-shrink: 0;
+  }
+  html.portal-kiosk .pro-toolbar-row .pager {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    flex: 1;
+    min-width: 0;
+    max-width: none;
+  }
+  html.portal-kiosk .pro-toolbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+  html.portal-kiosk .pro-toolbar-actions .saved-indicator {
+    margin-right: auto;
+  }
+  html.portal-kiosk .page-link {
+    font-size: 11px !important;
+    padding: 7px 11px !important;
+    white-space: nowrap;
+  }
 }
 </style>`;
 
@@ -226,9 +279,11 @@ const KIOSK_DISPLAY_CSS = `
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
   }
+  html.portal-kiosk,
   html.portal-kiosk body {
-    overflow-x: auto;
-    overflow-y: auto;
+    overflow-x: hidden;
+    overflow-y: visible;
+    min-height: 100%;
     -webkit-overflow-scrolling: touch;
   }
   html.portal-kiosk .page {
@@ -344,6 +399,37 @@ function patchPagerAndPageCounts(
   return out;
 }
 
+function injectPortalToolbar(html: string, activeSlug: FormSlug): string {
+  const pageIndex = PORTAL_PAGER.findIndex(([slug]) => slug === activeSlug);
+  const prevSlug = pageIndex > 0 ? PORTAL_PAGER[pageIndex - 1][0] : null;
+  const nextSlug =
+    pageIndex >= 0 && pageIndex < PORTAL_PAGER.length - 1
+      ? PORTAL_PAGER[pageIndex + 1][0]
+      : null;
+  const isFinish = pageIndex === PORTAL_PAGER.length - 1;
+
+  const pagerLinks = PORTAL_PAGER.map(([slug, label]) => {
+    const cls = slug === activeSlug ? "page-link active" : "page-link";
+    return `<a class="${cls}" href="${slug}.html" data-slug="${slug}">${label}</a>`;
+  }).join("");
+
+  const toolbar = `<div class="toolbar pro-portal-toolbar">
+  <div class="pro-toolbar-row">
+    <div class="brand">Pro Injury <span class="accent">Intake</span></div>
+    <div class="pager">${pagerLinks}</div>
+  </div>
+  <div class="pro-toolbar-actions">
+    <span class="saved-indicator" id="savedIndicator">●  unsaved</span>
+    <button class="btn ghost" type="button" id="proPortalResetBtn">Reset</button>
+    <button class="btn primary" type="button" id="proPortalPrintBtn">Print</button>
+    ${prevSlug ? '<button class="btn ghost" type="button" id="proPortalBackBtn">← Back</button>' : ""}
+    <button class="btn primary" type="button" id="proPortalNextBtn">${isFinish ? "Finish" : "Next →"}</button>
+  </div>
+</div>`;
+
+  return html.replace(/<div class="toolbar">[\s\S]*?<\/div>/i, toolbar);
+}
+
 function injectKioskDisplay(html: string): string {
   let out = html.replace(/<html(\s[^>]*)?>/i, (match) => {
     if (/class=/i.test(match)) {
@@ -354,7 +440,10 @@ function injectKioskDisplay(html: string): string {
     }
     return match.replace("<html", '<html class="portal-kiosk"');
   });
-  out = out.replace("</head>", `${HEADER_ALIGN_CSS}\n${FILLABLE_FIELD_CSS}\n${KIOSK_DISPLAY_CSS}\n</head>`);
+  out = out.replace(
+    "</head>",
+    `${HEADER_ALIGN_CSS}\n${FILLABLE_FIELD_CSS}\n${PORTAL_TOOLBAR_CSS}\n${KIOSK_DISPLAY_CSS}\n</head>`,
+  );
   return out;
 }
 
@@ -369,9 +458,13 @@ export function injectApiBridge(
     portalMode?: boolean;
   },
 ): string {
-  let patched = patchPagerAndPageCounts(html, opts.formSlug, opts.portalMode ?? true);
+  const portalMode = opts.portalMode ?? true;
+  let patched = patchPagerAndPageCounts(html, opts.formSlug, portalMode);
+  if (portalMode) {
+    patched = injectPortalToolbar(patched, opts.formSlug);
+  }
   const portalNavSlugs =
-    opts.portalMode !== false ? PORTAL_PAGER.map(([slug]) => slug) : null;
+    portalMode !== false ? PORTAL_PAGER.map(([slug]) => slug) : null;
 
   const bridge = buildPortalBridgeScript({
     packetId: opts.packetId,

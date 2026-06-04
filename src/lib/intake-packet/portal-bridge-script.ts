@@ -43,6 +43,7 @@ export function buildPortalBridgeScript(opts: {
     var accident = intake.meta_date_of_accident || '';
     var cell = intake.phone_cell || '';
     var home = intake.phone_home || '';
+    var firm = intake.attorney_firm || '';
     var map = {
       patient_name: name,
       patient_dob: dob,
@@ -56,7 +57,11 @@ export function buildPortalBridgeScript(opts: {
       meta_todays_date: today,
       meta_date_of_accident: accident,
       meta_referred_by: intake.meta_referred_by || '',
-      meta_type_of_accident: intake.meta_type_of_accident || ''
+      meta_type_of_accident: intake.meta_type_of_accident || '',
+      attorney_firm: firm,
+      attorney_name: intake.attorney_name || firm,
+      attorney_email: intake.attorney_email || '',
+      attorney_phone: intake.attorney_phone || ''
     };
     NAME_PRINT_FIELDS.forEach(function(f){ map[f] = name; });
     DATE_SIG_FIELDS.forEach(function(f){
@@ -73,7 +78,33 @@ export function buildPortalBridgeScript(opts: {
       form.querySelectorAll('[name="'+k+'"]').forEach(function(el){
         if(el.type === 'radio' || el.type === 'checkbox') return;
         el.value = map[k];
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
       });
+    }
+  }
+
+  async function refreshIntakeFromServer(){
+    try {
+      var packet = await apiGet('/api/intake-packets/' + PACKET_ID);
+      var intake = packet.forms && packet.forms.intake ? packet.forms.intake : {};
+      window.__proInjuryBridge.intake = intake;
+      try { localStorage.setItem(INTAKE_KEY, JSON.stringify(intake)); } catch(e){}
+      return intake;
+    } catch(e) {
+      console.error('refreshIntakeFromServer', e);
+      return window.__proInjuryBridge.intake || {};
+    }
+  }
+
+  function reportFrameHeight(){
+    var h = Math.max(
+      document.documentElement.scrollHeight,
+      document.body ? document.body.scrollHeight : 0,
+      900
+    );
+    if(window.parent !== window){
+      window.parent.postMessage({ type: 'pro-injury-resize', height: h }, '*');
     }
   }
 
@@ -233,9 +264,14 @@ export function buildPortalBridgeScript(opts: {
       var intake = window.__proInjuryBridge.intake || {};
       var bill = form.querySelector('input[name="deductible_choice"][value="bill_attorney"]');
       if(!bill || !bill.checked) return;
-      ['attorney_firm','attorney_name','attorney_phone'].forEach(function(n){
+      ['attorney_firm','attorney_name','attorney_phone','attorney_email'].forEach(function(n){
         var el = form.querySelector('[name="'+n+'"]');
-        if(el && intake[n]) el.value = intake[n];
+        var val = intake[n];
+        if(!val && n === 'attorney_name') val = intake.attorney_firm;
+        if(el && val){
+          el.value = val;
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+        }
       });
     }
     form.addEventListener('change', function(e){
@@ -244,26 +280,88 @@ export function buildPortalBridgeScript(opts: {
     syncAttorneyFromIntake();
   }
 
-  function wirePager(){
-    document.querySelectorAll('a.page-link[href$=".html"]').forEach(function(a){
-      var slug = a.getAttribute('href').replace('.html','');
-      if(PORTAL_NAV_ONLY && PORTAL_NAV_ONLY.indexOf(slug) === -1) return;
+  function portalNavigate(slug){
+    if(window.parent !== window){
+      window.parent.postMessage({ type: 'pro-injury-nav', slug: slug }, '*');
+    } else {
+      location.href = '/portal/packet/' + PACKET_ID + '/forms/' + slug;
+    }
+  }
+
+  function portalNavigateBack(){
+    if(window.parent !== window){
+      window.parent.postMessage({ type: 'pro-injury-nav-back' }, '*');
+    }
+  }
+
+  function portalNavigateNextOrFinish(){
+    var idx = PORTAL_NAV_ONLY ? PORTAL_NAV_ONLY.indexOf(FORM_SLUG) : -1;
+    var nextSlug = (PORTAL_NAV_ONLY && idx >= 0 && idx < PORTAL_NAV_ONLY.length - 1)
+      ? PORTAL_NAV_ONLY[idx + 1]
+      : null;
+    if(window.parent !== window){
+      if(nextSlug){
+        window.parent.postMessage({ type: 'pro-injury-nav', slug: nextSlug }, '*');
+      } else {
+        window.parent.postMessage({ type: 'pro-injury-finish' }, '*');
+      }
+    }
+  }
+
+  function runAfterSave(navFn){
+    var go = function(){
+      if(typeof navFn === 'function') navFn();
+    };
+    if(typeof window.__proInjuryFlushSave === 'function'){
+      window.__proInjuryFlushSave().then(function(ok){
+        if(ok === false){
+          alert('Could not save this page. Check connection and try again.');
+          return;
+        }
+        go();
+      }).catch(function(){
+        alert('Could not save this page. Check connection and try again.');
+      });
+    } else {
+      go();
+    }
+  }
+
+  function wirePortalToolbarNav(){
+    document.querySelectorAll('a.page-link[data-slug]').forEach(function(a){
       a.addEventListener('click', function(e){
         e.preventDefault();
-        var nav = function(){
-          if(window.parent !== window){
-            window.parent.postMessage({ type: 'pro-injury-nav', slug: slug }, '*');
-          } else {
-            location.href = '/portal/packet/' + PACKET_ID + '/forms/' + slug;
-          }
-        };
-        if(typeof window.__proInjuryFlushSave === 'function'){
-          window.__proInjuryFlushSave().finally(nav);
-        } else {
-          nav();
-        }
+        var slug = a.getAttribute('data-slug');
+        runAfterSave(function(){ portalNavigate(slug); });
       });
     });
+    var backBtn = document.getElementById('proPortalBackBtn');
+    var nextBtn = document.getElementById('proPortalNextBtn');
+    var resetBtn = document.getElementById('proPortalResetBtn');
+    var printBtn = document.getElementById('proPortalPrintBtn');
+    if(backBtn){
+      backBtn.addEventListener('click', function(){
+        runAfterSave(portalNavigateBack);
+      });
+    }
+    if(nextBtn){
+      nextBtn.addEventListener('click', function(){
+        runAfterSave(portalNavigateNextOrFinish);
+      });
+    }
+    if(resetBtn){
+      resetBtn.addEventListener('click', function(){
+        if(!confirm('Clear all fields on this page?')) return;
+        var form = document.querySelector('form');
+        if(form) form.reset();
+        if(typeof window.__proInjuryFlushSave === 'function'){
+          window.__proInjuryFlushSave();
+        }
+      });
+    }
+    if(printBtn){
+      printBtn.addEventListener('click', function(){ window.print(); });
+    }
   }
 
   window.__proInjuryHighlightFields = function(fieldNames){
@@ -351,6 +449,7 @@ export function buildPortalBridgeScript(opts: {
           try { localStorage.setItem(INTAKE_KEY, JSON.stringify(payload)); } catch(e){}
         }
         setIndicator('saved');
+        reportFrameHeight();
         return true;
       } catch(e){
         console.error(e);
@@ -369,15 +468,22 @@ export function buildPortalBridgeScript(opts: {
       try {
         var loaded = await window.__proInjuryBridge.preload();
         var cached = loaded.cached || {};
-        var intake = loaded.intake || {};
+        var intake = await refreshIntakeFromServer();
+        if(!intake || !Object.keys(intake).length){
+          intake = loaded.intake || {};
+        }
         if(cached && Object.keys(cached).length){
           apply(cached);
           setIndicator('saved');
         }
-        if(NEEDS_INTAKE_PREFILL || FORM_SLUG === 'intake') applyIntakePrefill(intake, form);
+        if(FORM_SLUG !== 'intake'){
+          applyIntakePrefill(intake, form);
+        }
         normalizeSigRows();
         initSignaturePads();
         wireAttorneyBill(form);
+        reportFrameHeight();
+        setTimeout(reportFrameHeight, 400);
       } catch(e){
         console.error(e);
       }
@@ -426,13 +532,16 @@ export function buildPortalBridgeScript(opts: {
     }
   });
 
+  window.addEventListener('resize', reportFrameHeight);
+
   document.addEventListener('DOMContentLoaded', function(){
-    wirePager();
+    wirePortalToolbarNav();
     normalizeSigRows();
     hijackPersistence();
     setTimeout(function(){
       normalizeSigRows();
       initSignaturePads();
+      reportFrameHeight();
     }, 300);
   });
 })();
