@@ -30,6 +30,48 @@ function isMissingColumnError(message: string, column: string): boolean {
   );
 }
 
+/** Added in migration 0018 — omit on save if production DB has not run it yet. */
+const OPTIONAL_PATIENT_INTAKE_COLUMNS = [
+  "attorney_firm",
+  "attorney_name",
+  "attorney_phone",
+  "attorney_email",
+] as const;
+
+async function upsertFormRow(
+  admin: ReturnType<typeof createAdminClient>,
+  tableName: string,
+  packetId: number,
+  row: Record<string, unknown>,
+  existing: boolean,
+  optionalColumns: readonly string[] = [],
+): Promise<void> {
+  const attempt = { ...row };
+  const optional = new Set(optionalColumns);
+
+  for (let tries = 0; tries <= optionalColumns.length + 1; tries++) {
+    const { error } = existing
+      ? await admin.from(tableName).update(attempt).eq("packet_id", packetId)
+      : await admin.from(tableName).insert(attempt);
+
+    if (!error) return;
+
+    const msg = formatDbError(error);
+    let stripped = false;
+    for (const col of optional) {
+      if (col in attempt && isMissingColumnError(msg, col)) {
+        delete attempt[col];
+        stripped = true;
+        console.warn(
+          `saveForm: column ${tableName}.${col} missing in DB — run supabase/migrations/0018_intake_attorney_fields.sql`,
+        );
+        break;
+      }
+    }
+    if (!stripped) throw error;
+  }
+}
+
 function emptyDate(value: unknown): string | null {
   if (value === null || value === undefined || value === "") return null;
   return String(value);
@@ -323,13 +365,12 @@ export async function saveForm(
     .eq("packet_id", packetId)
     .maybeSingle();
 
-  if (existing) {
-    const { error } = await admin.from(def.tableName).update(row).eq("packet_id", packetId);
-    if (error) throw error;
-  } else {
-    const { error } = await admin.from(def.tableName).insert(row);
-    if (error) throw error;
-  }
+  const optionalCols =
+    slug === "intake" && def.tableName === "patient_intake"
+      ? OPTIONAL_PATIENT_INTAKE_COLUMNS
+      : [];
+
+  await upsertFormRow(admin, def.tableName, packetId, row, Boolean(existing), optionalCols);
 
   await admin
     .from("intake_packets")
