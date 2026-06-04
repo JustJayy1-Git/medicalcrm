@@ -9,8 +9,15 @@ import {
 } from "@/lib/intake-packet/form-slugs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { StaffExitButton } from "./staff-exit-button";
+
+type ValidationIssue = {
+  slug: FormSlug;
+  page: number;
+  field: string;
+  label: string;
+};
 
 function flushIframeSave(iframe: HTMLIFrameElement | null): Promise<boolean> {
   return new Promise((resolve) => {
@@ -47,6 +54,16 @@ function flushIframeSave(iframe: HTMLIFrameElement | null): Promise<boolean> {
   });
 }
 
+function highlightIssuesInIframe(
+  iframe: HTMLIFrameElement | null,
+  slug: FormSlug,
+  fields: string[],
+) {
+  const win = iframe?.contentWindow;
+  if (!win) return;
+  win.postMessage({ type: "pro-injury-highlight", slug, fields }, "*");
+}
+
 export function PortalFormFrame({
   packetId,
   slug,
@@ -62,6 +79,9 @@ export function PortalFormFrame({
 }) {
   const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>(
+    [],
+  );
   const navOrder = getFormNavigationOrder(mode);
   const idx = navOrder.indexOf(slug);
   const prev = idx > 0 ? navOrder[idx - 1] : null;
@@ -74,18 +94,73 @@ export function PortalFormFrame({
 
   const navigateTo = useCallback(
     async (href: string) => {
+      setValidationIssues([]);
       await flushIframeSave(iframeRef.current);
-      if (mode === "kiosk" && !next && href.includes("/portal/done")) {
-        try {
-          await fetch(`/api/intake-packets/${packetId}/complete`, { method: "POST" });
-        } catch {
-          // done page retries completion
-        }
-      }
       router.push(href);
     },
-    [router, mode, next, packetId],
+    [router],
   );
+
+  const finishIntake = useCallback(async () => {
+    setValidationIssues([]);
+    await flushIframeSave(iframeRef.current);
+
+    if (mode === "kiosk") {
+      const validateRes = await fetch(`/api/intake-packets/${packetId}/validate`, {
+        method: "POST",
+      });
+      const validation = (await validateRes.json()) as {
+        ok?: boolean;
+        issues?: ValidationIssue[];
+        error?: string;
+      };
+
+      if (!validation.ok) {
+        const issues = validation.issues ?? [];
+        setValidationIssues(issues);
+        const first = issues[0];
+        if (first) {
+          highlightIssuesInIframe(iframeRef.current, first.slug, [
+            first.field,
+          ]);
+          if (first.slug !== slug) {
+            router.push(`${basePath}/${first.slug}`);
+          } else {
+            highlightIssuesInIframe(iframeRef.current, slug, [
+              first.field,
+            ]);
+          }
+        }
+        return;
+      }
+
+      try {
+        const completeRes = await fetch(`/api/intake-packets/${packetId}/complete`, {
+          method: "POST",
+        });
+        const body = (await completeRes.json()) as { error?: string };
+        if (!completeRes.ok) {
+          setValidationIssues([
+            {
+              slug: "records",
+              page: 7,
+              field: "",
+              label: body.error ?? "Could not complete intake",
+            },
+          ]);
+          return;
+        }
+      } catch {
+        // done page retries completion
+      }
+    }
+
+    router.push(
+      mode === "staff"
+        ? `/intake-packets/${packetId}`
+        : `/portal/done?packet=${packetId}`,
+    );
+  }, [router, mode, packetId, basePath, slug]);
 
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
@@ -96,6 +171,18 @@ export function PortalFormFrame({
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
   }, [basePath, navigateTo]);
+
+  useEffect(() => {
+    if (validationIssues.length === 0) return;
+    const forPage = validationIssues.filter((i) => i.slug === slug);
+    if (forPage.length > 0) {
+      highlightIssuesInIframe(
+        iframeRef.current,
+        slug,
+        forPage.map((i) => i.field),
+      );
+    }
+  }, [slug, validationIssues]);
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -138,7 +225,9 @@ export function PortalFormFrame({
           ) : null}
           <button
             type="button"
-            onClick={() => void navigateTo(nextHref)}
+            onClick={() =>
+              void (next ? navigateTo(nextHref) : finishIntake())
+            }
             className="text-xs font-bold uppercase px-3 py-1.5 rounded-md bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] text-white"
           >
             {next ? "Next →" : "Finish"}
@@ -146,6 +235,22 @@ export function PortalFormFrame({
           {mode === "kiosk" ? <StaffExitButton /> : null}
         </div>
       </header>
+
+      {validationIssues.length > 0 ? (
+        <div className="shrink-0 px-4 py-3 bg-[#7f1d3a] text-white text-sm border-b border-[#DB3EB1]/40">
+          <p className="font-semibold mb-1">
+            Please complete required items before submitting:
+          </p>
+          <ul className="list-disc list-inside space-y-0.5 text-white/90">
+            {validationIssues.map((issue, i) => (
+              <li key={`${issue.slug}-${issue.field}-${i}`}>
+                Page {issue.page}: {issue.label}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       <p className="sr-only">{title}</p>
       <iframe
         ref={iframeRef}

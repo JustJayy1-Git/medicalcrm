@@ -12,10 +12,13 @@ export default async function PortalDonePage({
   const { packet } = await searchParams;
   const packetId = packet ? Number(packet) : NaN;
 
+  let completeError: string | null = null;
   if (Number.isFinite(packetId)) {
     try {
       await completePacket(packetId);
     } catch (err) {
+      completeError =
+        err instanceof Error ? err.message : "Could not complete intake";
       console.error("portal/done completePacket:", err);
     }
   }
@@ -34,12 +37,27 @@ export default async function PortalDonePage({
           className="mb-6 w-[min(240px,65vw)] h-auto max-w-[280px]"
         />
         <h1 className="text-3xl font-serif text-white mb-3">Thank you</h1>
-        <p className="text-[#c8d2e0]/75 max-w-md mb-10">
-          Your intake forms have been submitted. Please return the iPad to the front desk.
-        </p>
+        {completeError ? (
+          <p className="text-[#ffb4d0] max-w-md mb-6 text-sm leading-relaxed">
+            {completeError} Go back and complete missing signatures, dates, and names,
+            then tap Finish again.
+          </p>
+        ) : (
+          <p className="text-[#c8d2e0]/75 max-w-md mb-10">
+            Your intake forms have been submitted. Please return the iPad to the front desk.
+          </p>
+        )}
+        {completeError && Number.isFinite(packetId) ? (
+          <Link
+            href={`/portal/packet/${packetId}/forms/records`}
+            className="px-10 py-3 font-bold rounded-xl bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] text-white mb-4 inline-block"
+          >
+            Return to intake
+          </Link>
+        ) : null}
         <Link
           href="/portal"
-          className="px-10 py-3 font-bold rounded-xl bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] text-white"
+          className="px-10 py-3 font-bold rounded-xl border border-[#41B6E6]/50 text-[#c8d2e0] hover:text-white inline-block"
         >
           Start next patient
         </Link>

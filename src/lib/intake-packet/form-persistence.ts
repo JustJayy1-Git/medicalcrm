@@ -7,6 +7,7 @@ import {
   syncPortalIntakeToCrm,
 } from "./portal-crm-sync";
 import { saveIntakePacketToPatientFile } from "./save-intake-attachment";
+import { validatePortalPacket } from "./intake-packet-validation";
 import { createAdminClient } from "@/lib/supabase/server";
 
 export type FormPayload = Record<string, unknown>;
@@ -178,11 +179,12 @@ export async function listPackets(supabase: SupabaseClient) {
 }
 
 export async function createPortalPacket(
-  supabase: SupabaseClient,
+  _supabase: SupabaseClient,
   createdBy: string | null,
 ) {
+  const admin = createAdminClient();
   const stamp = new Date().toISOString().slice(0, 16).replace("T", " ");
-  const { data: patient, error: pErr } = await supabase
+  const { data: patient, error: pErr } = await admin
     .from("patients")
     .insert({
       first_name: "Intake",
@@ -198,7 +200,7 @@ export async function createPortalPacket(
   const patientId = patient.id;
 
   let caseId: string | null = null;
-  const { data: caseRow, error: cErr } = await supabase
+  const { data: caseRow, error: cErr } = await admin
     .from("cases")
     .insert({
       patient_id: patientId,
@@ -223,14 +225,14 @@ export async function createPortalPacket(
   };
 
   async function rollbackCreated() {
-    if (caseId) await supabase.from("cases").delete().eq("id", caseId);
-    await supabase.from("patients").delete().eq("id", patientId);
+    if (caseId) await admin.from("cases").delete().eq("id", caseId);
+    await admin.from("patients").delete().eq("id", patientId);
   }
 
   let packetId: number;
 
   if (caseId) {
-    const { data: packet, error: kErr } = await supabase
+    const { data: packet, error: kErr } = await admin
       .from("intake_packets")
       .insert({ ...basePacket, case_id: caseId })
       .select("id")
@@ -239,7 +241,7 @@ export async function createPortalPacket(
     if (!kErr && packet) {
       packetId = packet.id as number;
     } else if (kErr && isMissingColumnError(kErr.message, "case_id")) {
-      const { data: packet2, error: kErr2 } = await supabase
+      const { data: packet2, error: kErr2 } = await admin
         .from("intake_packets")
         .insert(basePacket)
         .select("id")
@@ -254,13 +256,13 @@ export async function createPortalPacket(
       throw kErr ?? new Error("Could not create intake packet");
     }
   } else {
-    const { data: packet, error: kErr } = await supabase
+    const { data: packet, error: kErr } = await admin
       .from("intake_packets")
       .insert(basePacket)
       .select("id")
       .single();
     if (kErr) {
-      await supabase.from("patients").delete().eq("id", patientId);
+      await admin.from("patients").delete().eq("id", patientId);
       throw kErr;
     }
     packetId = packet!.id as number;
@@ -274,12 +276,13 @@ export async function createPortalPacket(
 }
 
 export async function loadForm(
-  supabase: SupabaseClient,
+  _supabase: SupabaseClient,
   packetId: number,
   slug: FormSlug,
 ): Promise<FormPayload> {
   const def = getFormBySlug(slug);
-  const { data, error } = await supabase
+  const admin = createAdminClient();
+  const { data, error } = await admin
     .from(def.tableName)
     .select("*")
     .eq("packet_id", packetId)
@@ -308,17 +311,19 @@ export async function saveForm(
     if (name in payload) row[name] = toDbValue(name, payload[name], def);
   }
 
-  const { data: existing } = await supabase
+  const db = slug === "intake" ? createAdminClient() : supabase;
+
+  const { data: existing } = await db
     .from(def.tableName)
     .select("id")
     .eq("packet_id", packetId)
     .maybeSingle();
 
   if (existing) {
-    const { error } = await supabase.from(def.tableName).update(row).eq("packet_id", packetId);
+    const { error } = await db.from(def.tableName).update(row).eq("packet_id", packetId);
     if (error) throw error;
   } else {
-    const { error } = await supabase.from(def.tableName).insert(row);
+    const { error } = await db.from(def.tableName).insert(row);
     if (error) throw error;
   }
 
@@ -367,6 +372,14 @@ export async function loadPacketForms(supabase: SupabaseClient, packetId: number
 
 export async function completePacket(packetId: number) {
   const admin = createAdminClient();
+  const validation = await validatePortalPacket(admin, packetId);
+  if (!validation.ok) {
+    const labels = validation.issues.map((i) => i.label).join("; ");
+    throw new Error(
+      `Intake is incomplete. Please sign, date, and fill required fields: ${labels}`,
+    );
+  }
+
   const loaded = await loadPacketForms(admin, packetId);
   const intake = loaded.forms.intake ?? {};
   const financial = loaded.forms.financial ?? {};
@@ -376,11 +389,13 @@ export async function completePacket(packetId: number) {
     intake,
     financial,
     hipaa,
+    allForms: loaded.forms,
   });
 
   if (!result.caseId) {
-    console.error("completePacket: no case_id after sync for packet", packetId);
-    return result;
+    throw new Error(
+      "Could not create or link a case for this intake. Contact staff or try again.",
+    );
   }
 
   const { data: patient } = await admin

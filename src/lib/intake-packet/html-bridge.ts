@@ -1,4 +1,5 @@
 import { INTAKE_STORAGE_KEY, type FormSlug } from "./form-slugs";
+import { buildPortalBridgeScript } from "./portal-bridge-script";
 
 /** Screen-only zoom for portal / iPad (print layout unchanged). */
 const KIOSK_PAGE_ZOOM = 1.32;
@@ -136,6 +137,84 @@ const FILLABLE_FIELD_CSS = `
   html.portal-kiosk .sig-cell.signature .pro-sig-hint,
   html.portal-kiosk .sig-cell.signature .pro-sig-clear {
     display: none;
+  }
+  html.portal-kiosk .pro-field-missing,
+  html.portal-kiosk .pro-signature-pad.pro-field-missing canvas {
+    box-shadow: 0 0 0 2px #DB3EB1, inset 0 0 0 2px rgba(219, 62, 177, 0.25) !important;
+    background: rgba(219, 62, 177, 0.08) !important;
+  }
+  html.portal-kiosk .pro-intake-validation-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    background: #7f1d3a;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    padding: 10px 16px;
+    display: none;
+  }
+  html.portal-kiosk .pro-sig-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    background: rgba(12, 15, 21, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  html.portal-kiosk .pro-sig-modal-panel {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    max-width: 96vw;
+    width: 720px;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.35);
+  }
+  html.portal-kiosk .pro-sig-modal-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 10px;
+    text-align: center;
+  }
+  html.portal-kiosk .pro-sig-modal-panel canvas {
+    width: 100%;
+    height: 280px;
+    border: 2px solid #41B6E6;
+    border-radius: 8px;
+    touch-action: none;
+    cursor: crosshair;
+  }
+  html.portal-kiosk .pro-sig-modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 12px;
+  }
+  html.portal-kiosk .pro-sig-modal-clear {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 1px solid #94a3b8;
+    background: #f8fafc;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  html.portal-kiosk .pro-sig-modal-done {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 0;
+    background: linear-gradient(135deg, #41B6E6, #DB3EB1);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  html.portal-kiosk textarea[name="inj_initial"] {
+    min-height: 88px !important;
+    resize: vertical;
   }
 }
 </style>`;
@@ -294,324 +373,12 @@ export function injectApiBridge(
   const portalNavSlugs =
     opts.portalMode !== false ? PORTAL_PAGER.map(([slug]) => slug) : null;
 
-  const bridge = `
-<script id="pro-injury-api-bridge">
-(function(){
-  const PACKET_ID = ${JSON.stringify(opts.packetId)};
-  const FORM_SLUG = ${JSON.stringify(opts.formSlug)};
-  const INTAKE_KEY = ${JSON.stringify(INTAKE_STORAGE_KEY)};
-  const API_URL = '/api/intake-packets/' + PACKET_ID + '/' + FORM_SLUG;
-  const NEEDS_INTAKE_PREFILL = ${opts.needsIntakePrefill ? "true" : "false"};
-  const PORTAL_NAV_ONLY = ${portalNavSlugs ? JSON.stringify(portalNavSlugs) : "null"};
-
-  async function apiGet(url){
-    const r = await fetch(url, { credentials: 'same-origin' });
-    if(!r.ok) throw new Error('load failed');
-    return r.json();
-  }
-
-  window.__proInjuryApiSave = async function(data){
-    const r = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify(data)
-    });
-    if(!r.ok) throw new Error('save failed');
-    return r.json();
-  };
-
-  function intakePrefillMap(intake){
-    return {
-      patient_name: intake.patient_name,
-      patient_dob: intake.dob,
-      patient_phone: intake.phone_cell,
-      patient_email: intake.email,
-      date_of_accident: intake.meta_date_of_accident,
-      meta_todays_date: intake.meta_todays_date,
-      meta_date_of_accident: intake.meta_date_of_accident,
-      meta_referred_by: intake.meta_referred_by,
-      meta_type_of_accident: intake.meta_type_of_accident,
-      patient_name_print: intake.patient_name,
-      insured_name_print: intake.patient_name,
-      financial_name_print: intake.patient_name,
-      records_name_print: intake.patient_name
-    };
-  }
-
-  function applyIntakePrefill(intake, form){
-    if(!intake || !form) return;
-    const map = intakePrefillMap(intake);
-    for(const k in map){
-      if(!map[k]) continue;
-      form.querySelectorAll('[name="'+k+'"]').forEach(function(el){
-        if(el.type === 'radio' || el.type === 'checkbox') return;
-        if(!el.value) el.value = map[k];
-      });
-    }
-  }
-
-  window.__proInjuryBridge = {
-    ready: false,
-    intake: {},
-    async preload(){
-      try {
-        const packet = await apiGet('/api/intake-packets/' + PACKET_ID);
-        const cached = packet.forms && packet.forms[FORM_SLUG] ? packet.forms[FORM_SLUG] : {};
-        const intake = packet.forms && packet.forms.intake ? packet.forms.intake : {};
-        this.intake = intake;
-        try { localStorage.setItem(INTAKE_KEY, JSON.stringify(intake)); } catch(e){}
-        this._cachedForm = cached;
-        this.ready = true;
-        return { cached, intake };
-      } catch(e) {
-        console.error(e);
-        this.ready = true;
-        return { cached: {}, intake: {} };
-      }
-    },
-    getCachedForm(){ return this._cachedForm || {}; }
-  };
-
-  function normalizeSigRows(){
-    document.querySelectorAll('.sig-row').forEach(function(row){
-      var cells = Array.from(row.querySelectorAll(':scope > .sig-cell'));
-      if(cells.length < 2) return;
-      var sigCell = cells.find(function(c){ return c.classList.contains('signature'); });
-      if(!sigCell) return;
-      var dateCell = cells.find(function(c){
-        return c !== sigCell && c.querySelector('input[type=date]');
-      });
-      var nameCells = cells.filter(function(c){
-        return c !== sigCell && c !== dateCell;
-      });
-      nameCells.forEach(function(c){ row.appendChild(c); });
-      if(dateCell) row.appendChild(dateCell);
-      row.appendChild(sigCell);
-    });
-  }
-
-  function initSignaturePads(){
-    var sigInputs = document.querySelectorAll('.sig-cell.signature input[type=text], input[name$="_signature"]');
-    sigInputs.forEach(function(input){
-      if(input.dataset.sigPad === '1') return;
-      input.dataset.sigPad = '1';
-      input.type = 'hidden';
-      var wrap = document.createElement('div');
-      wrap.className = 'pro-signature-pad';
-      var canvas = document.createElement('canvas');
-      canvas.width = 520;
-      canvas.height = 120;
-      var ctx = canvas.getContext('2d');
-      var drawing = false;
-      var last = null;
-      function pos(ev){
-        var r = canvas.getBoundingClientRect();
-        var cx = ev.clientX !== undefined ? ev.clientX : (ev.touches && ev.touches[0] ? ev.touches[0].clientX : 0);
-        var cy = ev.clientY !== undefined ? ev.clientY : (ev.touches && ev.touches[0] ? ev.touches[0].clientY : 0);
-        return { x: (cx - r.left) * (canvas.width / r.width), y: (cy - r.top) * (canvas.height / r.height) };
-      }
-      function paint(){
-        input.value = canvas.toDataURL('image/png');
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-      }
-      function start(ev){ ev.preventDefault(); drawing = true; last = pos(ev); }
-      function move(ev){
-        if(!drawing || !last) return;
-        ev.preventDefault();
-        var p = pos(ev);
-        ctx.strokeStyle = '#111';
-        ctx.lineWidth = 2.2;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.beginPath();
-        ctx.moveTo(last.x, last.y);
-        ctx.lineTo(p.x, p.y);
-        ctx.stroke();
-        last = p;
-        paint();
-      }
-      function end(){ drawing = false; last = null; }
-      canvas.addEventListener('pointerdown', start);
-      canvas.addEventListener('pointermove', move);
-      canvas.addEventListener('pointerup', end);
-      canvas.addEventListener('pointerleave', end);
-      canvas.addEventListener('pointercancel', end);
-      var hint = document.createElement('div');
-      hint.className = 'pro-sig-hint';
-      hint.textContent = 'Sign with finger or Apple Pencil';
-      var clearBtn = document.createElement('button');
-      clearBtn.type = 'button';
-      clearBtn.className = 'pro-sig-clear';
-      clearBtn.textContent = 'Clear signature';
-      clearBtn.addEventListener('click', function(){
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        input.value = '';
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-      });
-      if(input.value && String(input.value).indexOf('data:image') === 0){
-        var img = new Image();
-        img.onload = function(){ ctx.drawImage(img, 0, 0, canvas.width, canvas.height); };
-        img.src = input.value;
-      }
-      input.parentNode.insertBefore(wrap, input);
-      wrap.appendChild(canvas);
-      wrap.appendChild(hint);
-      wrap.appendChild(clearBtn);
-    });
-  }
-
-  function wirePager(){
-    document.querySelectorAll('a.page-link[href$=".html"]').forEach(function(a){
-      var slug = a.getAttribute('href').replace('.html','');
-      if(PORTAL_NAV_ONLY && PORTAL_NAV_ONLY.indexOf(slug) === -1) return;
-      a.addEventListener('click', function(e){
-        e.preventDefault();
-        var nav = function(){ 
-          if(window.parent !== window){
-            window.parent.postMessage({ type: 'pro-injury-nav', slug: slug }, '*');
-          } else {
-            location.href = '/portal/packet/' + PACKET_ID + '/forms/' + slug;
-          }
-        };
-        if(typeof window.__proInjuryFlushSave === 'function'){
-          window.__proInjuryFlushSave().finally(nav);
-        } else {
-          nav();
-        }
-      });
-    });
-  }
-
-  function hijackPersistence(){
-    var form = document.querySelector('form');
-    if(!form || form.dataset.proInjuryHijacked === '1') return;
-    form.dataset.proInjuryHijacked = '1';
-
-    var indicator = document.getElementById('savedIndicator');
-    var saveTimer = null;
-
-    function setIndicator(state){
-      if(!indicator) return;
-      if(state==='saving'){ indicator.textContent = '●  saving…'; indicator.style.color = '#41B6E6'; }
-      else if(state==='saved'){ indicator.textContent = '●  saved'; indicator.style.color = '#7fdf7f'; }
-      else { indicator.textContent = '●  unsaved'; indicator.style.color = '#c8d2e0'; }
-    }
-
-    function collect(){
-      var data = {};
-      form.querySelectorAll('[name]').forEach(function(el){
-        var name = el.name;
-        if(el.type === 'checkbox'){
-          var boxes = form.querySelectorAll('[name="'+name+'"][type=checkbox]');
-          if(boxes.length > 1){
-            if(!(name in data)) data[name] = [];
-            if(el.checked && !data[name].includes(el.value)) data[name].push(el.value);
-          } else {
-            data[name] = el.checked;
-          }
-        } else if(el.type === 'radio'){
-          if(el.checked) data[name] = el.value;
-          else if(!(name in data)) data[name] = '';
-        } else {
-          data[name] = el.value;
-        }
-      });
-      return data;
-    }
-
-    function apply(data){
-      if(!data) return;
-      form.querySelectorAll('[name]').forEach(function(el){
-        var v = data[el.name];
-        if(v === undefined) return;
-        if(el.type === 'checkbox'){
-          if(Array.isArray(v)) el.checked = v.includes(el.value);
-          else el.checked = !!v;
-        } else if(el.type === 'radio'){
-          el.checked = (v === el.value);
-        } else {
-          el.value = v ?? '';
-        }
-      });
-    }
-
-    async function saveNow(){
-      setIndicator('saving');
-      try {
-        await window.__proInjuryApiSave(collect());
-        setIndicator('saved');
-        return true;
-      } catch(e){
-        console.error(e);
-        setIndicator('unsaved');
-        return false;
-      }
-    }
-
-    function debounceSave(){
-      setIndicator('saving');
-      clearTimeout(saveTimer);
-      saveTimer = setTimeout(saveNow, 400);
-    }
-
-    async function loadNow(){
-      try {
-        var loaded = await window.__proInjuryBridge.preload();
-        var cached = loaded.cached || {};
-        var intake = loaded.intake || {};
-        if(cached && Object.keys(cached).length){
-          apply(cached);
-          setIndicator('saved');
-        }
-        if(NEEDS_INTAKE_PREFILL) applyIntakePrefill(intake, form);
-        normalizeSigRows();
-        initSignaturePads();
-      } catch(e){
-        console.error(e);
-      }
-    }
-
-    window.__proInjuryFlushSave = async function(){
-      clearTimeout(saveTimer);
-      saveTimer = null;
-      return saveNow();
-    };
-
-    window.__proInjuryCollect = collect;
-    window.__proInjuryApply = apply;
-
-    form.addEventListener('input', debounceSave, true);
-    form.addEventListener('change', debounceSave, true);
-
-    loadNow();
-  }
-
-  window.addEventListener('message', function(e){
-    if(!e.data || e.data.type !== 'pro-injury-flush-save') return;
-    var reply = function(ok){
-      if(window.parent !== window){
-        window.parent.postMessage({ type: 'pro-injury-flush-done', ok: ok, requestId: e.data.requestId }, '*');
-      }
-    };
-    if(typeof window.__proInjuryFlushSave === 'function'){
-      window.__proInjuryFlushSave().then(function(ok){ reply(!!ok); }).catch(function(){ reply(false); });
-    } else {
-      reply(false);
-    }
+  const bridge = buildPortalBridgeScript({
+    packetId: opts.packetId,
+    formSlug: opts.formSlug,
+    needsIntakePrefill: opts.needsIntakePrefill,
+    portalNavSlugs,
   });
-
-  document.addEventListener('DOMContentLoaded', function(){
-    wirePager();
-    normalizeSigRows();
-    hijackPersistence();
-    setTimeout(function(){
-      normalizeSigRows();
-      initSignaturePads();
-    }, 300);
-  });
-})();
-</script>`;
 
   let out = patched.replace("</head>", `${bridge}\n</head>`);
 

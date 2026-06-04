@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { FormSlug } from "./form-slugs";
 import type { FormPayload } from "./form-persistence";
 
 function str(value: unknown): string | null {
@@ -79,11 +80,43 @@ function accidentTypeLabel(value: unknown): string | null {
   return str(value);
 }
 
+const NAME_PRINT_KEYS = [
+  "patient_name_print",
+  "financial_name_print",
+  "fraud_name_print",
+  "treatment_name_print",
+  "records_name_print",
+  "insured_name_print",
+] as const;
+
+/** Resolve full name from page 1 or any signed form's print name. */
+export function resolvePatientFullName(
+  intake: FormPayload,
+  allForms?: Partial<Record<FormSlug, FormPayload>>,
+): string | null {
+  const direct = str(intake.patient_name);
+  if (direct) return direct;
+
+  if (allForms) {
+    for (const slug of Object.keys(allForms) as FormSlug[]) {
+      const data = allForms[slug] ?? {};
+      for (const key of NAME_PRINT_KEYS) {
+        const fromPrint = str(data[key]);
+        if (fromPrint) return fromPrint;
+      }
+    }
+  }
+  return null;
+}
+
 /** Map page-1 intake fields → CRM `patients` columns. */
-export function buildPatientUpdateFromIntake(intake: FormPayload): Record<string, string> {
+export function buildPatientUpdateFromIntake(
+  intake: FormPayload,
+  allForms?: Partial<Record<FormSlug, FormPayload>>,
+): Record<string, string> {
   const update: Record<string, string> = {};
 
-  const name = str(intake.patient_name);
+  const name = resolvePatientFullName(intake, allForms);
   if (name) {
     const names = splitPatientName(name);
     update.first_name = names.first_name;
@@ -241,7 +274,7 @@ export async function buildCasePayloadFromPortalForms(
   }
   const attorneyFirm = str(intake.attorney_firm) ?? str(financial.attorney_firm);
   const attorneyName = str(intake.attorney_name) ?? str(financial.attorney_name);
-  const attorneyPhone = str(intake.attorney_phone) ?? str(financial.attorney_phone);
+  const attorneyPhone = str(financial.attorney_phone);
   const attorneyEmail = str(intake.attorney_email);
   if (attorneyFirm && !attorneyId) {
     comments.push(`Attorney firm (intake): ${attorneyFirm}`);
@@ -353,6 +386,7 @@ export async function syncPortalIntakeToCrm(
     intake: FormPayload;
     financial: FormPayload;
     hipaa: FormPayload;
+    allForms?: Partial<Record<FormSlug, FormPayload>>;
   },
 ): Promise<PortalCrmSyncResult> {
   const { data: packet, error: packetErr } = await supabase
@@ -364,16 +398,30 @@ export async function syncPortalIntakeToCrm(
   if (packetErr) throw packetErr;
   if (!packet.patient_id) throw new Error("Intake packet has no patient");
 
-  const { intake, financial, hipaa } = forms;
+  const { intake, financial, hipaa, allForms } = forms;
   const doi = packet.date_of_accident ?? emptyDate(intake.meta_date_of_accident);
 
-  const patientUpdate = buildPatientUpdateFromIntake(intake);
+  const patientUpdate = buildPatientUpdateFromIntake(intake, allForms);
   if (Object.keys(patientUpdate).length > 0) {
     const { error: patientErr } = await supabase
       .from("patients")
       .update(patientUpdate)
       .eq("id", packet.patient_id);
     if (patientErr) throw patientErr;
+  } else {
+    const fallbackName = resolvePatientFullName(intake, allForms);
+    if (fallbackName) {
+      const names = splitPatientName(fallbackName);
+      const { error: patientErr } = await supabase
+        .from("patients")
+        .update({
+          first_name: names.first_name,
+          last_name: names.last_name,
+          ...(names.middle_name ? { middle_name: names.middle_name } : {}),
+        })
+        .eq("id", packet.patient_id);
+      if (patientErr) throw patientErr;
+    }
   }
 
   const casePayload = await buildCasePayloadFromPortalForms(
