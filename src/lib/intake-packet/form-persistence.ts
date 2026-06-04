@@ -14,12 +14,34 @@ export type FormPayload = Record<string, unknown>;
 
 /** Supabase/PostgREST errors are plain objects — not always `instanceof Error`. */
 export function formatDbError(err: unknown): string {
+  let message = "";
   if (err && typeof err === "object" && "message" in err) {
-    const message = String((err as { message: unknown }).message);
-    if (message) return message;
+    message = String((err as { message: unknown }).message);
+  } else if (err instanceof Error && err.message) {
+    message = err.message;
   }
-  if (err instanceof Error && err.message) return err.message;
-  return "Could not start intake";
+  if (!message) return "Could not start intake";
+
+  const m = message.toLowerCase();
+  if (m.includes("packet_id_fkey") || (m.includes("foreign key") && m.includes("packet"))) {
+    return (
+      "This intake session is no longer linked in the database (missing intake packet). " +
+      "Return to the portal home page, tap Start Intake, and begin again. " +
+      "If this keeps happening, run supabase/PASTE_IN_SQL_EDITOR_0019.sql in the Supabase SQL Editor."
+    );
+  }
+  return message;
+}
+
+function isForeignKeyPacketError(err: unknown): boolean {
+  let message = "";
+  if (err && typeof err === "object" && "message" in err) {
+    message = String((err as { message: unknown }).message);
+  } else if (err instanceof Error) {
+    message = err.message;
+  }
+  const m = message.toLowerCase();
+  return m.includes("packet_id_fkey") || (m.includes("foreign key") && m.includes("packet"));
 }
 
 function isMissingColumnError(message: string, column: string): boolean {
@@ -37,6 +59,24 @@ const OPTIONAL_PATIENT_INTAKE_COLUMNS = [
   "attorney_phone",
   "attorney_email",
 ] as const;
+
+async function assertIntakePacketExists(
+  admin: ReturnType<typeof createAdminClient>,
+  packetId: number,
+): Promise<void> {
+  const { data, error } = await admin
+    .from("intake_packets")
+    .select("id")
+    .eq("id", packetId)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) {
+    throw new Error(
+      `Intake packet ${packetId} was not found. Return to the portal home page and tap Start Intake to begin a new session.`,
+    );
+  }
+}
 
 async function upsertFormRow(
   admin: ReturnType<typeof createAdminClient>,
@@ -68,7 +108,12 @@ async function upsertFormRow(
         break;
       }
     }
-    if (!stripped) throw error;
+    if (!stripped) {
+      if (isForeignKeyPacketError(error)) {
+        throw new Error(formatDbError(error));
+      }
+      throw error;
+    }
   }
 }
 
@@ -358,6 +403,7 @@ export async function saveForm(
   }
 
   const admin = createAdminClient();
+  await assertIntakePacketExists(admin, packetId);
 
   const { data: existing } = await admin
     .from(def.tableName)
