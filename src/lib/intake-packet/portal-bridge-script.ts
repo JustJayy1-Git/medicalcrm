@@ -32,7 +32,14 @@ export function buildPortalBridgeScript(opts: {
       credentials: 'same-origin',
       body: JSON.stringify(data)
     });
-    if(!r.ok) throw new Error('save failed');
+    if(!r.ok){
+      var msg = 'save failed';
+      try {
+        var errBody = await r.json();
+        if(errBody && errBody.error) msg = String(errBody.error);
+      } catch(parseErr){}
+      throw new Error(msg);
+    }
     return r.json();
   };
 
@@ -98,15 +105,20 @@ export function buildPortalBridgeScript(opts: {
   }
 
   var lastReportedHeight = 0;
+  function portalFormEl(){
+    return document.getElementById('proForm')
+      || document.getElementById('intakeForm')
+      || document.querySelector('form');
+  }
   function reportFrameHeight(){
     var toolbar = document.querySelector('.pro-portal-toolbar');
-    var form = document.getElementById('proForm');
+    var form = portalFormEl();
     var h = 0;
     if(toolbar) h += toolbar.offsetHeight;
-    if(form) h += form.offsetHeight;
-    h += 12;
-    if(h < 400) h = 400;
-    if(Math.abs(h - lastReportedHeight) < 4) return;
+    if(form) h += Math.max(form.scrollHeight, form.offsetHeight);
+    h += 16;
+    if(h < 480) h = 480;
+    if(Math.abs(h - lastReportedHeight) < 8) return;
     lastReportedHeight = h;
     if(window.parent !== window){
       window.parent.postMessage({ type: 'pro-injury-resize', height: h }, '*');
@@ -320,12 +332,12 @@ export function buildPortalBridgeScript(opts: {
     if(typeof window.__proInjuryFlushSave === 'function'){
       window.__proInjuryFlushSave().then(function(ok){
         if(ok === false){
-          alert('Could not save this page. Check connection and try again.');
+          alert(window.__proInjuryLastSaveError || 'Could not save this page. Check connection and try again.');
           return;
         }
         go();
       }).catch(function(){
-        alert('Could not save this page. Check connection and try again.');
+        alert(window.__proInjuryLastSaveError || 'Could not save this page. Check connection and try again.');
       });
     } else {
       go();
@@ -449,6 +461,7 @@ export function buildPortalBridgeScript(opts: {
       try {
         var payload = collect();
         await window.__proInjuryApiSave(payload);
+        window.__proInjuryLastSaveError = '';
         if(FORM_SLUG === 'intake'){
           window.__proInjuryBridge.intake = payload;
           try { localStorage.setItem(INTAKE_KEY, JSON.stringify(payload)); } catch(e){}
@@ -458,6 +471,7 @@ export function buildPortalBridgeScript(opts: {
         return true;
       } catch(e){
         console.error(e);
+        window.__proInjuryLastSaveError = (e && e.message) ? String(e.message) : 'Save failed';
         setIndicator('unsaved');
         return false;
       }
@@ -543,11 +557,17 @@ export function buildPortalBridgeScript(opts: {
     wirePortalToolbarNav();
     normalizeSigRows();
     hijackPersistence();
+    var form = portalFormEl();
+    if(form && typeof ResizeObserver !== 'undefined'){
+      var ro = new ResizeObserver(function(){ reportFrameHeight(); });
+      ro.observe(form);
+    }
     setTimeout(function(){
       normalizeSigRows();
       initSignaturePads();
       reportFrameHeight();
     }, 300);
+    setTimeout(reportFrameHeight, 1200);
   });
 })();
 </script>`;

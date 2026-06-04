@@ -337,7 +337,7 @@ export async function saveForm(
     .eq("id", packetId);
 
   if (slug === "intake") {
-    const { data: pkt } = await supabase
+    const { data: pkt } = await admin
       .from("intake_packets")
       .select("patient_id")
       .eq("id", packetId)
@@ -346,7 +346,6 @@ export async function saveForm(
     if (pkt?.patient_id) {
       const patientUpdate = buildPatientUpdateFromIntake(payload);
       if (Object.keys(patientUpdate).length > 0) {
-        const admin = createAdminClient();
         const { error: patientErr } = await admin
           .from("patients")
           .update(patientUpdate)
@@ -355,7 +354,6 @@ export async function saveForm(
       }
 
       try {
-        const admin = createAdminClient();
         await syncCaseFromIntakeSave(admin, packetId, pkt.patient_id, payload);
       } catch (err) {
         console.error("saveForm case sync:", err);

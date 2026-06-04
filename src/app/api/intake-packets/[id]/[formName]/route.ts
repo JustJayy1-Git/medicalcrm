@@ -1,5 +1,5 @@
 import { isFormSlug } from "@/lib/intake-packet/form-slugs";
-import { loadForm, saveForm } from "@/lib/intake-packet/form-persistence";
+import { formatDbError, loadForm, saveForm } from "@/lib/intake-packet/form-persistence";
 import { createPortalClient } from "@/lib/portal/portal-supabase";
 import { NextResponse } from "next/server";
 
@@ -37,7 +37,12 @@ export async function POST(request: Request, { params }: Params) {
     return NextResponse.json({ error: "Invalid packet id" }, { status: 400 });
   }
 
-  const body = await request.json();
-  const data = await saveForm(supabase, packetId, formName, body);
-  return NextResponse.json({ form: formName, data });
+  try {
+    const body = await request.json();
+    const data = await saveForm(supabase, packetId, formName, body);
+    return NextResponse.json({ form: formName, data });
+  } catch (err) {
+    console.error("intake form save:", formName, err);
+    return NextResponse.json({ error: formatDbError(err) }, { status: 500 });
+  }
 }

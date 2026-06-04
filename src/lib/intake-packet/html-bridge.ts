@@ -287,7 +287,7 @@ const KIOSK_DISPLAY_CSS = `
   html.portal-kiosk,
   html.portal-kiosk body {
     overflow-x: hidden;
-    overflow-y: hidden;
+    overflow-y: visible;
     height: auto;
     min-height: 0;
   }

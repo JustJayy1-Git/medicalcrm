@@ -32,10 +32,15 @@ export async function createClient() {
  * with care. Use for trusted backend operations (admin tasks, cron, webhooks).
  */
 export function createAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SECRET_KEY;
+  if (!url || !key) {
+    throw new Error(
+      "Server misconfigured: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY are required for intake saves.",
+    );
+  }
   const { createClient } = require("@supabase/supabase-js");
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SECRET_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
+  return createClient(url, key, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
 }
