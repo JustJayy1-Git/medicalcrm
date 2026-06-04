@@ -498,6 +498,19 @@ export async function completePacket(packetId: number) {
     : String(intake.patient_name ?? "Patient");
 
   try {
+    const { ensureClinicalConsultationForCase } = await import(
+      "@/lib/clinical/consultation"
+    );
+    await ensureClinicalConsultationForCase({
+      caseId: result.caseId,
+      patientId: result.patientId,
+      intakePacketId: packetId,
+    });
+  } catch (err) {
+    console.error("completePacket: clinical queue failed:", err);
+  }
+
+  try {
     await saveIntakePacketToPatientFile({
       packetId,
       patientId: result.patientId,

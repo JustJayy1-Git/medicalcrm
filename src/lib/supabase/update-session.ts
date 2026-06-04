@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { isKioskRole } from "@/lib/auth-profile";
+import { isClinicalRole, isKioskRole } from "@/lib/auth-profile";
 import { signInKioskDevice } from "@/lib/portal/device-auth";
 import { isStaffCrmPath } from "@/lib/staff-crm-paths";
 
@@ -34,6 +34,18 @@ function isKioskAllowedPath(pathname: string) {
     pathname.startsWith("/api/intake-packets") ||
     pathname.startsWith("/serve/forms/") ||
     pathname.startsWith("/portal/api/")
+  );
+}
+
+function isClinicalPath(pathname: string) {
+  return pathname === "/clinical" || pathname.startsWith("/clinical/");
+}
+
+function isClinicalAllowedPath(pathname: string) {
+  return (
+    isClinicalPath(pathname) ||
+    pathname.startsWith("/api/clinical/") ||
+    pathname.startsWith("/auth/")
   );
 }
 
@@ -157,6 +169,25 @@ export async function updateSession(request: NextRequest) {
       }
     }
 
+    if (user && isClinicalRole(role)) {
+      if (
+        isStaffCrmPath(pathname) ||
+        isPortalPath(pathname) ||
+        pathname === "/dashboard"
+      ) {
+        const clinical = request.nextUrl.clone();
+        clinical.pathname = "/clinical";
+        clinical.search = "";
+        return NextResponse.redirect(clinical);
+      }
+      if (!isClinicalAllowedPath(pathname) && !isPublicPath(pathname)) {
+        const clinical = request.nextUrl.clone();
+        clinical.pathname = "/clinical";
+        clinical.search = "";
+        return NextResponse.redirect(clinical);
+      }
+    }
+
     if (user && isKioskRole(role)) {
       if (isStaffEntryPath(pathname)) {
         // iPad kiosk cookie on lukarienz.com or /login → clear and reload staff page.
@@ -189,7 +220,13 @@ export async function updateSession(request: NextRequest) {
 
       const next = request.nextUrl.searchParams.get("next");
       const dest = request.nextUrl.clone();
-      if (next && next.startsWith("/portal") && !next.startsWith("//")) {
+      if (isClinicalRole(role)) {
+        dest.pathname =
+          next && next.startsWith("/clinical") && !next.startsWith("//")
+            ? next.split("?")[0]
+            : "/clinical";
+        dest.search = next?.includes("?") ? next.slice(next.indexOf("?")) : "";
+      } else if (next && next.startsWith("/portal") && !next.startsWith("//")) {
         dest.pathname = "/dashboard";
         dest.search = "";
       } else if (next && next.startsWith("/") && !next.startsWith("//")) {

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ResetPracticeCasesButton } from "@/components/cases/reset-practice-cases-button";
+import { getProfileRole } from "@/lib/auth-profile";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -21,10 +23,14 @@ const STATUS_PILL: Record<string, string> = {
 export default async function CasesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; reset?: string; error?: string }>;
 }) {
   const supabase = await createClient();
-const params = await searchParams;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const role = user ? await getProfileRole(supabase, user.id) : null;
+  const params = await searchParams;
   const q = params.q?.trim();
   const status = params.status?.trim();
 
@@ -50,7 +56,7 @@ const params = await searchParams;
 
   return (
     <div className="px-8 py-8 max-w-7xl mx-auto">
-        <div className="flex items-end justify-between mb-6">
+        <div className="flex items-end justify-between mb-6 gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-neon-pink mb-2">
               Cases
@@ -59,7 +65,19 @@ const params = await searchParams;
               All cases
             </h1>
           </div>
+          {role === "admin" ? <ResetPracticeCasesButton /> : null}
         </div>
+
+        {params.reset === "1" ? (
+          <p className="mb-4 text-sm text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-2">
+            Practice test cases removed. The next new case will be numbered 1.
+          </p>
+        ) : null}
+        {params.error ? (
+          <p className="mb-4 text-sm text-red-800 bg-red-50 border border-red-200 rounded-lg px-4 py-2">
+            {decodeURIComponent(params.error)}
+          </p>
+        ) : null}
 
         <form className="mb-6 flex flex-wrap gap-3" method="get">
           <input

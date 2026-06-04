@@ -8,6 +8,7 @@ export function isBareLayoutPath(pathname: string) {
   if (pathname.startsWith("/reports/attorney-ledger/print")) return true;
   if (pathname.startsWith("/reports/ar-aging/print")) return true;
   if (pathname.startsWith("/portal")) return true;
+  if (pathname.startsWith("/clinical")) return true;
   if (pathname.startsWith("/intake-packets/") && pathname.includes("/forms/")) return true;
   return false;
 }

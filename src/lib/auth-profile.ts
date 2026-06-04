@@ -6,7 +6,8 @@ export type StaffRole =
   | "staff"
   | "billing"
   | "readonly"
-  | "kiosk";
+  | "kiosk"
+  | "clinical";
 
 export async function getProfileRole(
   supabase: SupabaseClient,
@@ -23,4 +24,8 @@ export async function getProfileRole(
 
 export function isKioskRole(role: string | null) {
   return role === "kiosk";
+}
+
+export function isClinicalRole(role: string | null) {
+  return role === "clinical";
 }
