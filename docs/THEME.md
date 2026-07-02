@@ -9,8 +9,22 @@
 | Hot pink | `#ff2d8a` | `neon-pink` |
 | Content surface | `#f6f0f8` | `vice-surface` |
 | Borders | `#e4d4ec` | `vice-border` |
+| Champagne gold (luxury accent) | `#c9a35c` | `gold` |
+| Gold bright | `#e6c987` | `gold-bright` |
+| Gold soft | `#f4ead2` | `gold-soft` |
 
 Defined in `src/app/globals.css`. Shell: `src/components/app-shell.tsx`.
+
+## Luxury layer
+
+Champagne-gold chrome on top of the vice palette — gold is tertiary; mint/pink stay the interactive accents.
+
+- **Display serif** — Playfair Display (`--font-display`) backs every `font-serif` heading; loaded in `src/app/layout.tsx`.
+- `.lux-gold-text` — champagne gradient text (brand wordmarks).
+- `.lux-hairline` — 1px gold gradient divider element.
+- `.lux-surface` — faint gold/cyan radial ambience on the main content panel.
+- `.lux-card` — gold-tinted border + shadow lift on hover; add next to existing card classes.
+- Gold-tinted thin scrollbars and `::selection` are global.
 
 ## Re-apply after edits
 

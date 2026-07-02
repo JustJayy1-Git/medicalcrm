@@ -20,16 +20,17 @@ export function ClinicalShell({
 
   return (
     <div className="min-h-screen flex bg-[#0c0f15] text-[#e8edf4]">
-      <aside className="w-64 shrink-0 flex flex-col border-r border-[#2a2f3a] bg-[#0c0f15]">
-        <Link href="/clinical" className="flex items-center gap-3 px-4 py-4 border-b border-[#2a2f3a]">
+      <aside className="w-64 shrink-0 flex flex-col border-r border-[#c9a35c]/25 bg-[#0c0f15]">
+        <Link href="/clinical" className="flex items-center gap-3 px-4 py-4">
           <LogoMark variant="header" width={48} height={48} className="w-12 h-12" />
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-[#41B6E6]">
               Pro Injury
             </p>
-            <p className="text-sm font-semibold text-white">Clinical Portal</p>
+            <p className="lux-gold-text text-sm font-serif font-semibold tracking-wide">Clinical Portal</p>
           </div>
         </Link>
+        <div className="lux-hairline mx-3" aria-hidden />
         <nav className="flex-1 p-3 space-y-1">
           {NAV.map((item) => {
             const active =
@@ -52,7 +53,8 @@ export function ClinicalShell({
             );
           })}
         </nav>
-        <div className="p-4 border-t border-[#2a2f3a] text-[10px] text-[#c8d2e0]/50">
+        <div className="lux-hairline mx-3" aria-hidden />
+        <div className="p-4 text-[10px] text-[#c8d2e0]/50">
           <p className="truncate">{userEmail ?? "Signed in"}</p>
           <p className="mt-1">NP / MD access only — no billing</p>
         </div>
