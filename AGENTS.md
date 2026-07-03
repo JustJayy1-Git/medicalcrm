@@ -39,6 +39,8 @@ Personal-injury practice CRM (Medisoft-style). **Goal:** intake → charges per 
 | `/reports/attorney-ledger/print?caseId=` | Printable ledger (charges + payments by carrier) |
 | `/reports/ar-aging` | A/R aging 30/60/90 by insurance carrier |
 | `/portal` | iPad kiosk intake (role `kiosk`) |
+| `/clinical` | NP portal: NOFA, EMC, initial report + signatures (role `clinical`) |
+| `/therapy` | Therapist portal: consent + therapy sheets (role `therapist`) |
 | `/intake-packets` | Staff review of saved 8-page packets |
 | `/billing/payments` | Post payment on one charge line |
 | `/billing/payments/batch` | One check → multiple lines (distribute oldest-first) |

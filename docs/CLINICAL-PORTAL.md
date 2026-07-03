@@ -25,10 +25,18 @@ where email = 'np@proinjury.local';
 
 Documents are stored in `clinical_consultations` (`nofa_json`, `emc_json`, `initial_report_json`) until PDF templates are wired in.
 
+## Follow-ups
+
+Once a patient is treating, staff (case page → **NP follow-up** button) or the
+therapist (`/therapy/cases/{id}` → **Send to NP follow-up**) can put the patient
+back in the `/clinical` queue. The queue shows a gold **Follow-up** badge; the NP
+updates forms as needed and presses **Mark follow-up complete**.
+
 ## Migrations
 
 - `0020_clinical_portal.sql` — `clinical` role + `clinical_consultations` table
-- Paste file: `supabase/PASTE_IN_SQL_EDITOR_0020.sql` (copy SQL only, not the path)
+- `0022_clinical_followup.sql` — `visit_kind` + `followup_requested_at` (follow-up queue support)
+- Paste files: `supabase/PASTE_IN_SQL_EDITOR_0020.sql`, `supabase/PASTE_IN_SQL_EDITOR_0022.sql`
 
 ## Reset practice case numbers
 

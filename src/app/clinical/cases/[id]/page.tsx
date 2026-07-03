@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import { ClinicalDocumentForm } from "@/components/clinical/clinical-document-form";
 import { getClinicalConsultation } from "@/lib/clinical/consultation";
 import { createClient } from "@/lib/supabase/server";
+import { completeFollowUpAction } from "./actions";
+
+export const dynamic = "force-dynamic";
 
 function fmtDate(d: string | null | undefined) {
   if (!d) return "—";
@@ -40,61 +43,94 @@ export default async function ClinicalCasePage({
   const nofa = (consultation.nofa_json ?? {}) as Record<string, unknown>;
   const emc = (consultation.emc_json ?? {}) as Record<string, unknown>;
   const report = (consultation.initial_report_json ?? {}) as Record<string, unknown>;
+  const isFollowUp =
+    (consultation as { visit_kind?: string }).visit_kind === "follow_up";
+  const isOpen = (consultation.status as string) !== "completed";
 
   return (
-    <div className="p-8 max-w-4xl">
+    <div className="px-8 py-8 max-w-4xl mx-auto">
       <Link
         href="/clinical"
-        className="text-sm text-[#41B6E6] hover:text-white mb-4 inline-block"
+        className="text-sm text-neon-pink hover:text-eggplant-800 font-medium mb-4 inline-block"
       >
         ← Back to queue
       </Link>
 
-      <header className="mb-8 rounded-xl border border-[#2a2f3a] bg-[#121820] px-6 py-5">
-        <h1 className="text-2xl font-serif font-semibold text-white">{patientName}</h1>
+      <header className="lux-card mb-6 rounded-xl border border-vice-border bg-white px-6 py-5 shadow-sm">
+        <h1 className="text-2xl font-serif font-semibold text-eggplant-900">
+          {patientName}
+        </h1>
         <dl className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
           <div>
-            <dt className="text-[#c8d2e0]/50 text-xs uppercase tracking-wider">Case #</dt>
-            <dd className="text-white font-medium">{caseRow?.case_number ?? "—"}</dd>
+            <dt className="text-eggplant-500 text-xs uppercase tracking-wider">Case #</dt>
+            <dd className="text-eggplant-900 font-medium">{caseRow?.case_number ?? "—"}</dd>
           </div>
           <div>
-            <dt className="text-[#c8d2e0]/50 text-xs uppercase tracking-wider">Date of birth</dt>
-            <dd className="text-white">{fmtDate(patient?.date_of_birth)}</dd>
+            <dt className="text-eggplant-500 text-xs uppercase tracking-wider">Date of birth</dt>
+            <dd className="text-eggplant-900">{fmtDate(patient?.date_of_birth)}</dd>
           </div>
           <div>
-            <dt className="text-[#c8d2e0]/50 text-xs uppercase tracking-wider">Date of injury</dt>
-            <dd className="text-white">{fmtDate(caseRow?.date_of_injury)}</dd>
+            <dt className="text-eggplant-500 text-xs uppercase tracking-wider">Date of injury</dt>
+            <dd className="text-eggplant-900">{fmtDate(caseRow?.date_of_injury)}</dd>
           </div>
           <div>
-            <dt className="text-[#c8d2e0]/50 text-xs uppercase tracking-wider">Phone</dt>
-            <dd className="text-white">{patient?.phone ?? "—"}</dd>
+            <dt className="text-eggplant-500 text-xs uppercase tracking-wider">Phone</dt>
+            <dd className="text-eggplant-900">{patient?.phone ?? "—"}</dd>
           </div>
           <div>
-            <dt className="text-[#c8d2e0]/50 text-xs uppercase tracking-wider">Email</dt>
-            <dd className="text-white">{patient?.email ?? "—"}</dd>
+            <dt className="text-eggplant-500 text-xs uppercase tracking-wider">Email</dt>
+            <dd className="text-eggplant-900">{patient?.email ?? "—"}</dd>
           </div>
           <div>
-            <dt className="text-[#c8d2e0]/50 text-xs uppercase tracking-wider">Status</dt>
-            <dd className="text-white capitalize">{consultation.status as string}</dd>
+            <dt className="text-eggplant-500 text-xs uppercase tracking-wider">Status</dt>
+            <dd className="text-eggplant-900 capitalize">
+              {(consultation.status as string).replace("_", " ")}
+              {isFollowUp ? " · follow-up" : ""}
+            </dd>
           </div>
         </dl>
         {caseRow?.description ? (
-          <p className="mt-4 text-sm text-[#c8d2e0]/80 border-t border-[#2a2f3a] pt-4">
+          <p className="mt-4 text-sm text-eggplant-700 border-t border-vice-border pt-4">
             {caseRow.description}
           </p>
         ) : null}
       </header>
 
+      {isFollowUp && isOpen ? (
+        <div className="mb-6 rounded-xl border border-gold/40 bg-gold-soft px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-eggplant-900">
+              Follow-up visit
+            </p>
+            <p className="text-xs text-eggplant-700 mt-0.5">
+              This patient was sent back for re-evaluation. Update any forms below,
+              then mark the follow-up complete.
+            </p>
+          </div>
+          <form action={completeFollowUpAction}>
+            <input type="hidden" name="case_id" value={caseId} />
+            <button
+              type="submit"
+              className="px-4 py-2 rounded-lg bg-eggplant-900 text-sm font-bold text-white hover:bg-eggplant-800"
+            >
+              Mark follow-up complete
+            </button>
+          </form>
+        </div>
+      ) : null}
+
       <div className="space-y-8">
         <ClinicalDocumentForm
           caseId={caseId}
           section="nofa"
-          title="NOFA"
-          subtitle="Notice of financial authorization — patient signature and date. Full PDF template upload coming next."
+          title="Florida No-Fault (NOFA)"
+          subtitle="Patient and provider sign. Full PDF template upload coming next."
           fields={[
             { name: "patient_name_print", label: "Patient name (print)" },
             { name: "signed_date", label: "Date signed", type: "date" },
             { name: "notes", label: "Notes", type: "textarea" },
+            { name: "patient_signature", label: "Patient signature", type: "signature" },
+            { name: "provider_signature", label: "Provider signature", type: "signature" },
           ]}
           initial={nofa}
           completedAt={consultation.nofa_completed_at as string | null}
@@ -109,6 +145,7 @@ export default async function ClinicalCasePage({
             { name: "emc_determination", label: "EMC determination", type: "textarea" },
             { name: "patient_name_print", label: "Patient name (print)" },
             { name: "signed_date", label: "Date signed", type: "date" },
+            { name: "provider_signature", label: "Provider signature", type: "signature" },
           ]}
           initial={emc}
           completedAt={consultation.emc_completed_at as string | null}
@@ -127,6 +164,7 @@ export default async function ClinicalCasePage({
             { name: "plan", label: "Plan", type: "textarea" },
             { name: "patient_name_print", label: "Patient name (print)" },
             { name: "signed_date", label: "Date signed", type: "date" },
+            { name: "provider_signature", label: "Provider signature", type: "signature" },
           ]}
           initial={report}
           completedAt={consultation.initial_report_completed_at as string | null}
