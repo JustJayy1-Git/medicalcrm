@@ -21,11 +21,18 @@ without a black box around it.
 
 All are **transparent PNGs** (RGBA). No black background.
 
-Rebuild all variants from `design/logo-source.png` with:
+**Master source: `design/image.webp`** — Hicksfield high-detail render
+(realistic snakes/spine/wreath, dark metallic wordmark, fake-transparency
+checkerboard baked in). Rebuild all variants with:
 
 ```bash
-node scripts/make-logo-light.mjs
+node scripts/install-hicksfield-logo.mjs
 ```
+
+(Removes the checkerboard, emits the light set as-is, and derives the dark
+set by inverting the wordmark band + lifting emblem shadows.)
+
+Legacy flat render: `design/logo-source.png` (`scripts/make-logo-light.mjs`).
 
 In React use `<LogoMark tone="dark" | "light" …>` (`src/components/logo-mark.tsx`).
 
