@@ -1,52 +1,37 @@
 import type { ClinicalSection } from "@/lib/clinical/consultation";
 
-/** NP consultation packet — one paper document per page, intake style. */
-export const CLINICAL_DOC_ORDER = [
-  "nofa",
-  "emc",
-  "initial-report",
-  "follow-up",
-] as const;
+/**
+ * NP consultation packets.
+ *
+ * Initial consultation: Initial Evaluation → EMC → No-Fault (NOFA).
+ * Follow-up visit: only the Follow-up report.
+ */
+export const INITIAL_PACKET = ["initial-evaluation", "emc", "nofa"] as const;
+export const FOLLOWUP_PACKET = ["follow-up"] as const;
 
-export type ClinicalDocSlug = (typeof CLINICAL_DOC_ORDER)[number];
+export type ClinicalDocSlug =
+  | (typeof INITIAL_PACKET)[number]
+  | (typeof FOLLOWUP_PACKET)[number];
+
+export function packetForVisitKind(visitKind: string | null | undefined) {
+  return visitKind === "follow_up" ? FOLLOWUP_PACKET : INITIAL_PACKET;
+}
 
 export function isClinicalDocSlug(slug: string): slug is ClinicalDocSlug {
-  return (CLINICAL_DOC_ORDER as readonly string[]).includes(slug);
+  return (
+    (INITIAL_PACKET as readonly string[]).includes(slug) ||
+    (FOLLOWUP_PACKET as readonly string[]).includes(slug)
+  );
 }
 
 export const DOC_META: Record<
   ClinicalDocSlug,
-  {
-    section: ClinicalSection;
-    title: string;
-    titleEs?: string;
-    shortLabel: string;
-  }
+  { section: ClinicalSection; shortLabel: string }
 > = {
-  nofa: {
-    section: "nofa",
-    title: "Florida Motor Vehicle No-Fault Law (PIP) — Notice & Authorization",
-    titleEs: "Ley de No Culpa de Florida — Aviso y Autorización",
-    shortLabel: "No-Fault",
-  },
-  emc: {
-    section: "emc",
-    title: "Emergency Medical Condition (EMC) Determination",
-    titleEs: "Determinación de Condición Médica de Emergencia",
-    shortLabel: "EMC",
-  },
-  "initial-report": {
-    section: "initial_report",
-    title: "Initial Examination Report",
-    titleEs: "Informe de Examen Inicial",
-    shortLabel: "Initial report",
-  },
-  "follow-up": {
-    section: "follow_up",
-    title: "Follow-Up Visit Note",
-    titleEs: "Nota de Visita de Seguimiento",
-    shortLabel: "Follow-up",
-  },
+  "initial-evaluation": { section: "initial_report", shortLabel: "Initial Evaluation" },
+  emc: { section: "emc", shortLabel: "EMC" },
+  nofa: { section: "nofa", shortLabel: "No-Fault" },
+  "follow-up": { section: "follow_up", shortLabel: "Follow-up report" },
 };
 
 export const SECTION_JSON_KEY: Record<ClinicalSection, string> = {

@@ -24,10 +24,20 @@ where email = 'np@proinjury.local';
 | Consultation packet (intake-style paper docs) | `/clinical/cases/{caseId}/docs/{slug}` |
 
 The consultation is an **intake-style document packet** matching the patient
-iPad intake look: one paper document per page with Save & next pagination and
-per-document pills (No-Fault → EMC → Initial report → Follow-up). Paper
-primitives: `src/components/clinical/paper-doc.tsx`; document bodies:
-`src/components/clinical/docs.tsx`; order/titles: `src/lib/clinical/doc-slugs.ts`.
+iPad intake look. The packet depends on the visit type:
+
+- **Initial consultation** — Initial Evaluation (faithful 8-page digital copy
+  of the practice's paper form, `initial-evaluation-doc.tsx`) → EMC → No-Fault.
+- **Follow-up visit** — one document only: the Follow-up report.
+
+The `/clinical` home shows two queues: **Initial consultation queue** and
+**Follow-ups**. Paper primitives: `src/components/clinical/paper-doc.tsx`;
+document bodies: `src/components/clinical/docs.tsx`; packet orders:
+`src/lib/clinical/doc-slugs.ts`.
+
+**EMC and No-Fault are still placeholder wording** — when the practice's real
+EMC and NOFA state forms are uploaded, transcribe them verbatim (the Initial
+Evaluation is already transcribed from the uploaded PDF; do not paraphrase).
 
 Documents are stored in `clinical_consultations` (`nofa_json`, `emc_json`,
 `initial_report_json`, `followup_json`) with per-document `*_completed_at`.
