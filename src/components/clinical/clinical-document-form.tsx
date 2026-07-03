@@ -1,9 +1,10 @@
 import { saveClinicalDocument } from "@/app/clinical/cases/[id]/actions";
+import { SignaturePad } from "@/components/signature-pad";
 
 type FieldDef = {
   name: string;
   label: string;
-  type?: "text" | "date" | "textarea";
+  type?: "text" | "date" | "textarea" | "signature";
   placeholder?: string;
 };
 
@@ -39,7 +40,17 @@ export function ClinicalDocumentForm({
       <form action={saveClinicalDocument} className="space-y-4">
         <input type="hidden" name="case_id" value={caseId} />
         <input type="hidden" name="section" value={section} />
-        {fields.map((f) => (
+        {fields.map((f) =>
+          f.type === "signature" ? (
+            <SignaturePad
+              key={f.name}
+              name={f.name}
+              label={f.label}
+              initialDataUrl={
+                typeof initial[f.name] === "string" ? (initial[f.name] as string) : null
+              }
+            />
+          ) : (
           <div key={f.name}>
             <label className="block text-xs font-semibold uppercase tracking-wider text-[#c8d2e0]/80 mb-1">
               {f.label}
@@ -62,7 +73,8 @@ export function ClinicalDocumentForm({
               />
             )}
           </div>
-        ))}
+          ),
+        )}
 
         <div className="flex flex-wrap gap-3 pt-4">
           <button

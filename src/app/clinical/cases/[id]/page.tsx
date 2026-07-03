@@ -90,11 +90,13 @@ export default async function ClinicalCasePage({
           caseId={caseId}
           section="nofa"
           title="NOFA"
-          subtitle="Notice of financial authorization — patient signature and date. Full PDF template upload coming next."
+          subtitle="Florida No-Fault — patient and provider sign. Full PDF template upload coming next."
           fields={[
             { name: "patient_name_print", label: "Patient name (print)" },
             { name: "signed_date", label: "Date signed", type: "date" },
             { name: "notes", label: "Notes", type: "textarea" },
+            { name: "patient_signature", label: "Patient signature", type: "signature" },
+            { name: "provider_signature", label: "Provider signature", type: "signature" },
           ]}
           initial={nofa}
           completedAt={consultation.nofa_completed_at as string | null}
@@ -109,6 +111,7 @@ export default async function ClinicalCasePage({
             { name: "emc_determination", label: "EMC determination", type: "textarea" },
             { name: "patient_name_print", label: "Patient name (print)" },
             { name: "signed_date", label: "Date signed", type: "date" },
+            { name: "provider_signature", label: "Provider signature", type: "signature" },
           ]}
           initial={emc}
           completedAt={consultation.emc_completed_at as string | null}
@@ -127,6 +130,7 @@ export default async function ClinicalCasePage({
             { name: "plan", label: "Plan", type: "textarea" },
             { name: "patient_name_print", label: "Patient name (print)" },
             { name: "signed_date", label: "Date signed", type: "date" },
+            { name: "provider_signature", label: "Provider signature", type: "signature" },
           ]}
           initial={report}
           completedAt={consultation.initial_report_completed_at as string | null}

@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { isClinicalRole, isKioskRole } from "@/lib/auth-profile";
+import { isClinicalRole, isKioskRole, isTherapistRole } from "@/lib/auth-profile";
 import { signInKioskDevice } from "@/lib/portal/device-auth";
 import { isStaffCrmPath } from "@/lib/staff-crm-paths";
 
@@ -45,6 +45,18 @@ function isClinicalAllowedPath(pathname: string) {
   return (
     isClinicalPath(pathname) ||
     pathname.startsWith("/api/clinical/") ||
+    pathname.startsWith("/auth/")
+  );
+}
+
+function isTherapyPath(pathname: string) {
+  return pathname === "/therapy" || pathname.startsWith("/therapy/");
+}
+
+function isTherapistAllowedPath(pathname: string) {
+  return (
+    isTherapyPath(pathname) ||
+    pathname.startsWith("/api/therapy/") ||
     pathname.startsWith("/auth/")
   );
 }
@@ -188,6 +200,26 @@ export async function updateSession(request: NextRequest) {
       }
     }
 
+    if (user && isTherapistRole(role)) {
+      if (
+        isStaffCrmPath(pathname) ||
+        isPortalPath(pathname) ||
+        isClinicalPath(pathname) ||
+        pathname === "/dashboard"
+      ) {
+        const therapy = request.nextUrl.clone();
+        therapy.pathname = "/therapy";
+        therapy.search = "";
+        return NextResponse.redirect(therapy);
+      }
+      if (!isTherapistAllowedPath(pathname) && !isPublicPath(pathname)) {
+        const therapy = request.nextUrl.clone();
+        therapy.pathname = "/therapy";
+        therapy.search = "";
+        return NextResponse.redirect(therapy);
+      }
+    }
+
     if (user && isKioskRole(role)) {
       if (isStaffEntryPath(pathname)) {
         // iPad kiosk cookie on lukarienz.com or /login → clear and reload staff page.
@@ -225,6 +257,12 @@ export async function updateSession(request: NextRequest) {
           next && next.startsWith("/clinical") && !next.startsWith("//")
             ? next.split("?")[0]
             : "/clinical";
+        dest.search = next?.includes("?") ? next.slice(next.indexOf("?")) : "";
+      } else if (isTherapistRole(role)) {
+        dest.pathname =
+          next && next.startsWith("/therapy") && !next.startsWith("//")
+            ? next.split("?")[0]
+            : "/therapy";
         dest.search = next?.includes("?") ? next.slice(next.indexOf("?")) : "";
       } else if (next && next.startsWith("/portal") && !next.startsWith("//")) {
         dest.pathname = "/dashboard";
