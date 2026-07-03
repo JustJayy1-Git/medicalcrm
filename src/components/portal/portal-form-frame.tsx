@@ -220,11 +220,11 @@ export function PortalFormFrame({
           <StaffExitButton />
         </div>
       ) : (
-        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 px-4 py-2 bg-[#0c0f15] border-b border-[#2a2f3a] shrink-0">
+        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 px-4 py-2 bg-[#0c0f15] shrink-0 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-[#e6c987]/50 after:to-transparent">
           <div className="flex items-center gap-3">
             <Link
               href={`/intake-packets/${packetId}`}
-              className="text-xs font-bold uppercase tracking-wider text-[#c8d2e0] hover:text-white"
+              className="lux-gold-text text-xs font-serif font-bold uppercase tracking-wider"
             >
               Pro Injury
             </Link>

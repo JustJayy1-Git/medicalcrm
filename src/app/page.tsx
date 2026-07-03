@@ -22,7 +22,7 @@ export default function Home() {
     <div className="relative min-h-screen flex flex-col text-white overflow-hidden bg-[#0c0f15]">
       <StaffLandingBackground />
 
-      <header className="relative z-10 flex items-center justify-between px-6 py-5 border-b border-[#41B6E6]/15 backdrop-blur-sm">
+      <header className="relative z-10 flex items-center justify-between px-6 py-5 backdrop-blur-sm after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-[#e6c987]/60 after:to-transparent">
         <div className="flex items-center gap-3">
           <LogoMark
             variant="icon"
@@ -35,7 +35,7 @@ export default function Home() {
             <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#41B6E6] leading-none mb-0.5">
               Medical CRM
             </p>
-            <span className="text-2xl font-sans font-extrabold tracking-[0.14em] text-white">
+            <span className="lux-gold-text text-2xl font-serif font-bold tracking-[0.14em]">
               LUKARIENZ
             </span>
           </div>
@@ -65,10 +65,10 @@ export default function Home() {
           </p>
 
           <h1 className="font-serif text-4xl md:text-5xl font-semibold text-white leading-tight mb-3">
-            Welcome to LUKARIENZ
+            Welcome to <span className="lux-gold-text">LUKARIENZ</span>
           </h1>
 
-          <div className="w-24 h-0.5 bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] mx-auto mb-8 rounded-full" />
+          <div className="lux-hairline w-48 mx-auto mb-8" />
 
           <p className="text-lg md:text-xl font-serif italic text-[#c8d2e0]/85 mb-5 leading-snug">
             &ldquo;{quote}&rdquo;
@@ -81,7 +81,7 @@ export default function Home() {
 
           <Link
             href="/login"
-            className="inline-block px-12 py-3.5 bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] text-white font-semibold rounded-xl shadow-[0_8px_32px_rgba(65,182,230,0.25)] hover:brightness-110 transition-all border border-white/10"
+            className="inline-block px-12 py-3.5 bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] text-white font-semibold rounded-xl shadow-[0_8px_32px_rgba(65,182,230,0.25)] hover:brightness-110 transition-all border border-[#e6c987]/30"
           >
             Sign in to LUKARIENZ
           </Link>
@@ -95,8 +95,11 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="relative z-10 px-6 py-4 text-xs text-[#c8d2e0]/35 border-t border-[#41B6E6]/10 flex items-center justify-between">
-        <span>© {new Date().getFullYear()} LUKARIENZ</span>
+      <footer className="relative z-10 px-6 py-4 text-xs text-[#c8d2e0]/35 flex items-center justify-between before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-[#e6c987]/40 before:to-transparent">
+        <span>
+          © {new Date().getFullYear()}{" "}
+          <span className="lux-gold-text font-serif font-semibold">LUKARIENZ</span>
+        </span>
         <span className="text-[#c8d2e0]/25">Pro Injury Medical · powered by LUKARIENZ</span>
       </footer>
     </div>

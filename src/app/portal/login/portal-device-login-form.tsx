@@ -38,8 +38,9 @@ export function PortalDeviceLoginForm({
           className="mb-6 w-[min(240px,65vw)] h-auto max-w-[280px]"
         />
         <h1 className="text-2xl md:text-3xl font-serif font-semibold text-white text-center mb-2">
-          Patient intake — iPad setup
+          Patient intake — <span className="lux-gold-text">iPad setup</span>
         </h1>
+        <div className="lux-hairline w-40 mx-auto mb-3" />
         <p className="text-[#c8d2e0]/60 text-center max-w-md mb-8 text-sm">
           Staff only: sign in once with the kiosk account. After setup, bookmark{" "}
           <span className="text-[#41B6E6]">/portal</span> on the home screen. Patients will not see
@@ -48,7 +49,7 @@ export function PortalDeviceLoginForm({
 
         <form
           action={portalDeviceSignIn}
-          className="w-full bg-[#121820]/80 border border-[#41B6E6]/20 rounded-2xl p-6 space-y-4 backdrop-blur-sm"
+          className="w-full bg-[#121820]/80 border border-[#c9a35c]/30 rounded-2xl p-6 space-y-4 backdrop-blur-sm shadow-[0_0_40px_rgba(201,163,92,0.06)]"
         >
           <input type="hidden" name="afterLogin" value={afterLogin} />
           <label className="block">
