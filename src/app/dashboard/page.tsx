@@ -31,7 +31,7 @@ function StatCard({
 
   const inner = (
     <div
-      className={`p-4 rounded-xl bg-white border border-vice-border shadow-sm ring-1 transition-all ${ring} ${href ? "hover:shadow-md" : ""}`}
+      className={`lux-card p-4 rounded-xl bg-white border border-vice-border shadow-sm ring-1 ${ring}`}
     >
       <p className="text-[10px] uppercase tracking-wider text-eggplant-500 mb-1">
         {label}
@@ -124,8 +124,8 @@ export default async function DashboardPage() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="p-6 rounded-xl bg-white border border-vice-border shadow-sm">
-          <h2 className="text-lg font-semibold text-eggplant-900 mb-2">
+        <div className="lux-card p-6 rounded-xl bg-white border border-vice-border shadow-sm">
+          <h2 className="text-lg font-serif font-semibold text-eggplant-900 mb-2">
             Quick links
           </h2>
           <ul className="text-sm text-eggplant-700 space-y-2">
@@ -152,8 +152,8 @@ export default async function DashboardPage() {
           </ul>
         </div>
 
-        <div className="p-6 rounded-xl bg-white border border-vice-border shadow-sm">
-          <h2 className="text-lg font-semibold text-eggplant-900 mb-2">
+        <div className="lux-card p-6 rounded-xl bg-white border border-vice-border shadow-sm">
+          <h2 className="text-lg font-serif font-semibold text-eggplant-900 mb-2">
             Active cases
           </h2>
           {(recentCases ?? []).length === 0 ? (

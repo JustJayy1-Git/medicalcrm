@@ -11,6 +11,10 @@
   --crm-text-muted: #5a6d7d;
   --crm-cyan: #41b6e6;
   --crm-pink: #db3eb1;
+  /* Luxury layer — champagne gold accents */
+  --crm-gold: #c9a35c;
+  --crm-gold-bright: #e6c987;
+  --crm-gold-soft: #f4ead2;
   --background: var(--crm-bg);
   --foreground: var(--crm-text);
 }
@@ -36,14 +40,105 @@
   --color-luka-cyan: #41b6e6;
   --color-luka-pink: #db3eb1;
   --color-luka-dark: #0c0f15;
+  --color-gold: #c9a35c;
+  --color-gold-bright: #e6c987;
+  --color-gold-soft: #f4ead2;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-display), "Playfair Display", Georgia, serif;
 }
 
 body {
   background: var(--crm-bg);
   color: var(--crm-text);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* ---- Luxury layer ------------------------------------------------- */
+
+/* Serif headings pick up the display face with refined spacing. */
+.font-serif {
+  font-family: var(--font-display), "Playfair Display", Georgia, serif;
+  letter-spacing: 0.01em;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--crm-gold) 30%, transparent);
+  color: var(--crm-text);
+}
+
+/* Slim, understated scrollbars across the CRM */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--crm-gold) 35%, #9aa8b5) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--crm-gold) 35%, #9aa8b5);
+  border-radius: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Faint champagne ambience over the content surface */
+.lux-surface {
+  background-image:
+    radial-gradient(
+      52rem 26rem at 82% -6rem,
+      color-mix(in srgb, var(--crm-gold) 9%, transparent),
+      transparent 68%
+    ),
+    radial-gradient(
+      40rem 22rem at -8% 108%,
+      color-mix(in srgb, var(--crm-cyan) 7%, transparent),
+      transparent 70%
+    );
+}
+
+/* Gold gradient hairline (use as a 1px-tall divider element) */
+.lux-hairline {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--crm-gold) 65%, transparent) 18%,
+    var(--crm-gold-bright) 50%,
+    color-mix(in srgb, var(--crm-gold) 65%, transparent) 82%,
+    transparent
+  );
+}
+
+/* Champagne gradient text for brand marks / featured headings */
+.lux-gold-text {
+  background: linear-gradient(
+    115deg,
+    #f7e8c3 0%,
+    var(--crm-gold-bright) 30%,
+    var(--crm-gold) 55%,
+    #f2ddab 80%,
+    var(--crm-gold-bright) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Elevated card hover — attach alongside existing card classes */
+.lux-card {
+  transition:
+    box-shadow 200ms ease,
+    border-color 200ms ease,
+    transform 200ms ease;
+}
+.lux-card:hover {
+  border-color: color-mix(in srgb, var(--crm-gold) 45%, var(--crm-border));
+  box-shadow:
+    0 1px 2px rgba(12, 15, 21, 0.05),
+    0 10px 30px -12px color-mix(in srgb, var(--crm-gold) 28%, rgba(12, 15, 21, 0.18));
 }
 
 input:focus,
