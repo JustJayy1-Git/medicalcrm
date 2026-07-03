@@ -4,6 +4,10 @@ export const LOGO = {
   icon: "/logo-icon.png",
   watermark: "/logo-watermark.png",
   master: "/logo.png",
+  /* Light-surface set — graphite wordmark for white cards / print pages. */
+  lightHeader: "/logo-light-header.png",
+  lightIcon: "/logo-light-icon.png",
+  lightMaster: "/logo-light.png",
 } as const;
 
 /** Fallback when sized variants are not synced yet. */

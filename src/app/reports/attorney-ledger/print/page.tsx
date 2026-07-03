@@ -56,6 +56,8 @@ export default async function AttorneyLedgerPrintPage({
           .sub { background: #fffbeb; font-weight: 600; }
           .grand { border: 2px solid #b45309; padding: 10px 14px; margin-top: 16px; display: flex; justify-content: space-between; }
           .no-print { margin-bottom: 12px; }
+          .letterhead { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+          .letterhead img { width: 64px; height: 64px; object-fit: contain; }
           @media print { .no-print { display: none !important; } body { padding: 12px; } }
         `}</style>
       </head>
@@ -67,7 +69,11 @@ export default async function AttorneyLedgerPrintPage({
           <PrintButton />
         </div>
 
-        <h1>Attorney account ledger</h1>
+        <div className="letterhead">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-light-header.png" alt="Pro Injury" />
+          <h1>Attorney account ledger</h1>
+        </div>
         <p className="meta">
           <strong>{ledger.patientName}</strong>
           <br />
