@@ -1,5 +1,4 @@
 import { LogoMark } from "@/components/logo-mark";
-import { getPracticeFromEnv } from "@/lib/practice";
 import type { ReactNode } from "react";
 
 /**
@@ -21,9 +20,6 @@ export function PaperSheet({
   totalPages: number;
   children: ReactNode;
 }) {
-  const practice = getPracticeFromEnv();
-  const cityLine = [practice.city, practice.state].filter(Boolean).join(", ");
-
   return (
     <div className="relative mx-auto my-6 w-[816px] max-w-full min-h-[1056px] bg-white text-black shadow-[0_24px_60px_rgba(0,0,0,0.45)] overflow-hidden">
       {/* Watermark */}
@@ -35,7 +31,7 @@ export function PaperSheet({
       </div>
 
       <div className="relative z-[1]">
-        {/* Brand header band */}
+        {/* Letterhead — matches the practice's paper documents */}
         <div className="grid grid-cols-[90px_1fr_auto] items-center gap-4 bg-black px-6 py-3.5 text-white">
           <div className="flex h-[74px] w-[74px] items-center justify-center">
             <LogoMark width={74} height={74} className="h-full w-full object-contain" />
@@ -49,16 +45,15 @@ export function PaperSheet({
             </p>
             <div className="mt-1.5 h-[2px] w-[220px] bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1]" />
           </div>
-          <div className="text-right text-[9.5px] leading-relaxed">
-            {practice.addressLine1 ? <p>{practice.addressLine1}</p> : null}
-            {cityLine ? (
-              <p>
-                {cityLine} {practice.zip}
-              </p>
-            ) : null}
-            {practice.phone ? (
-              <p className="font-semibold text-[#41B6E6]">{practice.phone}</p>
-            ) : null}
+          <div className="text-right text-[9px] leading-[1.5]">
+            <p>5881 NW 151st Street, Suite 112</p>
+            <p>Miami Lakes, FL 33014</p>
+            <p className="mt-1">6309 Corporate Court, Suite 100/103</p>
+            <p>Fort Myers, FL 33919</p>
+            <p className="mt-1 font-semibold text-[#41B6E6]">
+              T 786-362-5480 · F 786-362-5638
+            </p>
+            <p className="text-[#41B6E6]">ProInjuryLLC@gmail.com</p>
           </div>
         </div>
 
@@ -243,6 +238,64 @@ export function PaperCheckGroup({
         ))}
       </div>
     </fieldset>
+  );
+}
+
+/** Single checkbox rendered like the paper form's square boxes. */
+export function PaperCheck({
+  name,
+  label,
+  defaultChecked,
+  className = "",
+}: {
+  name: string;
+  label: string;
+  defaultChecked?: boolean;
+  className?: string;
+}) {
+  return (
+    <label
+      className={`inline-flex cursor-pointer items-center gap-1.5 text-[11px] leading-tight ${className}`.trim()}
+    >
+      <input
+        type="checkbox"
+        name={name}
+        value="1"
+        defaultChecked={defaultChecked}
+        className="h-[13px] w-[13px] shrink-0 accent-black"
+      />
+      {label}
+    </label>
+  );
+}
+
+/** Inline "Label: ______" field like the paper form. */
+export function PaperInline({
+  label,
+  name,
+  defaultValue,
+  type = "text",
+  className = "",
+  inputClassName = "",
+}: {
+  label: string;
+  name: string;
+  defaultValue?: string;
+  type?: "text" | "date" | "number";
+  className?: string;
+  inputClassName?: string;
+}) {
+  return (
+    <label className={`flex items-baseline gap-1.5 text-[11px] ${className}`.trim()}>
+      <span className="shrink-0 font-semibold">{label}</span>
+      <input
+        type={type}
+        name={name}
+        defaultValue={defaultValue}
+        className={`min-w-0 flex-1 border-0 border-b border-black/50 bg-transparent px-1 py-0.5 text-[11px] focus:border-black focus:outline-none ${inputClassName}`.trim()}
+        style={{ boxShadow: "none" }}
+      />
+    </label>
   );
 }
 

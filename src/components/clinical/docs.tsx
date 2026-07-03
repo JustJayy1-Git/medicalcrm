@@ -1,17 +1,23 @@
+import { InitialEvaluationDoc } from "@/components/clinical/initial-evaluation-doc";
 import {
   PaperCheckGroup,
   PaperField,
+  PaperIdentStrip,
   PaperNote,
   PaperSection,
+  PaperSheet,
   PaperTextarea,
 } from "@/components/clinical/paper-doc";
 import { SignaturePad } from "@/components/signature-pad";
 import type { ClinicalDocSlug } from "@/lib/clinical/doc-slugs";
 
-type DocProps = {
+export type DocProps = {
   initial: Record<string, unknown>;
   patientName: string;
   today: string;
+  page: number;
+  totalPages: number;
+  ident: Array<{ label: string; value: string }>;
 };
 
 function str(initial: Record<string, unknown>, key: string): string {
@@ -41,10 +47,18 @@ function SignatureRow({
 }
 
 /* ------------------------------------------------------------------ */
+/* NOFA — placeholder until the practice's state form is uploaded.    */
+/* When the original document is provided, transcribe it verbatim.    */
 
-export function NofaDoc({ initial, patientName, today }: DocProps) {
+export function NofaDoc({ initial, patientName, today, page, totalPages, ident }: DocProps) {
   return (
-    <>
+    <PaperSheet
+      title="Florida Motor Vehicle No-Fault Law (PIP) — Notice & Authorization"
+      titleEs="Ley de No Culpa de Florida — Aviso y Autorización"
+      page={page}
+      totalPages={totalPages}
+    >
+      <PaperIdentStrip fields={ident} />
       <PaperSection num={1} title="Notice to patient" titleEs="Aviso al paciente">
         <PaperNote>
           Under the Florida Motor Vehicle No-Fault Law (§627.736, Fla. Stat.),
@@ -73,19 +87,9 @@ export function NofaDoc({ initial, patientName, today }: DocProps) {
             defaultValue={str(initial, "signed_date") || today}
           />
         </div>
-        <PaperTextarea
-          label="Notes"
-          name="notes"
-          rows={3}
-          defaultValue={str(initial, "notes")}
-        />
+        <PaperTextarea label="Notes" name="notes" rows={3} defaultValue={str(initial, "notes")} />
       </PaperSection>
 
-      <PaperSection num={3} title="Signatures" titleEs="Firmas">
-        <p className="m-0 text-[10px] text-black/60">
-          Patient signs to acknowledge the notice; provider countersigns.
-        </p>
-      </PaperSection>
       <SignatureRow
         initial={initial}
         fields={[
@@ -93,13 +97,22 @@ export function NofaDoc({ initial, patientName, today }: DocProps) {
           { name: "provider_signature", label: "Provider signature" },
         ]}
       />
-    </>
+    </PaperSheet>
   );
 }
 
-export function EmcDoc({ initial, patientName, today }: DocProps) {
+/* ------------------------------------------------------------------ */
+/* EMC — placeholder until the practice's form is uploaded.           */
+
+export function EmcDoc({ initial, patientName, today, page, totalPages, ident }: DocProps) {
   return (
-    <>
+    <PaperSheet
+      title="Emergency Medical Condition (EMC) Determination"
+      titleEs="Determinación de Condición Médica de Emergencia"
+      page={page}
+      totalPages={totalPages}
+    >
+      <PaperIdentStrip fields={ident} />
       <PaperSection num={1} title="Determination" titleEs="Determinación">
         <PaperCheckGroup
           legend="In my professional opinion, this patient has an Emergency Medical Condition as defined by §627.732(16), Fla. Stat."
@@ -141,85 +154,22 @@ export function EmcDoc({ initial, patientName, today }: DocProps) {
         initial={initial}
         fields={[{ name: "provider_signature", label: "Provider signature" }]}
       />
-    </>
+    </PaperSheet>
   );
 }
 
-export function InitialReportDoc({ initial, patientName, today }: DocProps) {
+/* ------------------------------------------------------------------ */
+/* Follow-up report — the only document on a follow-up visit.         */
+
+export function FollowUpDoc({ initial, patientName, today, page, totalPages, ident }: DocProps) {
   return (
-    <>
-      <PaperSection num={1} title="Chief complaint" titleEs="Motivo de consulta">
-        <PaperTextarea
-          label="Patient's primary complaint(s)"
-          name="chief_complaint"
-          rows={3}
-          defaultValue={str(initial, "chief_complaint")}
-        />
-      </PaperSection>
-
-      <PaperSection num={2} title="History of present illness" titleEs="Historia de la enfermedad actual">
-        <PaperTextarea
-          label="Mechanism of injury, onset, prior treatment"
-          name="history"
-          rows={4}
-          defaultValue={str(initial, "history")}
-        />
-      </PaperSection>
-
-      <PaperSection num={3} title="Examination findings" titleEs="Hallazgos del examen">
-        <PaperTextarea
-          label="Objective findings (ROM, palpation, orthopedic / neurological tests)"
-          name="exam_findings"
-          rows={5}
-          defaultValue={str(initial, "exam_findings")}
-        />
-      </PaperSection>
-
-      <PaperSection num={4} title="Diagnosis" titleEs="Diagnóstico">
-        <PaperTextarea
-          label="Diagnoses / ICD-10 codes"
-          name="diagnosis"
-          rows={3}
-          defaultValue={str(initial, "diagnosis")}
-        />
-      </PaperSection>
-
-      <PaperSection num={5} title="Treatment plan" titleEs="Plan de tratamiento">
-        <PaperTextarea
-          label="Plan of care, frequency, referrals"
-          name="plan"
-          rows={4}
-          defaultValue={str(initial, "plan")}
-        />
-      </PaperSection>
-
-      <PaperSection num={6} title="Provider attestation" titleEs="Certificación del proveedor">
-        <div className="grid grid-cols-2 gap-4">
-          <PaperField
-            label="Patient name (print)"
-            name="patient_name_print"
-            defaultValue={str(initial, "patient_name_print") || patientName}
-          />
-          <PaperField
-            label="Date"
-            name="signed_date"
-            type="date"
-            defaultValue={str(initial, "signed_date") || today}
-          />
-        </div>
-      </PaperSection>
-
-      <SignatureRow
-        initial={initial}
-        fields={[{ name: "provider_signature", label: "Provider signature" }]}
-      />
-    </>
-  );
-}
-
-export function FollowUpDoc({ initial, patientName, today }: DocProps) {
-  return (
-    <>
+    <PaperSheet
+      title="Follow-Up Report"
+      titleEs="Informe de Seguimiento"
+      page={page}
+      totalPages={totalPages}
+    >
+      <PaperIdentStrip fields={ident} />
       <PaperSection num={1} title="Subjective" titleEs="Subjetivo">
         <PaperTextarea
           label="Patient-reported status since last visit"
@@ -280,7 +230,7 @@ export function FollowUpDoc({ initial, patientName, today }: DocProps) {
         initial={initial}
         fields={[{ name: "provider_signature", label: "Provider signature" }]}
       />
-    </>
+    </PaperSheet>
   );
 }
 
@@ -288,8 +238,8 @@ export const DOC_COMPONENTS: Record<
   ClinicalDocSlug,
   (props: DocProps) => React.ReactNode
 > = {
-  nofa: NofaDoc,
+  "initial-evaluation": InitialEvaluationDoc,
   emc: EmcDoc,
-  "initial-report": InitialReportDoc,
+  nofa: NofaDoc,
   "follow-up": FollowUpDoc,
 };
