@@ -113,25 +113,27 @@ export async function ensureClinicalConsultationForCase(opts: {
   if (error) throw error;
 }
 
+export type ClinicalSection = "nofa" | "emc" | "initial_report" | "follow_up";
+
+const SECTION_COLUMNS: Record<ClinicalSection, { json: string; completed: string }> = {
+  nofa: { json: "nofa_json", completed: "nofa_completed_at" },
+  emc: { json: "emc_json", completed: "emc_completed_at" },
+  initial_report: {
+    json: "initial_report_json",
+    completed: "initial_report_completed_at",
+  },
+  follow_up: { json: "followup_json", completed: "followup_completed_at" },
+};
+
 export async function saveClinicalFormSection(
   supabase: SupabaseClient,
   caseId: string,
-  section: "nofa" | "emc" | "initial_report",
+  section: ClinicalSection,
   payload: Record<string, unknown>,
   markComplete: boolean,
 ): Promise<void> {
-  const column =
-    section === "nofa"
-      ? "nofa_json"
-      : section === "emc"
-        ? "emc_json"
-        : "initial_report_json";
-  const completedColumn =
-    section === "nofa"
-      ? "nofa_completed_at"
-      : section === "emc"
-        ? "emc_completed_at"
-        : "initial_report_completed_at";
+  const column = SECTION_COLUMNS[section].json;
+  const completedColumn = SECTION_COLUMNS[section].completed;
 
   const patch: Record<string, unknown> = {
     [column]: payload,
