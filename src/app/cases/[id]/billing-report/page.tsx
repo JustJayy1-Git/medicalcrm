@@ -61,6 +61,8 @@ export default async function BillingReportPage({
           th { background: #fafaf9; font-size: 9pt; text-transform: uppercase; }
           .num { text-align: right; font-family: ui-monospace, monospace; }
           .no-print { margin-bottom: 16px; }
+          .letterhead { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+          .letterhead img { width: 68px; height: 68px; object-fit: contain; }
           @media print {
             .no-print { display: none !important; }
             body { padding: 12px; }
@@ -75,7 +77,11 @@ export default async function BillingReportPage({
           <PrintButton />
         </div>
 
-        <h1>Treatment charge summary</h1>
+        <div className="letterhead">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-light-header.png" alt="Pro Injury" />
+          <h1>Treatment charge summary</h1>
+        </div>
         <p className="meta">
           <strong>
             {patient.last_name}, {patient.first_name}

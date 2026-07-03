@@ -11,12 +11,23 @@ without a black box around it.
 
 | File | Size (max) | Use |
 | ---- | ---------- | --- |
-| `logo.png`           | full-res (~original) | Master asset. Source of truth. Use this if you need to re-render at any size. |
-| `logo-header.png`    | 512px        | App header / nav bar / web header. |
+| `logo.png`           | full-res (~original) | Master asset (dark surfaces — white wordmark). |
+| `logo-header.png`    | 512px        | App header / nav bar / web header (dark surfaces). |
 | `logo-watermark.png` | 800px        | Page watermarks, intake landing hero, print backgrounds. |
 | `logo-icon.png`      | 256px        | Favicon, small tile, sidebar icon. |
+| `logo-light.png`     | full-res     | Light-surface master — graphite wordmark. |
+| `logo-light-header.png` | 512px     | Light cards & print letterheads (attorney ledger, A/R aging, charge summary). |
+| `logo-light-icon.png`   | 256px     | Small light-surface placements. |
 
-All four are **transparent PNGs** (RGBA). No black background.
+All are **transparent PNGs** (RGBA). No black background.
+
+Rebuild all variants from `design/logo-source.png` with:
+
+```bash
+node scripts/make-logo-light.mjs
+```
+
+In React use `<LogoMark tone="dark" | "light" …>` (`src/components/logo-mark.tsx`).
 
 ## Where it's used (canonical references)
 

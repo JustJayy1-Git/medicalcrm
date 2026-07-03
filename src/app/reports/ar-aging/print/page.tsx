@@ -34,6 +34,8 @@ export default async function ArAgingPrintPage() {
           .num { text-align: right; font-family: ui-monospace, monospace; }
           .total { background: #fffbeb; font-weight: 700; }
           .no-print { margin-bottom: 12px; }
+          .letterhead { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+          .letterhead img { width: 56px; height: 56px; object-fit: contain; }
           @media print { .no-print { display: none; } }
         `}</style>
       </head>
@@ -42,7 +44,11 @@ export default async function ArAgingPrintPage() {
           <Link href="/reports/ar-aging">← Back</Link>
           <PrintButton />
         </div>
-        <h1>Accounts receivable aging</h1>
+        <div className="letterhead">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-light-header.png" alt="Pro Injury" />
+          <h1>Accounts receivable aging</h1>
+        </div>
         <p className="meta">
           By insurance carrier · As of {report.asOfDate} · Printed {printed}
         </p>
