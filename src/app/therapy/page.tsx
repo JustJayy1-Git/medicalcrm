@@ -29,26 +29,26 @@ export default async function TherapyQueuePage() {
   }
 
   return (
-    <div className="p-8 max-w-5xl">
-      <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#41B6E6] mb-2">
+    <div className="px-8 py-8 max-w-5xl mx-auto">
+      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-neon-pink mb-3">
         Post-consultation workflow
       </p>
-      <h1 className="text-3xl font-serif font-semibold text-white mb-2">
+      <h1 className="text-3xl font-serif font-semibold text-eggplant-900 mb-2">
         Therapy queue
       </h1>
-      <p className="text-[#c8d2e0]/80 text-sm mb-8 max-w-2xl">
+      <p className="text-eggplant-500 mb-8 max-w-2xl">
         Open the patient to record today&apos;s therapy sheet. First visit: have the
         patient sign the consent for therapy before treatment.
       </p>
 
       {loadError ? (
-        <p className="rounded-lg border border-red-500/40 bg-red-950/40 px-4 py-3 text-sm text-red-200">
+        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {loadError}
         </p>
       ) : null}
 
       {queue.length === 0 && !loadError ? (
-        <p className="rounded-xl border border-[#2a2f3a] bg-[#121820] px-6 py-10 text-center text-[#c8d2e0]/70">
+        <p className="lux-card rounded-xl border border-vice-border bg-white px-6 py-10 text-center text-eggplant-500 shadow-sm">
           No open cases yet. Patients appear here once intake creates their case.
         </p>
       ) : null}
@@ -68,12 +68,14 @@ export default async function TherapyQueuePage() {
             <li key={row.id as string}>
               <Link
                 href={`/therapy/cases/${row.id}`}
-                className="block rounded-xl border border-[#2a2f3a] bg-[#121820] px-5 py-4 hover:border-[#41B6E6]/50 transition"
+                className="lux-card block rounded-xl border border-vice-border bg-white px-5 py-4 shadow-sm"
               >
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-lg font-semibold text-white">{name || "Patient"}</p>
-                    <p className="text-sm text-[#c8d2e0]/70 mt-0.5">
+                    <p className="text-lg font-semibold text-eggplant-900">
+                      {name || "Patient"}
+                    </p>
+                    <p className="text-sm text-eggplant-500 mt-0.5">
                       Case {row.case_number ?? "—"} · DOI {fmtDate(row.date_of_injury)} · DOB{" "}
                       {fmtDate(patient?.date_of_birth)}
                     </p>
@@ -82,8 +84,8 @@ export default async function TherapyQueuePage() {
                     <span
                       className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${
                         npDone
-                          ? "bg-[#7fdf7f]/10 text-[#7fdf7f] border-[#7fdf7f]/30"
-                          : "bg-amber-400/10 text-amber-300 border-amber-400/30"
+                          ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                          : "bg-amber-100 text-amber-700 border-amber-200"
                       }`}
                     >
                       {npDone ? "NP done" : "NP pending"}
@@ -91,8 +93,8 @@ export default async function TherapyQueuePage() {
                     <span
                       className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${
                         consentSigned
-                          ? "bg-[#41B6E6]/15 text-[#41B6E6] border-[#41B6E6]/30"
-                          : "bg-[#DB3EB1]/10 text-[#e878c8] border-[#DB3EB1]/30"
+                          ? "bg-neon-mint-100 text-eggplant-800 border-neon-mint/30"
+                          : "bg-neon-pink-100 text-neon-pink border-neon-pink-200"
                       }`}
                     >
                       {consentSigned ? "Consent signed" : "Needs consent"}

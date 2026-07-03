@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { CaseChargeLedger } from "@/components/case-charge-ledger";
 import { fetchCaseLedger } from "@/lib/charge-ledger-server";
+import { sendCaseToNpFollowUp } from "./followup-action";
 
 export const dynamic = "force-dynamic";
 
@@ -90,6 +91,16 @@ const { data: c } = await supabase
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <form action={sendCaseToNpFollowUp}>
+              <input type="hidden" name="case_id" value={c.id} />
+              <button
+                type="submit"
+                className="px-3 py-1.5 text-xs border border-gold/50 text-eggplant-800 rounded-md hover:bg-gold-soft font-medium"
+                title="Put this patient back in the nurse practitioner queue"
+              >
+                🩺 NP follow-up
+              </button>
+            </form>
             <Link
               href={`/cases/${c.id}/visits/new`}
               className="px-3 py-1.5 text-xs bg-neon-pink text-white rounded-md hover:bg-eggplant-800 font-medium"

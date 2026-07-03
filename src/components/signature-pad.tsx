@@ -103,13 +103,13 @@ export function SignaturePad({
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <label className="block text-xs font-semibold uppercase tracking-wider text-[#c8d2e0]/80">
+        <label className="block text-xs font-semibold uppercase tracking-wider text-eggplant-700">
           {label}
         </label>
         <button
           type="button"
           onClick={clear}
-          className="text-xs font-semibold text-[#DB3EB1] hover:text-white transition-colors"
+          className="text-xs font-semibold text-neon-pink hover:text-eggplant-800 transition-colors"
         >
           Clear
         </button>
@@ -117,7 +117,7 @@ export function SignaturePad({
       <canvas
         ref={canvasRef}
         style={{ height: heightPx, touchAction: "none" }}
-        className="w-full rounded-lg border border-dashed border-[#41B6E6]/40 bg-white cursor-crosshair"
+        className="w-full rounded-lg border border-dashed border-gold/50 bg-white cursor-crosshair shadow-sm"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -130,7 +130,7 @@ export function SignaturePad({
         defaultValue={initialDataUrl ?? ""}
       />
       {!hasInk ? (
-        <p className="text-[11px] text-[#c8d2e0]/50 mt-1">
+        <p className="text-[11px] text-vice-muted mt-1">
           Sign above with finger or stylus.
         </p>
       ) : null}

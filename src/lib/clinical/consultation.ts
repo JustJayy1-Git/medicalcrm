@@ -11,6 +11,7 @@ export type ClinicalConsultationRow = {
   patient_id: string;
   intake_packet_id: number | null;
   status: ClinicalConsultationStatus;
+  visit_kind: "initial" | "follow_up";
   nofa_json: Record<string, unknown>;
   emc_json: Record<string, unknown>;
   initial_report_json: Record<string, unknown>;
@@ -21,7 +22,7 @@ export async function listClinicalQueue(supabase: SupabaseClient) {
   const { data, error } = await supabase
     .from("clinical_consultations")
     .select(
-      `id, status, created_at, completed_at,
+      `id, status, visit_kind, followup_requested_at, created_at, completed_at,
        case:cases(id, case_number, date_of_injury, description),
        patient:patients(id, first_name, last_name, date_of_birth, phone, email)`,
     )
@@ -31,6 +32,39 @@ export async function listClinicalQueue(supabase: SupabaseClient) {
 
   if (error) throw error;
   return data ?? [];
+}
+
+/** Put a treating patient back in the NP queue as a follow-up visit. */
+export async function requestClinicalFollowUp(
+  supabase: SupabaseClient,
+  caseId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("clinical_consultations")
+    .update({
+      status: "pending",
+      visit_kind: "follow_up",
+      followup_requested_at: new Date().toISOString(),
+    })
+    .eq("case_id", caseId);
+
+  if (error) throw error;
+}
+
+/** NP finished the follow-up visit — clear it from the queue. */
+export async function completeClinicalFollowUp(
+  supabase: SupabaseClient,
+  caseId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("clinical_consultations")
+    .update({
+      status: "completed",
+      completed_at: new Date().toISOString(),
+    })
+    .eq("case_id", caseId);
+
+  if (error) throw error;
 }
 
 export async function getClinicalConsultation(

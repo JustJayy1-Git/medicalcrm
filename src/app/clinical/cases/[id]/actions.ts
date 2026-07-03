@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { saveClinicalFormSection } from "@/lib/clinical/consultation";
+import {
+  completeClinicalFollowUp,
+  saveClinicalFormSection,
+} from "@/lib/clinical/consultation";
 import { createClient } from "@/lib/supabase/server";
 
 export async function saveClinicalDocument(formData: FormData) {
@@ -30,6 +33,22 @@ export async function saveClinicalDocument(formData: FormData) {
   const markComplete = formData.get("_complete") === "1";
 
   await saveClinicalFormSection(supabase, caseId, section, payload, markComplete);
+
+  revalidatePath(`/clinical/cases/${caseId}`);
+  revalidatePath("/clinical");
+}
+
+export async function completeFollowUpAction(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const caseId = String(formData.get("case_id") ?? "");
+  if (!caseId) throw new Error("Invalid follow-up submission");
+
+  await completeClinicalFollowUp(supabase, caseId);
 
   revalidatePath(`/clinical/cases/${caseId}`);
   revalidatePath("/clinical");

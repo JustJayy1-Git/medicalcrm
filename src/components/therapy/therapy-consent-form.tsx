@@ -20,16 +20,18 @@ export function TherapyConsentForm({
   const str = (k: string) => (typeof initial[k] === "string" ? (initial[k] as string) : "");
 
   return (
-    <section className="rounded-xl border border-[#2a2f3a] bg-[#121820] p-6">
+    <section className="lux-card rounded-xl border border-vice-border bg-white p-6 shadow-sm">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-white">Consent for therapy</h2>
-        <p className="text-sm text-[#c8d2e0]/70 mt-1">
+        <h2 className="text-xl font-serif font-semibold text-eggplant-900">
+          Consent for therapy
+        </h2>
+        <p className="text-sm text-eggplant-500 mt-1">
           Patient acknowledgment and signature before the first therapy session.
           Full consent document upload coming next.
         </p>
         {signedAt ? (
-          <p className="text-xs text-[#7fdf7f] mt-2">
-            Signed {new Date(signedAt).toLocaleString("en-US")}
+          <p className="text-xs text-emerald-600 font-medium mt-2">
+            ✓ Signed {new Date(signedAt).toLocaleString("en-US")}
           </p>
         ) : null}
       </div>
@@ -39,26 +41,26 @@ export function TherapyConsentForm({
         <input type="hidden" name="patient_id" value={patientId} />
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-[#c8d2e0]/80 mb-1">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-eggplant-700 mb-1">
             Patient name (print)
           </label>
           <input
             type="text"
             name="patient_name_print"
             defaultValue={str("patient_name_print")}
-            className="w-full rounded-lg border border-[#2a2f3a] bg-[#0c0f15] px-3 py-2 text-sm text-white min-h-[40px]"
+            className="w-full rounded-lg border border-vice-border bg-vice-surface px-3 py-2 text-sm text-eggplant-900 min-h-[40px]"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-[#c8d2e0]/80 mb-1">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-eggplant-700 mb-1">
             Date
           </label>
           <input
             type="date"
             name="signed_date"
             defaultValue={str("signed_date")}
-            className="w-full rounded-lg border border-[#2a2f3a] bg-[#0c0f15] px-3 py-2 text-sm text-white min-h-[40px]"
+            className="w-full rounded-lg border border-vice-border bg-vice-surface px-3 py-2 text-sm text-eggplant-900 min-h-[40px]"
           />
         </div>
 
@@ -71,7 +73,7 @@ export function TherapyConsentForm({
         <div className="pt-2">
           <button
             type="submit"
-            className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] text-sm font-bold text-white"
+            className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] text-sm font-bold text-white shadow-sm hover:shadow-md transition-shadow"
           >
             Save consent
           </button>
