@@ -36,7 +36,10 @@ export default async function PortalDonePage({
           height={200}
           className="mb-6 w-[min(240px,65vw)] h-auto max-w-[280px]"
         />
-        <h1 className="text-3xl font-serif text-white mb-3">Thank you</h1>
+        <h1 className="text-3xl font-serif text-white mb-2">
+          Thank <span className="lux-gold-text">you</span>
+        </h1>
+        <div className="lux-hairline w-32 mx-auto mb-4" />
         {completeError ? (
           <p className="text-[#ffb4d0] max-w-md mb-6 text-sm leading-relaxed">
             {completeError} Go back and complete missing signatures, dates, and names,
@@ -57,7 +60,7 @@ export default async function PortalDonePage({
         ) : null}
         <Link
           href="/portal"
-          className="px-10 py-3 font-bold rounded-xl border border-[#41B6E6]/50 text-[#c8d2e0] hover:text-white inline-block"
+          className="px-10 py-3 font-bold rounded-xl border border-[#c9a35c]/50 text-[#e6c987] hover:text-white hover:bg-[#c9a35c]/10 transition-colors inline-block"
         >
           Start next patient
         </Link>

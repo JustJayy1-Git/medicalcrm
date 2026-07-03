@@ -83,6 +83,15 @@ export async function signInKioskDevice(
   return result.ok ? result.user : null;
 }
 
+/**
+ * Resolve the acting user for shared portal/intake routes.
+ *
+ * These routes serve both the iPad kiosk (kiosk session, or none yet) and
+ * staff reviewing packets in the CRM. NEVER sign out an existing session
+ * here — doing so replaced staff cookies with the kiosk session and then
+ * bounced staff to /login on their next CRM click. Page-level kiosk
+ * enforcement on /portal/* stays in middleware (update-session.ts).
+ */
 export async function ensurePortalUser(
   supabase: SupabaseClient,
 ): Promise<{ user: User | null; kioskFailure?: KioskSignInFailure }> {
@@ -90,10 +99,7 @@ export async function ensurePortalUser(
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (user) {
-    if (await isKioskUser(supabase, user)) return { user };
-    await supabase.auth.signOut();
-  }
+  if (user) return { user };
 
   const result = await signInKioskDeviceDetailed(supabase);
   if (result.ok) return { user: result.user };

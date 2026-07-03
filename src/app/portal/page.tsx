@@ -43,14 +43,14 @@ export default async function PortalHomePage({
 
         <div className="leading-tight">
           <h1 className="font-serif text-[clamp(1.35rem,4.2dvh,2rem)] font-semibold text-white">
-            Patient Intake
+            Patient <span className="lux-gold-text">Intake</span>
           </h1>
           <p className="font-serif text-[clamp(1rem,3dvh,1.35rem)] text-white/55">
             Admisión del Paciente
           </p>
         </div>
 
-        <div className="w-16 h-0.5 bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] rounded-full shrink-0" />
+        <div className="lux-hairline w-36 shrink-0" />
 
         <div className="leading-snug">
           <p className="text-[clamp(0.9rem,2.4dvh,1.05rem)] font-semibold text-white">

@@ -42,7 +42,7 @@ export function LoginForm({ afterLogin }: { afterLogin: string }) {
     <section className="relative min-h-screen flex flex-col text-white overflow-hidden bg-[#0c0f15]">
       <StaffLandingBackground />
 
-      <header className="relative z-10 flex items-center gap-4 px-6 py-5 border-b border-[#41B6E6]/15 backdrop-blur-sm">
+      <header className="relative z-10 flex items-center gap-4 px-6 py-5 backdrop-blur-sm after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-[#e6c987]/60 after:to-transparent">
         <a href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
           <LogoMark
             variant="icon"
@@ -54,7 +54,7 @@ export function LoginForm({ afterLogin }: { afterLogin: string }) {
             <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#41B6E6] leading-none mb-0.5">
               Medical CRM
             </p>
-            <span className="text-2xl font-sans font-extrabold tracking-[0.14em] text-white">
+            <span className="lux-gold-text text-2xl font-serif font-bold tracking-[0.14em]">
               LUKARIENZ
             </span>
           </div>
@@ -63,7 +63,7 @@ export function LoginForm({ afterLogin }: { afterLogin: string }) {
 
       <main className="relative z-10 flex-1 flex items-center justify-center px-6 py-12">
         <section className="w-full max-w-md">
-          <section className="bg-[#121820]/85 backdrop-blur-md border border-[#41B6E6]/20 rounded-2xl p-8 shadow-[0_24px_60px_rgba(0,0,0,0.45)]">
+          <section className="bg-[#121820]/85 backdrop-blur-md border border-[#c9a35c]/30 rounded-2xl p-8 shadow-[0_24px_60px_rgba(0,0,0,0.45),0_0_40px_rgba(201,163,92,0.06)]">
             <header className="text-center mb-8">
               <LogoMark
                 variant="header"
@@ -77,7 +77,8 @@ export function LoginForm({ afterLogin }: { afterLogin: string }) {
               <h1 className="text-3xl font-serif font-semibold text-white">
                 Welcome back.
               </h1>
-              <p className="text-sm text-[#c8d2e0]/65 mt-2">
+              <div className="lux-hairline w-32 mx-auto mt-4 mb-3" />
+              <p className="text-sm text-[#c8d2e0]/65">
                 Sign in to LUKARIENZ — patients, billing, and reports.
               </p>
             </header>
