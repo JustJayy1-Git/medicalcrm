@@ -5,8 +5,11 @@ import { redirect } from "next/navigation";
 import {
   completeClinicalFollowUp,
   saveClinicalFormSection,
+  type ClinicalSection,
 } from "@/lib/clinical/consultation";
 import { createClient } from "@/lib/supabase/server";
+
+const SECTIONS: ClinicalSection[] = ["nofa", "emc", "initial_report", "follow_up"];
 
 export async function saveClinicalDocument(formData: FormData) {
   const supabase = await createClient();
@@ -16,17 +19,14 @@ export async function saveClinicalDocument(formData: FormData) {
   if (!user) redirect("/login");
 
   const caseId = String(formData.get("case_id") ?? "");
-  const section = String(formData.get("section") ?? "") as
-    | "nofa"
-    | "emc"
-    | "initial_report";
-  if (!caseId || !["nofa", "emc", "initial_report"].includes(section)) {
+  const section = String(formData.get("section") ?? "") as ClinicalSection;
+  if (!caseId || !SECTIONS.includes(section)) {
     throw new Error("Invalid clinical form submission");
   }
 
   const payload: Record<string, unknown> = {};
   formData.forEach((value, key) => {
-    if (key === "case_id" || key === "section" || key === "_complete") return;
+    if (key === "case_id" || key === "section" || key.startsWith("_")) return;
     if (typeof value === "string") payload[key] = value;
   });
 
@@ -34,8 +34,18 @@ export async function saveClinicalDocument(formData: FormData) {
 
   await saveClinicalFormSection(supabase, caseId, section, payload, markComplete);
 
+  // Completing the follow-up note also closes the follow-up queue entry.
+  if (section === "follow_up" && markComplete) {
+    await completeClinicalFollowUp(supabase, caseId);
+  }
+
   revalidatePath(`/clinical/cases/${caseId}`);
   revalidatePath("/clinical");
+
+  const nav = String(formData.get("_nav") ?? "");
+  if (nav.startsWith("/clinical")) {
+    redirect(nav);
+  }
 }
 
 export async function completeFollowUpAction(formData: FormData) {

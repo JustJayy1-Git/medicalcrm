@@ -64,7 +64,7 @@ export default async function ClinicalQueuePage() {
           return (
             <li key={row.id as string}>
               <Link
-                href={`/clinical/cases/${caseId}`}
+                href={`/clinical/cases/${caseId}/docs/${isFollowUp ? "follow-up" : "nofa"}`}
                 className="lux-card block rounded-xl border border-vice-border bg-white px-5 py-4 shadow-sm"
               >
                 <div className="flex items-center justify-between gap-4">
