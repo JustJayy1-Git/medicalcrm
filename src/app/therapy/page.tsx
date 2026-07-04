@@ -53,59 +53,76 @@ export default async function TherapyQueuePage() {
         </p>
       ) : null}
 
-      <ul className="space-y-3">
-        {queue.map((row) => {
-          const patient = one(row.patient);
-          const consultation = one(row.consultation);
-          const consent = one(row.consent);
-          const name = patient
-            ? `${patient.first_name ?? ""} ${patient.last_name ?? ""}`.trim()
-            : "Patient";
-          const npDone = consultation?.status === "completed";
-          const consentSigned = Boolean(consent?.signed_at);
+      {(
+        [
+          {
+            key: "ready",
+            title: "Ready for therapy",
+            hint: "NP consultation finished — treat and log today's session.",
+            rows: queue.filter((r) => one(r.consultation)?.status === "completed"),
+          },
+          {
+            key: "waiting",
+            title: "Waiting on NP consultation",
+            hint: "Not yet seen by the nurse practitioner.",
+            rows: queue.filter((r) => one(r.consultation)?.status !== "completed"),
+          },
+        ] as const
+      ).map((section) =>
+        section.rows.length === 0 ? null : (
+          <section key={section.key} className="mb-10">
+            <div className="flex items-baseline gap-3 mb-1">
+              <h2 className="text-xl font-serif font-semibold text-eggplant-900">
+                {section.title}
+              </h2>
+              <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-gold-soft text-eggplant-800 border border-gold/40">
+                {section.rows.length}
+              </span>
+            </div>
+            <p className="text-xs text-eggplant-500 mb-3">{section.hint}</p>
+            <ul className="space-y-3">
+              {section.rows.map((row) => {
+                const patient = one(row.patient);
+                const consent = one(row.consent);
+                const name = patient
+                  ? `${patient.first_name ?? ""} ${patient.last_name ?? ""}`.trim()
+                  : "Patient";
+                const consentSigned = Boolean(consent?.signed_at);
 
-          return (
-            <li key={row.id as string}>
-              <Link
-                href={`/therapy/cases/${row.id}`}
-                className="lux-card block rounded-xl border border-vice-border bg-white px-5 py-4 shadow-sm"
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-lg font-semibold text-eggplant-900">
-                      {name || "Patient"}
-                    </p>
-                    <p className="text-sm text-eggplant-500 mt-0.5">
-                      Case {row.case_number ?? "—"} · DOI {fmtDate(row.date_of_injury)} · DOB{" "}
-                      {fmtDate(patient?.date_of_birth)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span
-                      className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${
-                        npDone
-                          ? "bg-emerald-100 text-emerald-700 border-emerald-200"
-                          : "bg-amber-100 text-amber-700 border-amber-200"
-                      }`}
+                return (
+                  <li key={row.id as string}>
+                    <Link
+                      href={`/therapy/cases/${row.id}`}
+                      className="lux-card block rounded-xl border border-vice-border bg-white px-5 py-4 shadow-sm"
                     >
-                      {npDone ? "NP done" : "NP pending"}
-                    </span>
-                    <span
-                      className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${
-                        consentSigned
-                          ? "bg-neon-mint-100 text-eggplant-800 border-neon-mint/30"
-                          : "bg-neon-pink-100 text-neon-pink border-neon-pink-200"
-                      }`}
-                    >
-                      {consentSigned ? "Consent signed" : "Needs consent"}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="text-lg font-semibold text-eggplant-900">
+                            {name || "Patient"}
+                          </p>
+                          <p className="text-sm text-eggplant-500 mt-0.5">
+                            Case {row.case_number ?? "—"} · DOI {fmtDate(row.date_of_injury)}{" "}
+                            · DOB {fmtDate(patient?.date_of_birth)}
+                          </p>
+                        </div>
+                        <span
+                          className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border shrink-0 ${
+                            consentSigned
+                              ? "bg-neon-mint-100 text-eggplant-800 border-neon-mint/30"
+                              : "bg-neon-pink-100 text-neon-pink border-neon-pink-200"
+                          }`}
+                        >
+                          {consentSigned ? "Consent signed" : "Needs consent"}
+                        </span>
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ),
+      )}
     </div>
   );
 }
