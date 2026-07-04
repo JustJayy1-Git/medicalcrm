@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { notFound } from "next/navigation";
 import { PaperIdentStrip, PaperSheet } from "@/components/clinical/paper-doc";
 import { PrintToolbar } from "@/components/print/print-toolbar";
+import { ConsentForTherapyBody } from "@/components/therapy/consent-doc";
 import {
   getTherapyCase,
   listTherapySessions,
@@ -57,10 +58,7 @@ export async function TherapyPrint({
   const sessions = await listTherapySessions(supabase, caseId);
   const patientName = `${patient.first_name ?? ""} ${patient.last_name ?? ""}`.trim();
   const consentJson = (consent?.consent_json ?? {}) as Record<string, unknown>;
-  const consentSig =
-    typeof consentJson.patient_signature === "string"
-      ? (consentJson.patient_signature as string)
-      : null;
+  const today = new Date().toLocaleDateString("en-CA");
 
   const ident = [
     { label: "Patient", value: patientName },
@@ -80,47 +78,16 @@ export async function TherapyPrint({
         title={`${patientName} · Therapy record · ${sessions.length} sessions`}
       />
 
-      {/* Consent page */}
-      <PaperSheet title="Consent for Therapy" page={1} totalPages={totalPages}>
-        <PaperIdentStrip fields={ident} />
-        <div className="space-y-4 px-8 pb-10 pt-5 text-[12px]">
-          <p className="m-0">
-            Patient acknowledgment and consent to therapy services at Pro Injury
-            Medical &amp; Rehabilitation.
-          </p>
-          <div className="grid grid-cols-2 gap-6">
-            <p className="m-0">
-              <span className="block text-[8px] font-bold uppercase tracking-[0.12em] text-black/60">
-                Patient name (print)
-              </span>
-              <span className="block border-b border-black pb-1">
-                {String(consentJson.patient_name_print ?? patientName)}
-              </span>
-            </p>
-            <p className="m-0">
-              <span className="block text-[8px] font-bold uppercase tracking-[0.12em] text-black/60">
-                Date signed
-              </span>
-              <span className="block border-b border-black pb-1">
-                {consent?.signed_at
-                  ? new Date(consent.signed_at as string).toLocaleDateString("en-US")
-                  : String(consentJson.signed_date ?? "")}
-              </span>
-            </p>
-          </div>
-          <div>
-            <span className="block text-[8px] font-bold uppercase tracking-[0.12em] text-black/60">
-              Patient signature
-            </span>
-            {consentSig ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={consentSig} alt="Patient signature" className="h-[110px] border-b border-black" />
-            ) : (
-              <span className="block h-[110px] border-b border-black" />
-            )}
-          </div>
-        </div>
-      </PaperSheet>
+      {/* Consent page — the real document, read-only */}
+      <fieldset disabled className="m-0 border-0 p-0">
+        <ConsentForTherapyBody
+          initial={consentJson}
+          patientName={patientName}
+          today={today}
+          ident={ident}
+          readOnly
+        />
+      </fieldset>
 
       {/* Session log */}
       {sessions.length > 0 ? (

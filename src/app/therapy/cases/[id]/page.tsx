@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { TherapyConsentForm } from "@/components/therapy/therapy-consent-form";
+import { ConsentForTherapyForm } from "@/components/therapy/consent-doc";
 import { TherapySessionForm } from "@/components/therapy/therapy-session-form";
 import {
   getTherapyCase,
@@ -52,6 +52,14 @@ export default async function TherapyCasePage({
   const patientName = `${patient.first_name ?? ""} ${patient.last_name ?? ""}`.trim();
   const today = new Date().toLocaleDateString("en-CA");
   const npDone = consultation?.status === "completed";
+  const consentSigned = Boolean(consent?.signed_at);
+
+  const ident = [
+    { label: "Patient", value: patientName },
+    { label: "Date of birth", value: fmtDate(patient.date_of_birth) },
+    { label: "Case #", value: String(caseRow.case_number ?? "") },
+    { label: "Date of injury", value: fmtDate(caseRow.date_of_injury) },
+  ];
 
   return (
     <div className="px-8 py-8 max-w-4xl mx-auto">
@@ -123,12 +131,37 @@ export default async function TherapyCasePage({
       </header>
 
       <div className="space-y-8">
-        <TherapyConsentForm
-          caseId={caseId}
-          patientId={patient.id}
-          initial={(consent?.consent_json ?? {}) as Record<string, unknown>}
-          signedAt={(consent?.signed_at as string | null) ?? null}
-        />
+        {consentSigned ? (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3.5 flex flex-wrap items-center justify-between gap-3">
+            <p className="m-0 text-sm text-emerald-800">
+              ✓ <strong>Consent for therapy signed</strong>{" "}
+              {consent?.signed_at
+                ? new Date(consent.signed_at as string).toLocaleDateString("en-US")
+                : ""}{" "}
+              — one-time document, on file.
+            </p>
+            <Link
+              href={`/therapy/cases/${caseId}/print`}
+              className="text-xs font-bold uppercase tracking-wider text-emerald-700 hover:underline"
+            >
+              View / reprint
+            </Link>
+          </div>
+        ) : (
+          <section>
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.25em] text-neon-pink">
+              First visit — have the patient sign before treatment
+            </p>
+            <ConsentForTherapyForm
+              caseId={caseId}
+              patientId={patient.id}
+              initial={(consent?.consent_json ?? {}) as Record<string, unknown>}
+              patientName={patientName}
+              today={today}
+              ident={ident}
+            />
+          </section>
+        )}
 
         <TherapySessionForm
           caseId={caseId}
