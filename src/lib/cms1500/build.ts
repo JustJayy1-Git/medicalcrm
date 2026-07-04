@@ -260,19 +260,41 @@ export function buildCms1500Page(input: BuildClaimInput): Cms1500Claim {
   };
 }
 
-/** One CMS-1500 per treatment day; max 6 procedure lines (box 24). */
+/** E/M consult codes (initial / follow-up / final consults) — 99xxx. */
+function isConsultCode(code: string | null | undefined): boolean {
+  return Boolean(code && code.startsWith("99"));
+}
+
+/**
+ * Claims for one treatment day, following the practice's billing rule:
+ * every consult (initial / follow-up / final, 99xxx) prints on its own
+ * separate CMS-1500, and therapy/modality lines print on theirs — chunked
+ * six per form (box 24) so nothing is ever silently dropped.
+ */
 export function buildCms1500Pages(
   input: Omit<BuildClaimInput, "page" | "pageCount" | "charges"> & {
     charges: ChargeInput[];
   },
 ): Cms1500Claim[] {
-  const charges = input.charges.slice(0, LINES_PER_PAGE);
-  return [
+  const consults = input.charges.filter((ch) => isConsultCode(ch.cpt_code));
+  const therapy = input.charges.filter((ch) => !isConsultCode(ch.cpt_code));
+
+  const groups: ChargeInput[][] = [];
+  for (const consult of consults) {
+    groups.push([consult]);
+  }
+  for (let at = 0; at < therapy.length; at += LINES_PER_PAGE) {
+    groups.push(therapy.slice(at, at + LINES_PER_PAGE));
+  }
+
+  if (groups.length === 0) return [];
+
+  return groups.map((charges, idx) =>
     buildCms1500Page({
       ...input,
       charges,
-      page: 1,
-      pageCount: 1,
+      page: idx + 1,
+      pageCount: groups.length,
     }),
-  ];
+  );
 }
