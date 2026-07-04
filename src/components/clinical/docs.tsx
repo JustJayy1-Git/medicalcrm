@@ -76,17 +76,25 @@ export function NofaDoc({ initial, patientName, today, page, totalPages, ident }
     >
       <PaperIdentStrip fields={ident} />
       <div className="space-y-3 px-8 pt-5 text-[11.5px] leading-relaxed">
-        <div className="text-center">
-          <p className="m-0 text-[13px] font-bold uppercase underline underline-offset-2">
-            Office of Insurance Regulation
-          </p>
-          <p className="m-0 text-[12.5px] font-semibold">
-            Bureau of Property &amp; Casualty Forms and Rates
-          </p>
-          <p className="m-0 text-[12px]">Standard Disclosure and Acknowledgement Form</p>
-          <p className="m-0 text-[12px]">
-            Personal Injury Protection - Initial Treatment or Service Provided
-          </p>
+        <div className="flex items-center justify-center gap-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/florida-state-seal.png"
+            alt="State of Florida seal"
+            className="h-[62px] w-[62px] shrink-0"
+          />
+          <div className="text-center">
+            <p className="m-0 text-[13px] font-bold uppercase underline underline-offset-2">
+              Office of Insurance Regulation
+            </p>
+            <p className="m-0 text-[12.5px] font-semibold">
+              Bureau of Property &amp; Casualty Forms and Rates
+            </p>
+            <p className="m-0 text-[12px]">Standard Disclosure and Acknowledgement Form</p>
+            <p className="m-0 text-[12px]">
+              Personal Injury Protection - Initial Treatment or Service Provided
+            </p>
+          </div>
         </div>
 
         <p className="m-0">
@@ -234,6 +242,10 @@ export function NofaDoc({ initial, patientName, today, page, totalPages, ident }
 /* EMC — verbatim transcription of the practice's paper               */
 /* "NOTICE OF EMERGENCY MEDICAL CONDITION". Do not paraphrase.        */
 
+/**
+ * Paper signature row — name / signature / date share one ruled baseline,
+ * with their captions printed beneath, exactly like the paper documents.
+ */
 function SigLine({
   initial,
   nameField,
@@ -253,35 +265,38 @@ function SigLine({
   today: string;
   defaultName?: string;
 }) {
+  const LINE_H = 64;
   return (
-    <div className="grid grid-cols-[2fr_2fr_1fr] items-end gap-6">
+    <div className="grid grid-cols-[2fr_2fr_1fr] gap-8 pt-4">
       <label className="block">
-        <input
-          type="text"
-          name={nameField}
-          defaultValue={str(initial, nameField) || defaultName || ""}
-          className="w-full border-0 border-b border-black bg-transparent px-1 py-1 text-[12px] focus:outline-none"
-          style={{ boxShadow: "none" }}
-        />
+        <span className="flex items-end" style={{ height: LINE_H }}>
+          <input
+            type="text"
+            name={nameField}
+            defaultValue={str(initial, nameField) || defaultName || ""}
+            className="w-full border-0 border-b border-black bg-transparent px-1 pb-1 text-[12px] focus:outline-none"
+            style={{ boxShadow: "none" }}
+          />
+        </span>
         <span className="mt-1 block text-[11px]">{nameLabel}</span>
       </label>
-      <div>
-        <SignaturePad
-          name={sigField}
-          label=""
-          initialDataUrl={str(initial, sigField) || null}
-          heightPx={80}
-        />
-        <span className="mt-1 block text-[11px]">{sigLabel}</span>
-      </div>
+      <SignaturePad
+        name={sigField}
+        label={sigLabel}
+        initialDataUrl={str(initial, sigField) || null}
+        heightPx={LINE_H}
+        variant="line"
+      />
       <label className="block">
-        <input
-          type="date"
-          name={dateField}
-          defaultValue={str(initial, dateField) || today}
-          className="w-full border-0 border-b border-black bg-transparent px-1 py-1 text-[12px] focus:outline-none"
-          style={{ boxShadow: "none" }}
-        />
+        <span className="flex items-end" style={{ height: LINE_H }}>
+          <input
+            type="date"
+            name={dateField}
+            defaultValue={str(initial, dateField) || today}
+            className="w-full border-0 border-b border-black bg-transparent px-1 pb-1 text-[12px] focus:outline-none"
+            style={{ boxShadow: "none" }}
+          />
+        </span>
         <span className="mt-1 block text-[11px]">Date:</span>
       </label>
     </div>

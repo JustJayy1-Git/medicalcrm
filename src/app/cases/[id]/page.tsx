@@ -46,6 +46,17 @@ const { data: c } = await supabase
 
   const ledger = await fetchCaseLedger(supabase, id);
 
+  // Care-stage snapshot: NP consultation + therapy activity.
+  const { data: consult } = await supabase
+    .from("clinical_consultations")
+    .select("status, visit_kind, completed_at")
+    .eq("case_id", id)
+    .maybeSingle();
+  const { count: therapySessionCount } = await supabase
+    .from("therapy_sessions")
+    .select("id", { count: "exact", head: true })
+    .eq("case_id", id);
+
   return (
     <div className="px-6 py-4 max-w-6xl mx-auto">
         {/* Patient banner — always visible */}
@@ -136,6 +147,35 @@ const { data: c } = await supabase
               {c.status.replace("_", " ")}
             </span>
           </div>
+        </div>
+
+        {/* Care progress — intake → NP → therapy */}
+        <div className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg border border-gold/30 bg-gold-soft/40 px-4 py-2.5 text-xs">
+          <span className="font-bold uppercase tracking-wider text-eggplant-700">
+            Care progress
+          </span>
+          <span className="text-eggplant-800">
+            NP consultation:{" "}
+            {consult ? (
+              consult.status === "completed" ? (
+                <strong className="text-emerald-700">
+                  Completed{consult.completed_at
+                    ? ` ${new Date(consult.completed_at).toLocaleDateString("en-US")}`
+                    : ""}
+                </strong>
+              ) : (
+                <strong className="text-amber-700 capitalize">
+                  {String(consult.status).replace("_", " ")}
+                  {consult.visit_kind === "follow_up" ? " (follow-up)" : ""}
+                </strong>
+              )
+            ) : (
+              <strong className="text-vice-muted">Not queued</strong>
+            )}
+          </span>
+          <span className="text-eggplant-800">
+            Therapy sessions: <strong>{therapySessionCount ?? 0}</strong>
+          </span>
         </div>
 
         <section className="mb-4">

@@ -12,11 +12,14 @@ export function SignaturePad({
   label,
   initialDataUrl,
   heightPx = 160,
+  variant = "boxed",
 }: {
   name: string;
   label: string;
   initialDataUrl?: string | null;
   heightPx?: number;
+  /** "line" renders as a bare signature line (paper documents). */
+  variant?: "boxed" | "line";
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const hiddenRef = useRef<HTMLInputElement>(null);
@@ -99,6 +102,36 @@ export function SignaturePad({
     if (hiddenRef.current) hiddenRef.current.value = "";
     setHasInk(false);
   };
+
+  if (variant === "line") {
+    return (
+      <div className="relative">
+        <button
+          type="button"
+          onClick={clear}
+          className="absolute -top-4 right-0 text-[9px] font-semibold uppercase tracking-wider text-neon-pink hover:text-eggplant-800 transition-colors print:hidden"
+        >
+          Clear
+        </button>
+        <canvas
+          ref={canvasRef}
+          style={{ height: heightPx, touchAction: "none" }}
+          className="w-full cursor-crosshair border-0 border-b border-black bg-transparent"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+        />
+        <input
+          ref={hiddenRef}
+          type="hidden"
+          name={name}
+          defaultValue={initialDataUrl ?? ""}
+        />
+        {label ? <span className="mt-1 block text-[11px]">{label}</span> : null}
+      </div>
+    );
+  }
 
   return (
     <div>

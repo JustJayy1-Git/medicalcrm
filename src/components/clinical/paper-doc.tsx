@@ -31,29 +31,34 @@ export function PaperSheet({
       </div>
 
       <div className="relative z-[1]">
-        {/* Letterhead — matches the practice's paper documents */}
-        <div className="grid grid-cols-[90px_1fr_auto] items-center gap-4 bg-black px-6 py-3.5 text-white">
-          <div className="flex h-[74px] w-[74px] items-center justify-center">
-            <LogoMark width={74} height={74} className="h-full w-full object-contain" />
-          </div>
+        {/* Letterhead — matches the practice's approved template header */}
+        <div className="flex items-center justify-between gap-6 bg-black px-7 py-4 text-white">
           <div>
-            <p className="font-serif text-[26px] font-bold leading-none tracking-[0.04em]">
+            <p className="font-serif text-[30px] font-bold leading-none tracking-[0.06em]">
               PRO INJURY
             </p>
-            <p className="mt-1 text-[9.5px] font-semibold uppercase tracking-[0.22em] text-[#41B6E6]">
+            <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.32em] text-[#41B6E6]">
               Medical &amp; Rehabilitation
             </p>
-            <div className="mt-1.5 h-[2px] w-[220px] bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1]" />
+            <div className="mt-2 h-[2.5px] w-[300px] bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1]" />
           </div>
-          <div className="text-right text-[9px] leading-[1.5]">
-            <p>5881 NW 151st Street, Suite 112</p>
-            <p>Miami Lakes, FL 33014</p>
-            <p className="mt-1">6309 Corporate Court, Suite 100/103</p>
-            <p>Fort Myers, FL 33919</p>
-            <p className="mt-1 font-semibold text-[#41B6E6]">
-              T 786-362-5480 · F 786-362-5638
+          <div className="text-right text-[9.5px] leading-[1.7]">
+            <p>
+              <span className="mr-1.5 text-[#41B6E6]">●</span>
+              15165 NW 77th Ave, Suite 1001 · Miami Lakes, FL 33014
             </p>
-            <p className="text-[#41B6E6]">ProInjuryLLC@gmail.com</p>
+            <p>
+              <span className="mr-1.5 text-[#41B6E6]">●</span>
+              6309 Corporate Court, Suite 100/103 · Fort Myers, FL 33919
+            </p>
+            <p className="font-semibold">
+              <span className="mr-1 text-[#DB3EB1]">📞</span> 786-362-5480
+              <span className="mx-1.5 opacity-60">·</span>
+              <span className="mr-1">📠</span> 786-362-5638
+            </p>
+            <p className="font-semibold">
+              <span className="mr-1 text-[#41B6E6]">✉</span> admin@ProInjuryLLC.com
+            </p>
           </div>
         </div>
 

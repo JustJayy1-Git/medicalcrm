@@ -30,7 +30,9 @@ export async function saveClinicalDocument(formData: FormData) {
     if (typeof value === "string") payload[key] = value;
   });
 
-  const markComplete = formData.get("_complete") === "1";
+  // "_finish" (toolbar on the last document) both completes and navigates.
+  const finishNav = String(formData.get("_finish") ?? "");
+  const markComplete = formData.get("_complete") === "1" || Boolean(finishNav);
 
   await saveClinicalFormSection(supabase, caseId, section, payload, markComplete);
 
@@ -42,7 +44,7 @@ export async function saveClinicalDocument(formData: FormData) {
   revalidatePath(`/clinical/cases/${caseId}`);
   revalidatePath("/clinical");
 
-  const nav = String(formData.get("_nav") ?? "");
+  const nav = String(formData.get("_nav") ?? "") || finishNav;
   if (nav.startsWith("/clinical")) {
     redirect(nav);
   }

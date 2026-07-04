@@ -114,11 +114,11 @@ export default async function ClinicalDocPage({
           <button
             type="submit"
             form={formId}
-            name="_nav"
+            name={nextSlug ? "_nav" : "_finish"}
             value={nextSlug ? `${basePath}/${nextSlug}` : "/clinical"}
             className="rounded-md bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] px-3 py-1.5 text-xs font-bold uppercase text-white"
           >
-            {nextSlug ? "Save & next →" : "Save & finish"}
+            {nextSlug ? "Save & next →" : "Save, complete & finish"}
           </button>
         </div>
       </header>

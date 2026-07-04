@@ -766,30 +766,72 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
             />
           </Row>
 
-          <div className="grid grid-cols-2 gap-6 pt-4">
-            <div className="space-y-3">
+          <div className="space-y-8 pt-6">
+            <div className="grid grid-cols-[2fr_2fr_1fr] gap-8">
               <SignaturePad
                 name="physician_signature"
                 label="Physician Signature"
                 initialDataUrl={str(i, "physician_signature") || null}
-                heightPx={110}
+                heightPx={64}
+                variant="line"
               />
-              <div className="grid grid-cols-2 gap-3">
-                <PaperInline label="Physician Name" name="physician_name" defaultValue={str(i, "physician_name")} />
-                <PaperInline label="Date" name="physician_date" type="date" defaultValue={str(i, "physician_date") || today} />
-              </div>
+              <label className="block">
+                <span className="flex items-end" style={{ height: 64 }}>
+                  <input
+                    type="text"
+                    name="physician_name"
+                    defaultValue={str(i, "physician_name")}
+                    className="w-full border-0 border-b border-black bg-transparent px-1 pb-1 text-[12px] focus:outline-none"
+                    style={{ boxShadow: "none" }}
+                  />
+                </span>
+                <span className="mt-1 block text-[11px]">Physician Name</span>
+              </label>
+              <label className="block">
+                <span className="flex items-end" style={{ height: 64 }}>
+                  <input
+                    type="date"
+                    name="physician_date"
+                    defaultValue={str(i, "physician_date") || today}
+                    className="w-full border-0 border-b border-black bg-transparent px-1 pb-1 text-[12px] focus:outline-none"
+                    style={{ boxShadow: "none" }}
+                  />
+                </span>
+                <span className="mt-1 block text-[11px]">Date</span>
+              </label>
             </div>
-            <div className="space-y-3">
+            <div className="grid grid-cols-[2fr_2fr_1fr] gap-8">
               <SignaturePad
                 name="patient_signature"
                 label="Patient Signature"
                 initialDataUrl={str(i, "patient_signature") || null}
-                heightPx={110}
+                heightPx={64}
+                variant="line"
               />
-              <div className="grid grid-cols-2 gap-3">
-                <PaperInline label="Patient Name" name="patient_name_sig" defaultValue={str(i, "patient_name_sig") || patientName} />
-                <PaperInline label="Date" name="patient_date" type="date" defaultValue={str(i, "patient_date") || today} />
-              </div>
+              <label className="block">
+                <span className="flex items-end" style={{ height: 64 }}>
+                  <input
+                    type="text"
+                    name="patient_name_sig"
+                    defaultValue={str(i, "patient_name_sig") || patientName}
+                    className="w-full border-0 border-b border-black bg-transparent px-1 pb-1 text-[12px] focus:outline-none"
+                    style={{ boxShadow: "none" }}
+                  />
+                </span>
+                <span className="mt-1 block text-[11px]">Patient Name</span>
+              </label>
+              <label className="block">
+                <span className="flex items-end" style={{ height: 64 }}>
+                  <input
+                    type="date"
+                    name="patient_date"
+                    defaultValue={str(i, "patient_date") || today}
+                    className="w-full border-0 border-b border-black bg-transparent px-1 pb-1 text-[12px] focus:outline-none"
+                    style={{ boxShadow: "none" }}
+                  />
+                </span>
+                <span className="mt-1 block text-[11px]">Date</span>
+              </label>
             </div>
           </div>
         </div>
