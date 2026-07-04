@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { saveClinicalDocument } from "@/app/clinical/cases/[id]/actions";
 import { DOC_COMPONENTS } from "@/components/clinical/docs";
+import { ExamQuickButtons } from "@/components/clinical/exam-quick-buttons";
 import { getClinicalConsultation } from "@/lib/clinical/consultation";
 import {
   DOC_META,
@@ -176,6 +177,12 @@ export default async function ClinicalDocPage({
               ✓ Completed {new Date(completedAt).toLocaleString("en-US")} — you can
               still make corrections and re-save.
             </p>
+          ) : null}
+
+          {slug === "initial-evaluation" ? (
+            <div className="mt-4">
+              <ExamQuickButtons />
+            </div>
           ) : null}
 
           <Doc

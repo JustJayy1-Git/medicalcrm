@@ -7,6 +7,7 @@ import {
   saveClinicalFormSection,
   type ClinicalSection,
 } from "@/lib/clinical/consultation";
+import { createInitialConsultCharge } from "@/lib/clinical/billing";
 import { createClient } from "@/lib/supabase/server";
 
 const SECTIONS: ClinicalSection[] = ["nofa", "emc", "initial_report", "follow_up"];
@@ -41,6 +42,14 @@ export async function saveClinicalDocument(formData: FormData) {
   // Completing the follow-up note does the same for follow-up visits.
   if (finishNav || (section === "follow_up" && markComplete)) {
     await completeClinicalFollowUp(supabase, caseId);
+
+    // Bill the initial consult (99204) when the initial packet is finished.
+    try {
+      await createInitialConsultCharge({ supabase, caseId, createdBy: user.id });
+    } catch (err) {
+      // Never block the clinical hand-off on billing; enter manually if needed.
+      console.error("initial consult billing failed:", err);
+    }
   }
 
   revalidatePath(`/clinical/cases/${caseId}`);
