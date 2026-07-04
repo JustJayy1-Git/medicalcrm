@@ -2,7 +2,56 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-/** Common therapy services shown as checkboxes on the session sheet. */
+/**
+ * THERAPY PROCEDURE list from the practice's paper Therapy SOAP Note —
+ * codes and labels verbatim (including the sheet's spellings), in the
+ * printed column order. These CPT codes drive billing capture.
+ */
+export const SOAP_PROCEDURES = [
+  { code: "97034", label: "Contrast Paht" },
+  { code: "97039", label: "Hydrotherapy" },
+  { code: "97035", label: "Ultrasound" },
+  { code: "97018", label: "Parafin" },
+  { code: "97140", label: "Manual Therapy" },
+  { code: "97530", label: "Therapeutic Activities" },
+  { code: "97116", label: "Get Training" },
+  { code: "97032", label: "EMS" },
+  { code: "97014", label: "Electric Stimulation" },
+  { code: "97124", label: "Massage" },
+  { code: "97110", label: "Therapeutic Excercises" },
+  { code: "97535", label: "Home Training" },
+  { code: "E0730", label: "Tens Unit" },
+  { code: "E0230", label: "Flexi-Pack" },
+  { code: "97112", label: "Neuromuscre..ed" },
+  { code: "97025", label: "Infrard" },
+  { code: "97012", label: "Mech Traction" },
+  { code: "97022", label: "Whirpool" },
+  { code: "97010", label: "Hot Pack" },
+  { code: "S8943", label: "Laser Therapy" },
+  { code: "99211", label: "Vital Signs/Blood Pres." },
+] as const;
+
+export const SOAP_PROCEDURE_LABELS = new Map<string, string>(
+  SOAP_PROCEDURES.map((p) => [p.code, p.label]),
+);
+
+/** CPT codes marked on a saved session (new proc_* keys or legacy array). */
+export function sessionProcedureCodes(json: Record<string, unknown>): string[] {
+  const codes: string[] = [];
+  for (const key of Object.keys(json)) {
+    if (key.startsWith("proc_") && (json[key] === "1" || json[key] === true)) {
+      codes.push(key.slice(5));
+    }
+  }
+  if (Array.isArray(json.services)) {
+    for (const c of json.services as string[]) {
+      if (!codes.includes(c)) codes.push(c);
+    }
+  }
+  return codes;
+}
+
+/** @deprecated Legacy simple list — kept for old saved sessions. */
 export const THERAPY_SERVICES = [
   { code: "97124", label: "Massage therapy" },
   { code: "97140", label: "Manual therapy" },

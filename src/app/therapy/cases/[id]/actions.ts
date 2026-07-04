@@ -43,17 +43,12 @@ export async function addTherapySessionAction(formData: FormData) {
     throw new Error("Invalid therapy session submission");
   }
 
+  // Full SOAP-note payload — proc_* keys carry the CPT codes for billing.
   const payload: Record<string, unknown> = {};
-  const services: string[] = [];
   formData.forEach((value, key) => {
     if (key === "case_id" || key === "patient_id" || key === "session_date") return;
-    if (key === "services") {
-      if (typeof value === "string") services.push(value);
-      return;
-    }
     if (typeof value === "string") payload[key] = value;
   });
-  payload.services = services;
 
   await addTherapySession({
     supabase,

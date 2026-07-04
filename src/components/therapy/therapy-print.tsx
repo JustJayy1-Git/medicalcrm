@@ -6,17 +6,14 @@ import { ConsentForTherapyBody } from "@/components/therapy/consent-doc";
 import {
   getTherapyCase,
   listTherapySessions,
-  THERAPY_SERVICES,
+  SOAP_PROCEDURE_LABELS,
+  sessionProcedureCodes,
 } from "@/lib/therapy/therapy";
 
 function fmtDate(d: string | null | undefined) {
   if (!d) return "";
   return new Date(`${d}T12:00:00`).toLocaleDateString("en-US");
 }
-
-const SERVICE_LABELS = new Map<string, string>(
-  THERAPY_SERVICES.map((s) => [s.code, s.label]),
-);
 
 const PRINT_CSS = `
   @media print {
@@ -97,7 +94,7 @@ export async function TherapyPrint({
             <table className="w-full border-collapse text-[10.5px]">
               <thead>
                 <tr>
-                  {["Date", "Services (CPT)", "Body areas", "Min", "Pain", "Notes"].map((h) => (
+                  {["Date", "Procedures (CPT)", "Pain", "Notes"].map((h) => (
                     <th
                       key={h}
                       className="border border-black/40 bg-black/5 px-2 py-1.5 text-left text-[8.5px] font-bold uppercase tracking-wider"
@@ -110,7 +107,7 @@ export async function TherapyPrint({
               <tbody>
                 {sessions.map((s) => {
                   const j = (s.session_json ?? {}) as Record<string, unknown>;
-                  const codes = Array.isArray(j.services) ? (j.services as string[]) : [];
+                  const codes = sessionProcedureCodes(j);
                   return (
                     <tr key={s.id as string}>
                       <td className="border border-black/40 px-2 py-1.5 whitespace-nowrap">
@@ -119,15 +116,9 @@ export async function TherapyPrint({
                       <td className="border border-black/40 px-2 py-1.5">
                         {codes.length
                           ? codes
-                              .map((c) => `${SERVICE_LABELS.get(c) ?? c} (${c})`)
+                              .map((c) => `${SOAP_PROCEDURE_LABELS.get(c) ?? c} (${c})`)
                               .join(", ")
                           : "—"}
-                      </td>
-                      <td className="border border-black/40 px-2 py-1.5">
-                        {String(j.body_areas ?? "")}
-                      </td>
-                      <td className="border border-black/40 px-2 py-1.5 text-right">
-                        {String(j.duration_minutes ?? "")}
                       </td>
                       <td className="border border-black/40 px-2 py-1.5 text-right">
                         {String(j.pain_level ?? "")}

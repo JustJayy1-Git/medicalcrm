@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ConsentForTherapyForm } from "@/components/therapy/consent-doc";
-import { TherapySessionForm } from "@/components/therapy/therapy-session-form";
+import { TherapySoapNoteForm } from "@/components/therapy/soap-note-doc";
 import {
   getTherapyCase,
   listTherapySessions,
-  THERAPY_SERVICES,
+  SOAP_PROCEDURE_LABELS,
+  sessionProcedureCodes,
 } from "@/lib/therapy/therapy";
 import { createClient } from "@/lib/supabase/server";
 import { sendCaseToNpFollowUp } from "@/app/cases/[id]/followup-action";
@@ -21,10 +22,6 @@ function one<T>(v: T | T[] | null | undefined): T | null {
   if (!v) return null;
   return Array.isArray(v) ? (v[0] ?? null) : v;
 }
-
-const SERVICE_LABELS = new Map<string, string>(
-  THERAPY_SERVICES.map((s) => [s.code, s.label]),
-);
 
 export default async function TherapyCasePage({
   params,
@@ -163,12 +160,18 @@ export default async function TherapyCasePage({
           </section>
         )}
 
-        <TherapySessionForm
-          caseId={caseId}
-          patientId={patient.id}
-          services={THERAPY_SERVICES}
-          defaultDate={today}
-        />
+        <section>
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.25em] text-neon-pink">
+            Today&apos;s visit — new Therapy SOAP Note
+          </p>
+          <TherapySoapNoteForm
+            caseId={caseId}
+            patientId={patient.id}
+            patientName={patientName}
+            today={today}
+            ident={ident}
+          />
+        </section>
 
         <section className="lux-card rounded-xl border border-vice-border bg-white p-6 shadow-sm">
           <h2 className="text-xl font-serif font-semibold text-eggplant-900 mb-4">
@@ -180,9 +183,11 @@ export default async function TherapyCasePage({
             <ul className="divide-y divide-vice-border">
               {sessions.map((s) => {
                 const j = (s.session_json ?? {}) as Record<string, unknown>;
-                const codes = Array.isArray(j.services) ? (j.services as string[]) : [];
+                const codes = sessionProcedureCodes(j);
                 const serviceText = codes.length
-                  ? codes.map((c) => SERVICE_LABELS.get(c) ?? c).join(", ")
+                  ? codes
+                      .map((c) => `${SOAP_PROCEDURE_LABELS.get(c) ?? c} (${c})`)
+                      .join(", ")
                   : "—";
                 return (
                   <li key={s.id as string} className="py-3">
