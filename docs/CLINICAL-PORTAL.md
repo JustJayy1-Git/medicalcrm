@@ -35,9 +35,10 @@ The `/clinical` home shows two queues: **Initial consultation queue** and
 document bodies: `src/components/clinical/docs.tsx`; packet orders:
 `src/lib/clinical/doc-slugs.ts`.
 
-**EMC and No-Fault are still placeholder wording** — when the practice's real
-EMC and NOFA state forms are uploaded, transcribe them verbatim (the Initial
-Evaluation is already transcribed from the uploaded PDF; do not paraphrase).
+All three initial documents are **verbatim transcriptions** of the practice's
+paperwork: the 8-page Initial Evaluation, the Notice of Emergency Medical
+Condition, and the Florida OIR Standard Disclosure and Acknowledgement Form
+(No-Fault / PIP). Do not paraphrase their wording when editing.
 
 Documents are stored in `clinical_consultations` (`nofa_json`, `emc_json`,
 `initial_report_json`, `followup_json`) with per-document `*_completed_at`.
