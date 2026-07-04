@@ -24,7 +24,7 @@ export async function saveTherapyConsentAction(formData: FormData) {
 
   const payload: Record<string, unknown> = {};
   formData.forEach((value, key) => {
-    if (key === "case_id" || key === "patient_id") return;
+    if (key === "case_id" || key === "patient_id" || key.startsWith("_")) return;
     if (typeof value === "string") payload[key] = value;
   });
 
@@ -32,6 +32,12 @@ export async function saveTherapyConsentAction(formData: FormData) {
 
   revalidatePath(`/therapy/cases/${caseId}`);
   revalidatePath("/therapy");
+
+  // Step flow: after the consent is saved, move on to the therapy sheet.
+  const nav = String(formData.get("_nav") ?? "");
+  if (nav.startsWith("/therapy")) {
+    redirect(nav);
+  }
 }
 
 export async function addTherapySessionAction(formData: FormData) {

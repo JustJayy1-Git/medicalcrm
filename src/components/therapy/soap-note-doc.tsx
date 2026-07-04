@@ -147,6 +147,7 @@ export function TherapySoapNoteForm({
   initial = {},
   readOnly = false,
   sessionDate,
+  formId,
 }: {
   caseId?: string;
   patientId?: string;
@@ -155,6 +156,7 @@ export function TherapySoapNoteForm({
   initial?: Record<string, unknown>;
   readOnly?: boolean;
   sessionDate?: string;
+  formId?: string;
 }) {
   const i = initial;
 
@@ -483,7 +485,7 @@ export function TherapySoapNoteForm({
   }
 
   return (
-    <form action={addTherapySessionAction}>
+    <form id={formId} action={addTherapySessionAction}>
       <input type="hidden" name="case_id" value={caseId} />
       <input type="hidden" name="patient_id" value={patientId} />
       {sheet}

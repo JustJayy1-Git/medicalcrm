@@ -138,7 +138,7 @@ export function ConsentForTherapyBody({
               type="submit"
               className="rounded-md bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] px-6 py-2.5 text-[12px] font-bold uppercase tracking-wider text-white shadow-sm"
             >
-              Save consent
+              Save consent &amp; start therapy →
             </button>
           </div>
         ) : null}
@@ -155,6 +155,8 @@ export function ConsentForTherapyForm({
   patientName,
   today,
   ident,
+  formId,
+  navAfterSave,
 }: {
   caseId: string;
   patientId: string;
@@ -162,11 +164,14 @@ export function ConsentForTherapyForm({
   patientName: string;
   today: string;
   ident: Array<{ label: string; value: string }>;
+  formId?: string;
+  navAfterSave?: string;
 }) {
   return (
-    <form action={saveTherapyConsentAction}>
+    <form id={formId} action={saveTherapyConsentAction}>
       <input type="hidden" name="case_id" value={caseId} />
       <input type="hidden" name="patient_id" value={patientId} />
+      {navAfterSave ? <input type="hidden" name="_nav" value={navAfterSave} /> : null}
       <ConsentForTherapyBody
         initial={initial}
         patientName={patientName}
