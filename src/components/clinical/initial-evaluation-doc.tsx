@@ -7,9 +7,10 @@ import { SignaturePad } from "@/components/signature-pad";
 import type { ReactNode } from "react";
 
 /**
- * Faithful digital version of the practice's paper "Initial Evaluation"
- * (8 pages). Section wording, options, and order mirror the original
- * document — do not paraphrase when editing.
+ * Faithful digital version of the practice's paper "Initial Evaluation".
+ * Section wording, options, and order mirror the original document — do not
+ * paraphrase when editing. Repacked to 6 sheets with fixed column grids so
+ * Absent/Present, ROM, and Yes/No rows align and less paper prints.
  */
 
 type DocProps = {
@@ -28,7 +29,7 @@ function checked(initial: Record<string, unknown>, key: string): boolean {
 
 function SectionTitle({ children }: { children: ReactNode }) {
   return (
-    <h2 className="m-0 border-b border-black/60 pb-0.5 text-[11.5px] font-extrabold uppercase tracking-[0.04em]">
+    <h2 className="m-0 mt-2 border-b border-black/60 pb-0.5 text-[11px] font-extrabold uppercase tracking-[0.04em]">
       {children}
     </h2>
   );
@@ -36,13 +37,22 @@ function SectionTitle({ children }: { children: ReactNode }) {
 
 function Row({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`flex flex-wrap items-baseline gap-x-4 gap-y-1 ${className}`.trim()}>
+    <div className={`flex flex-wrap items-baseline gap-x-3 gap-y-0.5 ${className}`.trim()}>
       {children}
     </div>
   );
 }
 
-/** "Label: [ ] Absent  [ ] Present" + optional trailing extras. */
+/** Fixed-width slot so checkbox columns line up across rows. */
+function Slot({ w, children }: { w: number; children: ReactNode }) {
+  return (
+    <span className="inline-block shrink-0" style={{ width: w }}>
+      {children}
+    </span>
+  );
+}
+
+/** "Label: [ ] Absent  [ ] Present" with aligned columns + trailing extras. */
 function AbsentPresent({
   i,
   label,
@@ -56,9 +66,13 @@ function AbsentPresent({
 }) {
   return (
     <Row>
-      <span className="w-[110px] shrink-0 text-[11px] font-semibold">{label}:</span>
-      <PaperCheck name={`${name}_absent`} label="Absent" defaultChecked={checked(i, `${name}_absent`)} />
-      <PaperCheck name={`${name}_present`} label="Present" defaultChecked={checked(i, `${name}_present`)} />
+      <span className="w-[105px] shrink-0 text-[10.5px] font-semibold">{label}:</span>
+      <Slot w={62}>
+        <PaperCheck name={`${name}_absent`} label="Absent" defaultChecked={checked(i, `${name}_absent`)} />
+      </Slot>
+      <Slot w={68}>
+        <PaperCheck name={`${name}_present`} label="Present" defaultChecked={checked(i, `${name}_present`)} />
+      </Slot>
       {extras}
     </Row>
   );
@@ -67,15 +81,19 @@ function AbsentPresent({
 function RL({ i, name }: { i: Record<string, unknown>; name: string }) {
   return (
     <>
-      <PaperCheck name={`${name}_r`} label="(R)" defaultChecked={checked(i, `${name}_r`)} />
-      <PaperCheck name={`${name}_l`} label="(L)" defaultChecked={checked(i, `${name}_l`)} />
+      <Slot w={40}>
+        <PaperCheck name={`${name}_r`} label="(R)" defaultChecked={checked(i, `${name}_r`)} />
+      </Slot>
+      <Slot w={40}>
+        <PaperCheck name={`${name}_l`} label="(L)" defaultChecked={checked(i, `${name}_l`)} />
+      </Slot>
     </>
   );
 }
 
 function Levels({ i, name, levels }: { i: Record<string, unknown>; name: string; levels: string[] }) {
   return (
-    <span className="flex flex-wrap items-baseline gap-x-2">
+    <span className="flex flex-wrap items-baseline gap-x-1.5">
       {levels.map((lv) => (
         <PaperCheck
           key={lv}
@@ -88,7 +106,7 @@ function Levels({ i, name, levels }: { i: Record<string, unknown>; name: string;
   );
 }
 
-/** ROM line: "Flexion  [ ] Normal (40°)  [ ] Pain  [ ] Decreased" */
+/** ROM line with aligned Normal / Pain / Decreased columns. */
 function Rom({
   i,
   label,
@@ -102,10 +120,16 @@ function Rom({
 }) {
   return (
     <Row>
-      <span className="w-[110px] shrink-0 text-[11px]">{label}</span>
-      <PaperCheck name={`${name}_normal`} label={`Normal (${deg})`} defaultChecked={checked(i, `${name}_normal`)} />
-      <PaperCheck name={`${name}_pain`} label="Pain" defaultChecked={checked(i, `${name}_pain`)} />
-      <PaperCheck name={`${name}_decreased`} label="Decreased" defaultChecked={checked(i, `${name}_decreased`)} />
+      <span className="w-[105px] shrink-0 text-[10.5px]">{label}</span>
+      <Slot w={128}>
+        <PaperCheck name={`${name}_normal`} label={`Normal (${deg})`} defaultChecked={checked(i, `${name}_normal`)} />
+      </Slot>
+      <Slot w={56}>
+        <PaperCheck name={`${name}_pain`} label="Pain" defaultChecked={checked(i, `${name}_pain`)} />
+      </Slot>
+      <Slot w={90}>
+        <PaperCheck name={`${name}_decreased`} label="Decreased" defaultChecked={checked(i, `${name}_decreased`)} />
+      </Slot>
     </Row>
   );
 }
@@ -113,11 +137,33 @@ function Rom({
 function RomRestrictions({ i, name }: { i: Record<string, unknown>; name: string }) {
   return (
     <Row>
-      <span className="text-[11px] font-semibold">Ranges of Motion:</span>
-      <PaperCheck name={`${name}_restrictions`} label="Restrictions" defaultChecked={checked(i, `${name}_restrictions`)} />
-      <PaperCheck name={`${name}_mild`} label="Mild" defaultChecked={checked(i, `${name}_mild`)} />
-      <PaperCheck name={`${name}_moderate`} label="Moderate" defaultChecked={checked(i, `${name}_moderate`)} />
-      <PaperCheck name={`${name}_severe`} label="Severe" defaultChecked={checked(i, `${name}_severe`)} />
+      <span className="w-[105px] shrink-0 text-[10.5px] font-semibold">Ranges of Motion:</span>
+      <Slot w={92}>
+        <PaperCheck name={`${name}_restrictions`} label="Restrictions" defaultChecked={checked(i, `${name}_restrictions`)} />
+      </Slot>
+      <Slot w={52}>
+        <PaperCheck name={`${name}_mild`} label="Mild" defaultChecked={checked(i, `${name}_mild`)} />
+      </Slot>
+      <Slot w={76}>
+        <PaperCheck name={`${name}_moderate`} label="Moderate" defaultChecked={checked(i, `${name}_moderate`)} />
+      </Slot>
+      <Slot w={60}>
+        <PaperCheck name={`${name}_severe`} label="Severe" defaultChecked={checked(i, `${name}_severe`)} />
+      </Slot>
+    </Row>
+  );
+}
+
+function Strength({ i, name }: { i: Record<string, unknown>; name: string }) {
+  return (
+    <Row>
+      <span className="w-[105px] shrink-0 text-[10.5px] font-semibold">Muscle Strength</span>
+      <Slot w={62}>
+        <PaperCheck name={`${name}_normal`} label="Normal" defaultChecked={checked(i, `${name}_normal`)} />
+      </Slot>
+      <Slot w={90}>
+        <PaperCheck name={`${name}_decreased`} label="Decreased" defaultChecked={checked(i, `${name}_decreased`)} />
+      </Slot>
     </Row>
   );
 }
@@ -125,9 +171,13 @@ function RomRestrictions({ i, name }: { i: Record<string, unknown>; name: string
 function YesNo({ i, label, name }: { i: Record<string, unknown>; label: string; name: string }) {
   return (
     <Row>
-      <span className="min-w-[150px] text-[11px]">{label}</span>
-      <PaperCheck name={`${name}_yes`} label="Yes" defaultChecked={checked(i, `${name}_yes`)} />
-      <PaperCheck name={`${name}_no`} label="No" defaultChecked={checked(i, `${name}_no`)} />
+      <span className="w-[150px] shrink-0 text-[10.5px]">{label}</span>
+      <Slot w={44}>
+        <PaperCheck name={`${name}_yes`} label="Yes" defaultChecked={checked(i, `${name}_yes`)} />
+      </Slot>
+      <Slot w={40}>
+        <PaperCheck name={`${name}_no`} label="No" defaultChecked={checked(i, `${name}_no`)} />
+      </Slot>
     </Row>
   );
 }
@@ -145,19 +195,25 @@ function PainBlock({
   freeTitle?: boolean;
 }) {
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-0.5">
       {freeTitle ? (
         <PaperInline label="Pain:" name={`${name}_site`} defaultValue={str(i, `${name}_site`)} className="max-w-md font-extrabold" />
       ) : (
-        <p className="m-0 text-[11.5px] font-extrabold">{title}</p>
+        <p className="m-0 text-[11px] font-extrabold">{title}</p>
       )}
       <Row>
-        <PaperCheck name={`${name}_constant`} label="Constant/Comes and goes" defaultChecked={checked(i, `${name}_constant`)} />
-        <PaperCheck name={`${name}_sharp`} label="Sharp/Dull" defaultChecked={checked(i, `${name}_sharp`)} />
-        <PaperCheck name={`${name}_achy`} label="Achy/Tightness" defaultChecked={checked(i, `${name}_achy`)} />
+        <Slot w={172}>
+          <PaperCheck name={`${name}_constant`} label="Constant/Comes and goes" defaultChecked={checked(i, `${name}_constant`)} />
+        </Slot>
+        <Slot w={82}>
+          <PaperCheck name={`${name}_sharp`} label="Sharp/Dull" defaultChecked={checked(i, `${name}_sharp`)} />
+        </Slot>
+        <Slot w={110}>
+          <PaperCheck name={`${name}_achy`} label="Achy/Tightness" defaultChecked={checked(i, `${name}_achy`)} />
+        </Slot>
       </Row>
       <Row>
-        <span className="text-[11px]">-Scale Pain</span>
+        <span className="w-[80px] shrink-0 text-[10.5px]">-Scale Pain</span>
         <Levels i={i} name={`${name}_scale`} levels={["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]} />
       </Row>
       <PaperInline label="Radiating/Tingling/Numbness:" name={`${name}_radiating`} defaultValue={str(i, `${name}_radiating`)} />
@@ -193,39 +249,84 @@ const MEDICAL_HISTORY_RIGHT: Array<[string, string]> = [
   ["Post menopausal", "mh_menopausal"],
 ];
 
+function SigCell({
+  i,
+  name,
+  label,
+  type = "text",
+  defaultValue,
+}: {
+  i: Record<string, unknown>;
+  name: string;
+  label: string;
+  type?: "text" | "date";
+  defaultValue?: string;
+}) {
+  return (
+    <label className="block">
+      <span className="flex items-end" style={{ height: 56 }}>
+        <input
+          type={type}
+          name={name}
+          defaultValue={str(i, name) || defaultValue || ""}
+          className="w-full border-0 border-b border-black bg-transparent px-1 pb-1 text-[12px] focus:outline-none"
+          style={{ boxShadow: "none" }}
+        />
+      </span>
+      <span className="mt-1 block text-[11px]">{label}</span>
+    </label>
+  );
+}
+
 export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProps) {
-  const T = 8;
+  const T = 6;
   return (
     <>
-      {/* ---------------------------------------------------------- page 1 */}
+      {/* ------------------------------------------------- page 1 of 6 */}
       <PaperSheet title="Initial Evaluation" page={1} totalPages={T}>
-        <div className="space-y-2 px-6 pt-3">
+        <div className="space-y-1 px-6 pt-2">
           <div className="grid grid-cols-[2fr_1fr] gap-4">
             <PaperInline label="Patient Name:" name="patient_name" defaultValue={str(i, "patient_name") || patientName} />
             <PaperInline label="Date:" name="eval_date" type="date" defaultValue={str(i, "eval_date") || today} />
           </div>
           <Row>
-            <span className="text-[11px] font-semibold">Type of Case:</span>
-            <PaperCheck name="case_accident" label="Accident" defaultChecked={checked(i, "case_accident")} />
-            <PaperCheck name="case_slip_fall" label="Slip & Fall" defaultChecked={checked(i, "case_slip_fall")} />
-            <PaperInline label="Other:" name="case_other" defaultValue={str(i, "case_other")} className="min-w-[180px] flex-1" />
+            <span className="text-[10.5px] font-semibold">Type of Case:</span>
+            <Slot w={78}>
+              <PaperCheck name="case_accident" label="Accident" defaultChecked={checked(i, "case_accident")} />
+            </Slot>
+            <Slot w={88}>
+              <PaperCheck name="case_slip_fall" label="Slip & Fall" defaultChecked={checked(i, "case_slip_fall")} />
+            </Slot>
+            <PaperInline label="Other:" name="case_other" defaultValue={str(i, "case_other")} className="min-w-[160px] flex-1" />
           </Row>
           <Row>
-            <PaperInline label="Date of accident:" name="accident_date" type="date" defaultValue={str(i, "accident_date")} className="min-w-[220px]" />
-            <span className="text-[11px] font-semibold">Previous Accident</span>
-            <PaperCheck name="prev_accident_yes" label="Yes" defaultChecked={checked(i, "prev_accident_yes")} />
-            <PaperCheck name="prev_accident_no" label="No" defaultChecked={checked(i, "prev_accident_no")} />
-            <PaperInline label="When:" name="prev_accident_when" defaultValue={str(i, "prev_accident_when")} className="min-w-[160px] flex-1" />
+            <PaperInline label="Date of accident:" name="accident_date" type="date" defaultValue={str(i, "accident_date")} className="min-w-[210px]" />
+            <span className="text-[10.5px] font-semibold">Previous Accident</span>
+            <Slot w={44}>
+              <PaperCheck name="prev_accident_yes" label="Yes" defaultChecked={checked(i, "prev_accident_yes")} />
+            </Slot>
+            <Slot w={40}>
+              <PaperCheck name="prev_accident_no" label="No" defaultChecked={checked(i, "prev_accident_no")} />
+            </Slot>
+            <PaperInline label="When:" name="prev_accident_when" defaultValue={str(i, "prev_accident_when")} className="min-w-[140px] flex-1" />
           </Row>
           <Row>
-            <PaperInline label="Date of Birth:" name="dob" type="date" defaultValue={str(i, "dob")} className="min-w-[190px]" />
-            <PaperInline label="Age:" name="age" defaultValue={str(i, "age")} className="w-[90px]" />
-            <span className="text-[11px] font-semibold">Sex:</span>
-            <PaperCheck name="sex_f" label="F" defaultChecked={checked(i, "sex_f")} />
-            <span className="text-[11px]">(Pregnant):</span>
-            <PaperCheck name="pregnant_yes" label="Yes" defaultChecked={checked(i, "pregnant_yes")} />
-            <PaperCheck name="pregnant_no" label="No" defaultChecked={checked(i, "pregnant_no")} />
-            <PaperCheck name="sex_m" label="M" defaultChecked={checked(i, "sex_m")} />
+            <PaperInline label="Date of Birth:" name="dob" type="date" defaultValue={str(i, "dob")} className="min-w-[185px]" />
+            <PaperInline label="Age:" name="age" defaultValue={str(i, "age")} className="w-[80px]" />
+            <span className="text-[10.5px] font-semibold">Sex:</span>
+            <Slot w={32}>
+              <PaperCheck name="sex_f" label="F" defaultChecked={checked(i, "sex_f")} />
+            </Slot>
+            <span className="text-[10.5px]">(Pregnant):</span>
+            <Slot w={44}>
+              <PaperCheck name="pregnant_yes" label="Yes" defaultChecked={checked(i, "pregnant_yes")} />
+            </Slot>
+            <Slot w={40}>
+              <PaperCheck name="pregnant_no" label="No" defaultChecked={checked(i, "pregnant_no")} />
+            </Slot>
+            <Slot w={32}>
+              <PaperCheck name="sex_m" label="M" defaultChecked={checked(i, "sex_m")} />
+            </Slot>
           </Row>
           <div className="grid grid-cols-6 gap-3">
             <PaperInline label="Height:" name="height" defaultValue={str(i, "height")} />
@@ -238,77 +339,109 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
 
           <SectionTitle>History:</SectionTitle>
           <Row>
-            <span className="text-[11px] font-semibold">Patient was:</span>
-            <PaperCheck name="pos_driver" label="Driver" defaultChecked={checked(i, "pos_driver")} />
-            <PaperCheck name="pos_front" label="Front Passenger" defaultChecked={checked(i, "pos_front")} />
+            <span className="w-[105px] shrink-0 text-[10.5px] font-semibold">Patient was:</span>
+            <Slot w={62}>
+              <PaperCheck name="pos_driver" label="Driver" defaultChecked={checked(i, "pos_driver")} />
+            </Slot>
+            <Slot w={128}>
+              <PaperCheck name="pos_front" label="Front Passenger" defaultChecked={checked(i, "pos_front")} />
+            </Slot>
             <PaperCheck name="pos_back" label="Back Passenger (R/L)" defaultChecked={checked(i, "pos_back")} />
           </Row>
           <Row>
-            <span className="text-[11px] font-semibold">Accident occurred:</span>
-            <PaperCheck name="occ_morning" label="Morning" defaultChecked={checked(i, "occ_morning")} />
-            <PaperCheck name="occ_afternoon" label="Afternoon" defaultChecked={checked(i, "occ_afternoon")} />
+            <span className="w-[105px] shrink-0 text-[10.5px] font-semibold">Accident occurred:</span>
+            <Slot w={72}>
+              <PaperCheck name="occ_morning" label="Morning" defaultChecked={checked(i, "occ_morning")} />
+            </Slot>
+            <Slot w={128}>
+              <PaperCheck name="occ_afternoon" label="Afternoon" defaultChecked={checked(i, "occ_afternoon")} />
+            </Slot>
             <PaperCheck name="occ_evening" label="Evening" defaultChecked={checked(i, "occ_evening")} />
           </Row>
           <PaperInline label="How did it happen?" name="how_happened" defaultValue={str(i, "how_happened")} />
           <Row>
-            <span className="text-[11px] font-semibold">Patient was:</span>
-            <PaperCheck name="conscious" label="Conscious" defaultChecked={checked(i, "conscious")} />
+            <span className="w-[105px] shrink-0 text-[10.5px] font-semibold">Patient was:</span>
+            <Slot w={90}>
+              <PaperCheck name="conscious" label="Conscious" defaultChecked={checked(i, "conscious")} />
+            </Slot>
             <PaperCheck name="unconscious" label="Unconscious" defaultChecked={checked(i, "unconscious")} />
           </Row>
           <Row>
-            <span className="text-[11px] font-semibold">Seat belt:</span>
-            <PaperCheck name="seatbelt_yes" label="Yes" defaultChecked={checked(i, "seatbelt_yes")} />
-            <PaperCheck name="seatbelt_no" label="No" defaultChecked={checked(i, "seatbelt_no")} />
-            <span className="ml-6 text-[11px] font-semibold">Airbag Deployed</span>
-            <PaperCheck name="airbag_yes" label="Yes" defaultChecked={checked(i, "airbag_yes")} />
-            <PaperCheck name="airbag_no" label="No" defaultChecked={checked(i, "airbag_no")} />
+            <span className="w-[105px] shrink-0 text-[10.5px] font-semibold">Seat belt:</span>
+            <Slot w={44}>
+              <PaperCheck name="seatbelt_yes" label="Yes" defaultChecked={checked(i, "seatbelt_yes")} />
+            </Slot>
+            <Slot w={40}>
+              <PaperCheck name="seatbelt_no" label="No" defaultChecked={checked(i, "seatbelt_no")} />
+            </Slot>
+            <span className="text-[10.5px] font-semibold">Airbag Deployed</span>
+            <Slot w={44}>
+              <PaperCheck name="airbag_yes" label="Yes" defaultChecked={checked(i, "airbag_yes")} />
+            </Slot>
+            <Slot w={40}>
+              <PaperCheck name="airbag_no" label="No" defaultChecked={checked(i, "airbag_no")} />
+            </Slot>
           </Row>
           <Row>
-            <span className="text-[11px] font-semibold">When did first symptoms appear?</span>
-            <PaperCheck name="sym_right_away" label="Right away" defaultChecked={checked(i, "sym_right_away")} />
-            <PaperCheck name="sym_next_day" label="Couple hrs later / Next day" defaultChecked={checked(i, "sym_next_day")} />
+            <span className="text-[10.5px] font-semibold">When did first symptoms appear?</span>
+            <Slot w={90}>
+              <PaperCheck name="sym_right_away" label="Right away" defaultChecked={checked(i, "sym_right_away")} />
+            </Slot>
+            <Slot w={190}>
+              <PaperCheck name="sym_next_day" label="Couple hrs later / Next day" defaultChecked={checked(i, "sym_next_day")} />
+            </Slot>
             <PaperCheck name="sym_days_later" label="Days later" defaultChecked={checked(i, "sym_days_later")} />
           </Row>
           <Row>
-            <span className="text-[11px] font-semibold">Did the patient go to the hospital?</span>
-            <PaperCheck name="hospital_yes" label="Yes" defaultChecked={checked(i, "hospital_yes")} />
-            <PaperCheck name="hospital_no" label="No" defaultChecked={checked(i, "hospital_no")} />
+            <span className="text-[10.5px] font-semibold">Did the patient go to the hospital?</span>
+            <Slot w={44}>
+              <PaperCheck name="hospital_yes" label="Yes" defaultChecked={checked(i, "hospital_yes")} />
+            </Slot>
+            <Slot w={40}>
+              <PaperCheck name="hospital_no" label="No" defaultChecked={checked(i, "hospital_no")} />
+            </Slot>
           </Row>
 
           <SectionTitle>Medical History</SectionTitle>
           <Row>
-            <PaperCheck name="med_allergies" label="Medications Allergies" defaultChecked={checked(i, "med_allergies")} />
+            <Slot w={160}>
+              <PaperCheck name="med_allergies" label="Medications Allergies" defaultChecked={checked(i, "med_allergies")} />
+            </Slot>
             <PaperCheck name="food_allergies" label="Food Allergies" defaultChecked={checked(i, "food_allergies")} />
           </Row>
           <YesNo i={i} label="Do you take any medication at this time?" name="takes_medication" />
           <Row>
-            <PaperInline label="Surgeries:" name="surgeries" defaultValue={str(i, "surgeries")} className="min-w-[220px] flex-1" />
-            <PaperInline label="If yes when?" name="surgeries_when" defaultValue={str(i, "surgeries_when")} className="min-w-[180px] flex-1" />
+            <PaperInline label="Surgeries:" name="surgeries" defaultValue={str(i, "surgeries")} className="min-w-[210px] flex-1" />
+            <PaperInline label="If yes when?" name="surgeries_when" defaultValue={str(i, "surgeries_when")} className="min-w-[170px] flex-1" />
           </Row>
           <Row>
-            <PaperCheck name="smoke" label="Smoke" defaultChecked={checked(i, "smoke")} />
-            <PaperCheck name="alcohol" label="Alcohol" defaultChecked={checked(i, "alcohol")} />
+            <Slot w={62}>
+              <PaperCheck name="smoke" label="Smoke" defaultChecked={checked(i, "smoke")} />
+            </Slot>
+            <Slot w={64}>
+              <PaperCheck name="alcohol" label="Alcohol" defaultChecked={checked(i, "alcohol")} />
+            </Slot>
             <PaperCheck name="coffee" label="Coffee" defaultChecked={checked(i, "coffee")} />
           </Row>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-1">
-            <div className="space-y-1">
+          <div className="grid grid-cols-2 gap-x-8 gap-y-0.5">
+            <div className="space-y-0.5">
               {MEDICAL_HISTORY_LEFT.map(([label, name]) => (
                 <YesNo key={name} i={i} label={label} name={name} />
               ))}
             </div>
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {MEDICAL_HISTORY_RIGHT.map(([label, name]) => (
                 <YesNo key={name} i={i} label={label} name={name} />
               ))}
             </div>
           </div>
         </div>
-        <div className="h-6" />
+        <div className="h-2" />
       </PaperSheet>
 
-      {/* ---------------------------------------------------------- page 2 */}
-      <PaperSheet title="Initial Evaluation — Chief Complaint" page={2} totalPages={T}>
-        <div className="space-y-4 px-6 pt-3">
+      {/* ------------------------------------------------- page 2 of 6 */}
+      <PaperSheet title="Initial Evaluation — Chief Complaint & Review" page={2} totalPages={T}>
+        <div className="space-y-1 px-6 pt-2">
           <SectionTitle>Chief Complaint:</SectionTitle>
           <PainBlock i={i} title="Cervical Pain:" name="cc_cervical" />
           <PainBlock i={i} title="Thoracic Pain:" name="cc_thoracic" />
@@ -316,90 +449,161 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
           <SectionTitle>Other Complaints:</SectionTitle>
           <PainBlock i={i} name="cc_other1" freeTitle />
           <PainBlock i={i} name="cc_other2" freeTitle />
-        </div>
-        <div className="h-6" />
-      </PaperSheet>
 
-      {/* ---------------------------------------------------------- page 3 */}
-      <PaperSheet title="Initial Evaluation — Examination" page={3} totalPages={T}>
-        <div className="space-y-2 px-6 pt-3">
+          <SectionTitle>Review:</SectionTitle>
           <Row>
-            <span className="text-[11px] font-semibold">Open wounds/cuts:</span>
-            <PaperCheck name="wounds_yes" label="yes" defaultChecked={checked(i, "wounds_yes")} />
-            <PaperCheck name="wounds_no" label="no" defaultChecked={checked(i, "wounds_no")} />
-            <PaperInline label="if yes (areas):" name="wounds_areas" defaultValue={str(i, "wounds_areas")} className="min-w-[220px] flex-1" />
+            <span className="w-[105px] shrink-0 text-[10.5px] font-semibold">Open wounds/cuts:</span>
+            <Slot w={44}>
+              <PaperCheck name="wounds_yes" label="yes" defaultChecked={checked(i, "wounds_yes")} />
+            </Slot>
+            <Slot w={40}>
+              <PaperCheck name="wounds_no" label="no" defaultChecked={checked(i, "wounds_no")} />
+            </Slot>
+            <PaperInline label="if yes (areas):" name="wounds_areas" defaultValue={str(i, "wounds_areas")} className="min-w-[200px] flex-1" />
           </Row>
           <Row>
-            <span className="text-[11px] font-semibold">Head:</span>
-            <span className="text-[11px]">hematoma</span>
-            <PaperCheck name="head_hematoma_yes" label="yes" defaultChecked={checked(i, "head_hematoma_yes")} />
-            <PaperCheck name="head_hematoma_no" label="no" defaultChecked={checked(i, "head_hematoma_no")} />
-            <span className="text-[11px]">Laceration</span>
-            <PaperCheck name="head_laceration_yes" label="yes" defaultChecked={checked(i, "head_laceration_yes")} />
-            <PaperCheck name="head_laceration_no" label="no" defaultChecked={checked(i, "head_laceration_no")} />
+            <span className="w-[105px] shrink-0 text-[10.5px] font-semibold">Head:</span>
+            <span className="text-[10.5px]">hematoma</span>
+            <Slot w={44}>
+              <PaperCheck name="head_hematoma_yes" label="yes" defaultChecked={checked(i, "head_hematoma_yes")} />
+            </Slot>
+            <Slot w={40}>
+              <PaperCheck name="head_hematoma_no" label="no" defaultChecked={checked(i, "head_hematoma_no")} />
+            </Slot>
+            <span className="text-[10.5px]">Laceration</span>
+            <Slot w={44}>
+              <PaperCheck name="head_laceration_yes" label="yes" defaultChecked={checked(i, "head_laceration_yes")} />
+            </Slot>
+            <Slot w={40}>
+              <PaperCheck name="head_laceration_no" label="no" defaultChecked={checked(i, "head_laceration_no")} />
+            </Slot>
           </Row>
           <Row>
-            <span className="text-[11px] font-semibold">Eye vision:</span>
-            <PaperCheck name="eye_good" label="good" defaultChecked={checked(i, "eye_good")} />
-            <PaperCheck name="eye_decreased" label="Decreased" defaultChecked={checked(i, "eye_decreased")} />
-            <PaperCheck name="eye_glasses" label="Glasses" defaultChecked={checked(i, "eye_glasses")} />
-            <PaperCheck name="eye_contact" label="Contact" defaultChecked={checked(i, "eye_contact")} />
+            <span className="w-[105px] shrink-0 text-[10.5px] font-semibold">Eye vision:</span>
+            <Slot w={48}>
+              <PaperCheck name="eye_good" label="good" defaultChecked={checked(i, "eye_good")} />
+            </Slot>
+            <Slot w={82}>
+              <PaperCheck name="eye_decreased" label="Decreased" defaultChecked={checked(i, "eye_decreased")} />
+            </Slot>
+            <Slot w={70}>
+              <PaperCheck name="eye_glasses" label="Glasses" defaultChecked={checked(i, "eye_glasses")} />
+            </Slot>
+            <Slot w={70}>
+              <PaperCheck name="eye_contact" label="Contact" defaultChecked={checked(i, "eye_contact")} />
+            </Slot>
             <PaperCheck name="eye_other" label="Other" defaultChecked={checked(i, "eye_other")} />
           </Row>
           <Row>
-            <span className="text-[11px] font-semibold">Ear hearing:</span>
-            <PaperCheck name="ear_normal" label="Normal" defaultChecked={checked(i, "ear_normal")} />
-            <PaperCheck name="ear_deafness" label="deafness" defaultChecked={checked(i, "ear_deafness")} />
-            <PaperCheck name="ear_hypocusia" label="hypocusia" defaultChecked={checked(i, "ear_hypocusia")} />
-            <PaperCheck name="ear_tinnitis" label="Tinnitis" defaultChecked={checked(i, "ear_tinnitis")} />
-            <PaperCheck name="ear_pain" label="Pain" defaultChecked={checked(i, "ear_pain")} />
+            <span className="w-[105px] shrink-0 text-[10.5px] font-semibold">Ear hearing:</span>
+            <Slot w={62}>
+              <PaperCheck name="ear_normal" label="Normal" defaultChecked={checked(i, "ear_normal")} />
+            </Slot>
+            <Slot w={74}>
+              <PaperCheck name="ear_deafness" label="deafness" defaultChecked={checked(i, "ear_deafness")} />
+            </Slot>
+            <Slot w={80}>
+              <PaperCheck name="ear_hypocusia" label="hypocusia" defaultChecked={checked(i, "ear_hypocusia")} />
+            </Slot>
+            <Slot w={64}>
+              <PaperCheck name="ear_tinnitis" label="Tinnitis" defaultChecked={checked(i, "ear_tinnitis")} />
+            </Slot>
+            <Slot w={48}>
+              <PaperCheck name="ear_pain" label="Pain" defaultChecked={checked(i, "ear_pain")} />
+            </Slot>
             <PaperCheck name="ear_discharge" label="Discharge" defaultChecked={checked(i, "ear_discharge")} />
           </Row>
           <Row>
-            <span className="text-[11px] font-semibold">Throat:</span>
-            <PaperCheck name="throat_normal" label="Normal" defaultChecked={checked(i, "throat_normal")} />
-            <PaperCheck name="throat_sore" label="Sore" defaultChecked={checked(i, "throat_sore")} />
+            <span className="w-[105px] shrink-0 text-[10.5px] font-semibold">Throat:</span>
+            <Slot w={62}>
+              <PaperCheck name="throat_normal" label="Normal" defaultChecked={checked(i, "throat_normal")} />
+            </Slot>
+            <Slot w={48}>
+              <PaperCheck name="throat_sore" label="Sore" defaultChecked={checked(i, "throat_sore")} />
+            </Slot>
             <PaperCheck name="throat_swallow" label="difficulty swallowing" defaultChecked={checked(i, "throat_swallow")} />
           </Row>
           <Row>
-            <span className="text-[11px] font-semibold">Cardiovascular:</span>
-            <PaperCheck name="cv_normal" label="Normal (S1, S2, RRR, no M/R/G)" defaultChecked={checked(i, "cv_normal")} />
-            <PaperCheck name="cv_chest_pain" label="chest pain" defaultChecked={checked(i, "cv_chest_pain")} />
-            <PaperCheck name="cv_palpitation" label="Palpitation" defaultChecked={checked(i, "cv_palpitation")} />
+            <span className="w-[105px] shrink-0 text-[10.5px] font-semibold">Cardiovascular:</span>
+            <Slot w={196}>
+              <PaperCheck name="cv_normal" label="Normal (S1, S2, RRR, no M/R/G)" defaultChecked={checked(i, "cv_normal")} />
+            </Slot>
+            <Slot w={80}>
+              <PaperCheck name="cv_chest_pain" label="chest pain" defaultChecked={checked(i, "cv_chest_pain")} />
+            </Slot>
+            <Slot w={86}>
+              <PaperCheck name="cv_palpitation" label="Palpitation" defaultChecked={checked(i, "cv_palpitation")} />
+            </Slot>
             <PaperCheck name="cv_murmur" label="Murmur" defaultChecked={checked(i, "cv_murmur")} />
           </Row>
           <Row>
-            <span className="text-[11px] font-semibold">GI:</span>
-            <PaperCheck name="gi_normal" label="normal" defaultChecked={checked(i, "gi_normal")} />
-            <PaperCheck name="gi_nausea" label="Nausea" defaultChecked={checked(i, "gi_nausea")} />
-            <PaperCheck name="gi_heartburn" label="Heartburn" defaultChecked={checked(i, "gi_heartburn")} />
-            <PaperCheck name="gi_vomiting" label="Vomiting" defaultChecked={checked(i, "gi_vomiting")} />
-            <PaperCheck name="gi_constipation" label="Contipation" defaultChecked={checked(i, "gi_constipation")} />
-            <PaperCheck name="gi_diarrea" label="Diarrea" defaultChecked={checked(i, "gi_diarrea")} />
+            <span className="w-[105px] shrink-0 text-[10.5px] font-semibold">GI:</span>
+            <Slot w={60}>
+              <PaperCheck name="gi_normal" label="normal" defaultChecked={checked(i, "gi_normal")} />
+            </Slot>
+            <Slot w={62}>
+              <PaperCheck name="gi_nausea" label="Nausea" defaultChecked={checked(i, "gi_nausea")} />
+            </Slot>
+            <Slot w={78}>
+              <PaperCheck name="gi_heartburn" label="Heartburn" defaultChecked={checked(i, "gi_heartburn")} />
+            </Slot>
+            <Slot w={72}>
+              <PaperCheck name="gi_vomiting" label="Vomiting" defaultChecked={checked(i, "gi_vomiting")} />
+            </Slot>
+            <Slot w={86}>
+              <PaperCheck name="gi_constipation" label="Contipation" defaultChecked={checked(i, "gi_constipation")} />
+            </Slot>
+            <Slot w={62}>
+              <PaperCheck name="gi_diarrea" label="Diarrea" defaultChecked={checked(i, "gi_diarrea")} />
+            </Slot>
             <PaperCheck name="gi_bleeding" label="Bleeding" defaultChecked={checked(i, "gi_bleeding")} />
           </Row>
           <Row>
-            <span className="text-[11px] font-semibold">Skin:</span>
-            <PaperCheck name="skin_normal" label="Normal" defaultChecked={checked(i, "skin_normal")} />
-            <PaperCheck name="skin_rash" label="Rash" defaultChecked={checked(i, "skin_rash")} />
-            <PaperCheck name="skin_laceration" label="Laceration" defaultChecked={checked(i, "skin_laceration")} />
-            <PaperCheck name="skin_abrasions" label="Abrasions" defaultChecked={checked(i, "skin_abrasions")} />
+            <span className="w-[105px] shrink-0 text-[10.5px] font-semibold">Skin:</span>
+            <Slot w={62}>
+              <PaperCheck name="skin_normal" label="Normal" defaultChecked={checked(i, "skin_normal")} />
+            </Slot>
+            <Slot w={48}>
+              <PaperCheck name="skin_rash" label="Rash" defaultChecked={checked(i, "skin_rash")} />
+            </Slot>
+            <Slot w={80}>
+              <PaperCheck name="skin_laceration" label="Laceration" defaultChecked={checked(i, "skin_laceration")} />
+            </Slot>
+            <Slot w={80}>
+              <PaperCheck name="skin_abrasions" label="Abrasions" defaultChecked={checked(i, "skin_abrasions")} />
+            </Slot>
             <PaperCheck name="skin_hematomas" label="Hematomas" defaultChecked={checked(i, "skin_hematomas")} />
           </Row>
           <Row>
-            <span className="text-[11px] font-semibold">C.N.S:</span>
-            <PaperCheck name="cns_normal" label="Normal" defaultChecked={checked(i, "cns_normal")} />
-            <PaperCheck name="cns_seizures" label="Seiszures" defaultChecked={checked(i, "cns_seizures")} />
-            <PaperCheck name="cns_dizziness" label="Dizziness" defaultChecked={checked(i, "cns_dizziness")} />
-            <PaperCheck name="cns_fainting" label="Fainting" defaultChecked={checked(i, "cns_fainting")} />
+            <span className="w-[105px] shrink-0 text-[10.5px] font-semibold">C.N.S:</span>
+            <Slot w={62}>
+              <PaperCheck name="cns_normal" label="Normal" defaultChecked={checked(i, "cns_normal")} />
+            </Slot>
+            <Slot w={74}>
+              <PaperCheck name="cns_seizures" label="Seiszures" defaultChecked={checked(i, "cns_seizures")} />
+            </Slot>
+            <Slot w={76}>
+              <PaperCheck name="cns_dizziness" label="Dizziness" defaultChecked={checked(i, "cns_dizziness")} />
+            </Slot>
+            <Slot w={68}>
+              <PaperCheck name="cns_fainting" label="Fainting" defaultChecked={checked(i, "cns_fainting")} />
+            </Slot>
             <PaperCheck name="cns_headaches" label="Headaches" defaultChecked={checked(i, "cns_headaches")} />
           </Row>
           <Row>
-            <span className="text-[11px] font-semibold">Neurology:</span>
-            <PaperCheck name="neuro_cranial_wnl" label="Cranea nerves with normal limits" defaultChecked={checked(i, "neuro_cranial_wnl")} />
+            <span className="w-[105px] shrink-0 text-[10.5px] font-semibold">Neurology:</span>
+            <Slot w={218}>
+              <PaperCheck name="neuro_cranial_wnl" label="Cranea nerves with normal limits" defaultChecked={checked(i, "neuro_cranial_wnl")} />
+            </Slot>
             <PaperCheck name="neuro_dtr_wnl" label="Deep tendon reflexes with normal limits" defaultChecked={checked(i, "neuro_dtr_wnl")} />
           </Row>
+        </div>
+        <div className="h-2" />
+      </PaperSheet>
 
+      {/* ------------------------------------------------- page 3 of 6 */}
+      <PaperSheet title="Initial Evaluation — Spine Examination" page={3} totalPages={T}>
+        <div className="space-y-1 px-6 pt-2">
           <SectionTitle>Cervical Spine:</SectionTitle>
           <RomRestrictions i={i} name="cerv_rom" />
           <Rom i={i} label="Flexion" name="cerv_flexion" deg="40°" />
@@ -419,7 +623,7 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
             label="Muscle Spasms"
             name="cerv_spasms"
             extras={
-              <span className="flex flex-wrap items-baseline gap-x-3">
+              <span className="flex flex-wrap items-baseline gap-x-2.5">
                 <PaperCheck name="cerv_spasm_suboccipitals" label="Suboccipitals (RT/LT)" defaultChecked={checked(i, "cerv_spasm_suboccipitals")} />
                 <PaperCheck name="cerv_spasm_scalene" label="Anterior scalene (RT/LT)" defaultChecked={checked(i, "cerv_spasm_scalene")} />
                 <PaperCheck name="cerv_spasm_trapezius" label="Upper trapezius (RT/LT)" defaultChecked={checked(i, "cerv_spasm_trapezius")} />
@@ -431,16 +635,10 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
           <AbsentPresent i={i} label="Radiculitis" name="cerv_radiculitis" extras={
             <>
               <Levels i={i} name="cerv_radiculitis" levels={["C1", "C2", "C3", "C4", "C5", "C6", "C7"]} />
-              <span className="text-[11px]">Dermatomes</span>
+              <span className="text-[10.5px]">Dermatomes</span>
             </>
           } />
-        </div>
-        <div className="h-6" />
-      </PaperSheet>
 
-      {/* ---------------------------------------------------------- page 4 */}
-      <PaperSheet title="Initial Evaluation — Examination (cont.)" page={4} totalPages={T}>
-        <div className="space-y-2 px-6 pt-3">
           <SectionTitle>Thoracolumbar Spine:</SectionTitle>
           <RomRestrictions i={i} name="thor_rom" />
           <Rom i={i} label="Flexion" name="thor_flexion" deg="90°" />
@@ -460,7 +658,7 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
             label="Muscle Spasms"
             name="thor_spasms"
             extras={
-              <span className="flex flex-wrap items-baseline gap-x-3">
+              <span className="flex flex-wrap items-baseline gap-x-2.5">
                 <PaperCheck name="thor_spasm_rhomboid" label="Rhomboid (RT/LT)" defaultChecked={checked(i, "thor_spasm_rhomboid")} />
                 <PaperCheck name="thor_spasm_serratus" label="Serratus Anterior (RT/LT)" defaultChecked={checked(i, "thor_spasm_serratus")} />
                 <PaperCheck name="thor_spasm_longissimus" label="Longissimus Thoracis (RT/LT)" defaultChecked={checked(i, "thor_spasm_longissimus")} />
@@ -468,7 +666,13 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
               </span>
             }
           />
+        </div>
+        <div className="h-2" />
+      </PaperSheet>
 
+      {/* ------------------------------------------------- page 4 of 6 */}
+      <PaperSheet title="Initial Evaluation — Examination (cont.)" page={4} totalPages={T}>
+        <div className="space-y-1 px-6 pt-2">
           <SectionTitle>Lumbar Spine:</SectionTitle>
           <AbsentPresent i={i} label="Pain" name="lumb_pain" extras={<Levels i={i} name="lumb_pain" levels={["L1", "L2", "L3", "L4", "L5", "S1"]} />} />
           <AbsentPresent i={i} label="Terderness" name="lumb_tenderness" extras={<Levels i={i} name="lumb_tenderness" levels={["L1", "L2", "L3", "L4", "L5", "S1"]} />} />
@@ -481,7 +685,7 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
             label="Muscle Spasms"
             name="lumb_spasms"
             extras={
-              <span className="flex flex-wrap items-baseline gap-x-3">
+              <span className="flex flex-wrap items-baseline gap-x-2.5">
                 <PaperCheck name="lumb_spasm_latissimus" label="Latissimus Darsi (RT/LT)" defaultChecked={checked(i, "lumb_spasm_latissimus")} />
                 <PaperCheck name="lumb_spasm_quadratus" label="Quadratus Lumborum (RT/LT)" defaultChecked={checked(i, "lumb_spasm_quadratus")} />
                 <PaperCheck name="lumb_spasm_erector" label="Erector Spinae (RT/LT)" defaultChecked={checked(i, "lumb_spasm_erector")} />
@@ -492,7 +696,7 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
           <AbsentPresent i={i} label="Radiculitis" name="lumb_radiculitis" extras={
             <>
               <Levels i={i} name="lumb_radiculitis" levels={["L1", "L2", "L3", "L4", "L5", "S1"]} />
-              <span className="text-[11px]">Dermatomes</span>
+              <span className="text-[10.5px]">Dermatomes</span>
             </>
           } />
 
@@ -504,18 +708,7 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
           <AbsentPresent i={i} label="Edema" name="shoulder_edema" />
           <AbsentPresent i={i} label="Dermatites" name="shoulder_dermatites" />
           <AbsentPresent i={i} label="Muscle Spasms" name="shoulder_spasms" extras={<RL i={i} name="shoulder_spasms" />} />
-          <Row>
-            <span className="w-[110px] shrink-0 text-[11px] font-semibold">Muscle Strenath</span>
-            <PaperCheck name="shoulder_strength_normal" label="Normal" defaultChecked={checked(i, "shoulder_strength_normal")} />
-            <PaperCheck name="shoulder_strength_decreased" label="Decreased" defaultChecked={checked(i, "shoulder_strength_decreased")} />
-          </Row>
-        </div>
-        <div className="h-6" />
-      </PaperSheet>
-
-      {/* ---------------------------------------------------------- page 5 */}
-      <PaperSheet title="Initial Evaluation — Examination (cont.)" page={5} totalPages={T}>
-        <div className="space-y-2 px-6 pt-3">
+          <Strength i={i} name="shoulder_strength" />
           <RomRestrictions i={i} name="shoulder_rom" />
           <Rom i={i} label="Flexion" name="shoulder_flexion" deg="180°" />
           <Rom i={i} label="Extension" name="shoulder_extension" deg="50°" />
@@ -532,16 +725,18 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
           <AbsentPresent i={i} label="Edema" name="elbow_edema" />
           <AbsentPresent i={i} label="Deformities" name="elbow_deformities" />
           <AbsentPresent i={i} label="Muscle Spasms" name="elbow_spasms" extras={<RL i={i} name="elbow_spasms" />} />
-          <Row>
-            <span className="w-[110px] shrink-0 text-[11px] font-semibold">Muscle Strength</span>
-            <PaperCheck name="elbow_strength_normal" label="Normal" defaultChecked={checked(i, "elbow_strength_normal")} />
-            <PaperCheck name="elbow_strength_decreased" label="Decreased" defaultChecked={checked(i, "elbow_strength_decreased")} />
-          </Row>
+          <Strength i={i} name="elbow_strength" />
           <RomRestrictions i={i} name="elbow_rom" />
           <Rom i={i} label="Flexion" name="elbow_flexion" deg="180°" />
           <Rom i={i} label="Pronation" name="elbow_pronation" deg="80°" />
           <Rom i={i} label="Supination" name="elbow_supination" deg="80°" />
+        </div>
+        <div className="h-2" />
+      </PaperSheet>
 
+      {/* ------------------------------------------------- page 5 of 6 */}
+      <PaperSheet title="Initial Evaluation — Examination (cont.)" page={5} totalPages={T}>
+        <div className="space-y-1 px-6 pt-2">
           <SectionTitle>Wrist and Hand Examination:</SectionTitle>
           <AbsentPresent i={i} label="Pain" name="wrist_pain" extras={<RL i={i} name="wrist_pain" />} />
           <AbsentPresent i={i} label="Terderness" name="wrist_tenderness" extras={<RL i={i} name="wrist_tenderness" />} />
@@ -550,25 +745,8 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
           <AbsentPresent i={i} label="Edema" name="wrist_edema" />
           <AbsentPresent i={i} label="Deformities" name="wrist_deformities" />
           <AbsentPresent i={i} label="Muscle Spasms" name="wrist_spasms" extras={<RL i={i} name="wrist_spasms" />} />
-          <Row>
-            <span className="w-[110px] shrink-0 text-[11px] font-semibold">Muscle Strength</span>
-            <PaperCheck name="wrist_strength_normal" label="Normal" defaultChecked={checked(i, "wrist_strength_normal")} />
-            <PaperCheck name="wrist_strength_decreased" label="Decreased" defaultChecked={checked(i, "wrist_strength_decreased")} />
-          </Row>
-        </div>
-        <div className="h-6" />
-      </PaperSheet>
-
-      {/* ---------------------------------------------------------- page 6 */}
-      <PaperSheet title="Initial Evaluation — Examination (cont.)" page={6} totalPages={T}>
-        <div className="space-y-2 px-6 pt-3">
-          <Row>
-            <span className="text-[11px] font-semibold">Wrist Ranges of Motion:</span>
-            <PaperCheck name="wrist_rom_restrictions" label="Restrictions" defaultChecked={checked(i, "wrist_rom_restrictions")} />
-            <PaperCheck name="wrist_rom_mild" label="Mild" defaultChecked={checked(i, "wrist_rom_mild")} />
-            <PaperCheck name="wrist_rom_moderate" label="Moderate" defaultChecked={checked(i, "wrist_rom_moderate")} />
-            <PaperCheck name="wrist_rom_severe" label="Severe" defaultChecked={checked(i, "wrist_rom_severe")} />
-          </Row>
+          <Strength i={i} name="wrist_strength" />
+          <RomRestrictions i={i} name="wrist_rom" />
           <Rom i={i} label="Flexion" name="wrist_flexion" deg="80°" />
           <Rom i={i} label="Extension" name="wrist_extension" deg="90°" />
           <Rom i={i} label="Ulna Deviation" name="wrist_ulna_dev" deg="45°" />
@@ -582,11 +760,7 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
           <AbsentPresent i={i} label="Edema" name="hip_edema" />
           <AbsentPresent i={i} label="Deformities" name="hip_deformities" />
           <AbsentPresent i={i} label="Muscle Spasms" name="hip_spasms" extras={<RL i={i} name="hip_spasms" />} />
-          <Row>
-            <span className="w-[110px] shrink-0 text-[11px] font-semibold">Muscle Strength</span>
-            <PaperCheck name="hip_strength_normal" label="Normal" defaultChecked={checked(i, "hip_strength_normal")} />
-            <PaperCheck name="hip_strength_decreased" label="Decreased" defaultChecked={checked(i, "hip_strength_decreased")} />
-          </Row>
+          <Strength i={i} name="hip_strength" />
           <RomRestrictions i={i} name="hip_rom" />
           <Rom i={i} label="Flexion" name="hip_flexion" deg="120°" />
           <Rom i={i} label="Extension" name="hip_extension" deg="30°" />
@@ -603,20 +777,16 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
           <AbsentPresent i={i} label="Edema" name="knee_edema" />
           <AbsentPresent i={i} label="Deformiities" name="knee_deformities" />
           <AbsentPresent i={i} label="Muscle Spasms" name="knee_spasms" extras={<RL i={i} name="knee_spasms" />} />
-          <Row>
-            <span className="w-[110px] shrink-0 text-[11px] font-semibold">Muscle Strength</span>
-            <PaperCheck name="knee_strength_normal" label="Normal" defaultChecked={checked(i, "knee_strength_normal")} />
-            <PaperCheck name="knee_strength_decreased" label="Decreased" defaultChecked={checked(i, "knee_strength_decreased")} />
-          </Row>
+          <Strength i={i} name="knee_strength" />
           <RomRestrictions i={i} name="knee_rom" />
           <Rom i={i} label="Flexion" name="knee_flexion" deg="135°" />
         </div>
-        <div className="h-6" />
+        <div className="h-2" />
       </PaperSheet>
 
-      {/* ---------------------------------------------------------- page 7 */}
-      <PaperSheet title="Initial Evaluation — Examination (cont.)" page={7} totalPages={T}>
-        <div className="space-y-2 px-6 pt-3">
+      {/* ------------------------------------------------- page 6 of 6 */}
+      <PaperSheet title="Initial Evaluation — Diagnosis & Treatment" page={6} totalPages={T}>
+        <div className="space-y-1 px-6 pt-2">
           <SectionTitle>Foot Examination:</SectionTitle>
           <AbsentPresent i={i} label="Pain" name="foot_pain" extras={<RL i={i} name="foot_pain" />} />
           <AbsentPresent i={i} label="Terderness" name="foot_tenderness" extras={<RL i={i} name="foot_tenderness" />} />
@@ -625,11 +795,7 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
           <AbsentPresent i={i} label="Edema" name="foot_edema" />
           <AbsentPresent i={i} label="Deformiities" name="foot_deformities" />
           <AbsentPresent i={i} label="Muscle Spasms" name="foot_spasms" extras={<RL i={i} name="foot_spasms" />} />
-          <Row>
-            <span className="w-[110px] shrink-0 text-[11px] font-semibold">Muscle Strength</span>
-            <PaperCheck name="foot_strength_normal" label="Normal" defaultChecked={checked(i, "foot_strength_normal")} />
-            <PaperCheck name="foot_strength_decreased" label="Decreased" defaultChecked={checked(i, "foot_strength_decreased")} />
-          </Row>
+          <Strength i={i} name="foot_strength" />
           <RomRestrictions i={i} name="foot_rom" />
           <PaperInline label="Extension:" name="foot_extension" defaultValue={str(i, "foot_extension")} className="max-w-md" />
 
@@ -642,7 +808,7 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
           <SectionTitle>Diagnosis Impression (ICD-10):</SectionTitle>
           <textarea
             name="diagnosis_impression"
-            rows={4}
+            rows={3}
             defaultValue={str(i, "diagnosis_impression")}
             className="w-full resize-y border-0 border-b border-black/50 bg-transparent px-1 py-1 text-[12px] focus:border-black focus:outline-none"
             style={{
@@ -652,46 +818,43 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
             }}
           />
           <Row>
-            <span className="text-[11px] font-semibold">Assessment:</span>
-            <PaperCheck name="assessment_acute" label="Acute" defaultChecked={checked(i, "assessment_acute")} />
-            <PaperCheck name="assessment_subacute" label="Subacute" defaultChecked={checked(i, "assessment_subacute")} />
+            <span className="w-[105px] shrink-0 text-[10.5px] font-semibold">Assessment:</span>
+            <Slot w={58}>
+              <PaperCheck name="assessment_acute" label="Acute" defaultChecked={checked(i, "assessment_acute")} />
+            </Slot>
+            <Slot w={76}>
+              <PaperCheck name="assessment_subacute" label="Subacute" defaultChecked={checked(i, "assessment_subacute")} />
+            </Slot>
             <PaperCheck name="assessment_chronic" label="Chronic" defaultChecked={checked(i, "assessment_chronic")} />
           </Row>
-          <div className="space-y-1">
+          <div className="grid grid-cols-2 gap-x-8 gap-y-0.5">
             <PaperCheck name="emc_condition" label="Emergency Medical Condition" defaultChecked={checked(i, "emc_condition")} />
-            <br />
             <PaperCheck name="emc_jeopardy" label="Jeopardy to the patient health" defaultChecked={checked(i, "emc_jeopardy")} />
-            <br />
             <PaperCheck name="emc_impairment" label="Impairment to bodily functions" defaultChecked={checked(i, "emc_impairment")} />
-            <br />
             <PaperCheck name="emc_dysfunction" label="Dysfunction of any bodily organ or part" defaultChecked={checked(i, "emc_dysfunction")} />
           </div>
 
           <SectionTitle>Physical Orders:</SectionTitle>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-1">
-            <PaperInline label="X-Ray: Cervical" name="xray_cervical_views" defaultValue={str(i, "xray_cervical_views")} inputClassName="max-w-[80px]" />
-            <PaperInline label="Thoracic" name="xray_thoracic_views" defaultValue={str(i, "xray_thoracic_views")} inputClassName="max-w-[80px]" />
-            <PaperInline label="Lumbar" name="xray_lumbar_views" defaultValue={str(i, "xray_lumbar_views")} inputClassName="max-w-[80px]" />
+          <div className="grid grid-cols-2 gap-x-8 gap-y-0.5">
+            <PaperInline label="X-Ray: Cervical" name="xray_cervical_views" defaultValue={str(i, "xray_cervical_views")} inputClassName="max-w-[70px]" />
+            <PaperInline label="Thoracic" name="xray_thoracic_views" defaultValue={str(i, "xray_thoracic_views")} inputClassName="max-w-[70px]" />
+            <PaperInline label="Lumbar" name="xray_lumbar_views" defaultValue={str(i, "xray_lumbar_views")} inputClassName="max-w-[70px]" />
             <PaperInline label="Other:" name="xray_other" defaultValue={str(i, "xray_other")} />
           </div>
-          <p className="m-0 text-[10px] text-black/60">views</p>
           <Row>
-            <span className="text-[11px] font-semibold">Medication:</span>
+            <span className="text-[10.5px] font-semibold">Medication:</span>
           </Row>
-          <div className="space-y-1">
-            <PaperCheck name="med_ibuprofen" label="Ibuprofen 400 mg/800 mg, 1 tablet every 8 h PRN pain" defaultChecked={checked(i, "med_ibuprofen")} />
-            <br />
-            <PaperCheck name="med_cyclobenzaprine" label="Cyclobenzaprine 5 mg. 1 tablet P O every 8 h PRN muscle spasm." defaultChecked={checked(i, "med_cyclobenzaprine")} />
+          <div className="space-y-0.5">
+            <div>
+              <PaperCheck name="med_ibuprofen" label="Ibuprofen 400 mg/800 mg, 1 tablet every 8 h PRN pain" defaultChecked={checked(i, "med_ibuprofen")} />
+            </div>
+            <div>
+              <PaperCheck name="med_cyclobenzaprine" label="Cyclobenzaprine 5 mg. 1 tablet P O every 8 h PRN muscle spasm." defaultChecked={checked(i, "med_cyclobenzaprine")} />
+            </div>
           </div>
-        </div>
-        <div className="h-6" />
-      </PaperSheet>
 
-      {/* ---------------------------------------------------------- page 8 */}
-      <PaperSheet title="Initial Evaluation — Treatment" page={8} totalPages={T}>
-        <div className="space-y-2 px-6 pt-3">
           <SectionTitle>Treatment:</SectionTitle>
-          <div className="grid grid-cols-3 gap-x-6 gap-y-1">
+          <div className="grid grid-cols-3 gap-x-5 gap-y-0.5">
             <PaperCheck name="tx_ems" label="EMS" defaultChecked={checked(i, "tx_ems")} />
             <PaperCheck name="tx_hot_pack" label="Hot/Pack" defaultChecked={checked(i, "tx_hot_pack")} />
             <PaperCheck name="tx_estim" label="Electric Stimulation" defaultChecked={checked(i, "tx_estim")} />
@@ -713,30 +876,30 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
 
           <SectionTitle>Treatment Plan:</SectionTitle>
           <Row>
-            <span className="text-[11px]">Therapy:</span>
+            <span className="text-[10.5px]">Therapy:</span>
             <Levels i={i} name="plan_freq" levels={["1", "2", "3", "4", "5"]} />
-            <span className="text-[11px]">x/week(s) for</span>
+            <span className="text-[10.5px]">x/week(s) for</span>
             <Levels i={i} name="plan_weeks" levels={["1", "2", "3", "4", "5"]} />
-            <span className="text-[11px]">week(s)</span>
+            <span className="text-[10.5px]">week(s)</span>
           </Row>
           <Row>
-            <span className="text-[11px]">Follow-up Exam in</span>
+            <span className="text-[10.5px]">Follow-up Exam in</span>
             <Levels i={i} name="plan_followup_weeks" levels={["1", "2", "3", "4", "5"]} />
-            <span className="text-[11px]">week(s)</span>
+            <span className="text-[10.5px]">week(s)</span>
           </Row>
 
           <SectionTitle>Recommendation:</SectionTitle>
           <Row>
-            <span className="text-[11px]">Treat patient as prescribed. Re. Evaluation will perform in</span>
+            <span className="text-[10.5px]">Treat patient as prescribed. Re. Evaluation will perform in</span>
             <input
               type="text"
               name="reeval_weeks"
               defaultValue={str(i, "reeval_weeks")}
-              className="w-[60px] border-0 border-b border-black/50 bg-transparent px-1 py-0.5 text-center text-[11px] focus:border-black focus:outline-none"
+              className="w-[50px] border-0 border-b border-black/50 bg-transparent px-1 py-0.5 text-center text-[10.5px] focus:border-black focus:outline-none"
             />
-            <span className="text-[11px]">weeks.</span>
+            <span className="text-[10.5px]">weeks.</span>
           </Row>
-          <p className="m-0 text-[11px]">
+          <p className="m-0 text-[10.5px]">
             The patient was advised palliative care at home as much as possible until
             imorovement reach.
           </p>
@@ -744,7 +907,7 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
           <SectionTitle>Comments:</SectionTitle>
           <textarea
             name="comments"
-            rows={3}
+            rows={2}
             defaultValue={str(i, "comments")}
             className="w-full resize-y border-0 border-b border-black/50 bg-transparent px-1 py-1 text-[12px] focus:border-black focus:outline-none"
             style={{
@@ -754,11 +917,15 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
             }}
           />
           <Row>
-            <PaperCheck name="rec_ortho" label="Orthopedic consultation" defaultChecked={checked(i, "rec_ortho")} />
-            <PaperCheck name="rec_neuro" label="Neurologic Consultation" defaultChecked={checked(i, "rec_neuro")} />
+            <Slot w={170}>
+              <PaperCheck name="rec_ortho" label="Orthopedic consultation" defaultChecked={checked(i, "rec_ortho")} />
+            </Slot>
+            <Slot w={170}>
+              <PaperCheck name="rec_neuro" label="Neurologic Consultation" defaultChecked={checked(i, "rec_neuro")} />
+            </Slot>
             <PaperCheck name="rec_mri" label="MRI" defaultChecked={checked(i, "rec_mri")} />
           </Row>
-          <Row className="pt-1">
+          <Row className="pt-0.5">
             <PaperCheck
               name="certify"
               label="I hereby certify that all information provided by me to the clinic/medical provider herein is true and accurate."
@@ -766,76 +933,32 @@ export function InitialEvaluationDoc({ initial: i, patientName, today }: DocProp
             />
           </Row>
 
-          <div className="space-y-8 pt-6">
+          <div className="space-y-6 pt-3">
             <div className="grid grid-cols-[2fr_2fr_1fr] gap-8">
               <SignaturePad
                 name="physician_signature"
                 label="Physician Signature"
                 initialDataUrl={str(i, "physician_signature") || null}
-                heightPx={64}
+                heightPx={56}
                 variant="line"
               />
-              <label className="block">
-                <span className="flex items-end" style={{ height: 64 }}>
-                  <input
-                    type="text"
-                    name="physician_name"
-                    defaultValue={str(i, "physician_name")}
-                    className="w-full border-0 border-b border-black bg-transparent px-1 pb-1 text-[12px] focus:outline-none"
-                    style={{ boxShadow: "none" }}
-                  />
-                </span>
-                <span className="mt-1 block text-[11px]">Physician Name</span>
-              </label>
-              <label className="block">
-                <span className="flex items-end" style={{ height: 64 }}>
-                  <input
-                    type="date"
-                    name="physician_date"
-                    defaultValue={str(i, "physician_date") || today}
-                    className="w-full border-0 border-b border-black bg-transparent px-1 pb-1 text-[12px] focus:outline-none"
-                    style={{ boxShadow: "none" }}
-                  />
-                </span>
-                <span className="mt-1 block text-[11px]">Date</span>
-              </label>
+              <SigCell i={i} name="physician_name" label="Physician Name" />
+              <SigCell i={i} name="physician_date" label="Date" type="date" defaultValue={today} />
             </div>
             <div className="grid grid-cols-[2fr_2fr_1fr] gap-8">
               <SignaturePad
                 name="patient_signature"
                 label="Patient Signature"
                 initialDataUrl={str(i, "patient_signature") || null}
-                heightPx={64}
+                heightPx={56}
                 variant="line"
               />
-              <label className="block">
-                <span className="flex items-end" style={{ height: 64 }}>
-                  <input
-                    type="text"
-                    name="patient_name_sig"
-                    defaultValue={str(i, "patient_name_sig") || patientName}
-                    className="w-full border-0 border-b border-black bg-transparent px-1 pb-1 text-[12px] focus:outline-none"
-                    style={{ boxShadow: "none" }}
-                  />
-                </span>
-                <span className="mt-1 block text-[11px]">Patient Name</span>
-              </label>
-              <label className="block">
-                <span className="flex items-end" style={{ height: 64 }}>
-                  <input
-                    type="date"
-                    name="patient_date"
-                    defaultValue={str(i, "patient_date") || today}
-                    className="w-full border-0 border-b border-black bg-transparent px-1 pb-1 text-[12px] focus:outline-none"
-                    style={{ boxShadow: "none" }}
-                  />
-                </span>
-                <span className="mt-1 block text-[11px]">Date</span>
-              </label>
+              <SigCell i={i} name="patient_name_sig" label="Patient Name" defaultValue={patientName} />
+              <SigCell i={i} name="patient_date" label="Date" type="date" defaultValue={today} />
             </div>
           </div>
         </div>
-        <div className="h-8" />
+        <div className="h-3" />
       </PaperSheet>
     </>
   );

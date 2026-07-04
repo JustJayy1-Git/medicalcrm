@@ -10,6 +10,10 @@ import {
   isClinicalDocSlug,
   packetForVisitKind,
 } from "@/lib/clinical/doc-slugs";
+import {
+  buildInitialEvalPrefill,
+  isUnstarted,
+} from "@/lib/clinical/initial-eval-prefill";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -63,11 +67,24 @@ export default async function ClinicalDocPage({
   const nextSlug = pageIndex < totalDocs - 1 ? packet[pageIndex + 1] : null;
   const basePath = `/clinical/cases/${caseId}/docs`;
 
-  const initial =
+  let initial =
     (record[SECTION_JSON_KEY[meta.section]] as Record<string, unknown>) ?? {};
   const completedAt = record[SECTION_COMPLETED_KEY[meta.section]] as
     | string
     | null;
+
+  // First open of the Initial Evaluation: pre-populate everything the patient
+  // already answered on the iPad intake (DOB/age/sex, accident date, driver,
+  // seat belt, airbag, consciousness, hospital, how it happened).
+  if (slug === "initial-evaluation" && isUnstarted(initial)) {
+    initial = await buildInitialEvalPrefill({
+      supabase,
+      patientName,
+      patient: patient ?? null,
+      caseRow: caseRow ?? null,
+      intakePacketId: (record.intake_packet_id as number | null) ?? null,
+    });
+  }
 
   const today = new Date().toLocaleDateString("en-CA");
   const Doc = DOC_COMPONENTS[slug];
