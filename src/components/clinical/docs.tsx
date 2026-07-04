@@ -2,7 +2,6 @@ import { InitialEvaluationDoc } from "@/components/clinical/initial-evaluation-d
 import {
   PaperField,
   PaperIdentStrip,
-  PaperNote,
   PaperSection,
   PaperSheet,
   PaperTextarea,
@@ -47,56 +46,186 @@ function SignatureRow({
 }
 
 /* ------------------------------------------------------------------ */
-/* NOFA — placeholder until the practice's state form is uploaded.    */
-/* When the original document is provided, transcribe it verbatim.    */
+/* NOFA — verbatim transcription of the Florida OIR "Standard         */
+/* Disclosure and Acknowledgement Form" (PIP). Do not paraphrase.     */
+
+const NOFA_SERVICES: Array<[string, string]> = [
+  ["nofa_initial_office_visit", "Initial Office Visit"],
+  ["nofa_initial_therapist_eval", "Initial Therapist Evaluation"],
+  ["nofa_cold_hot_pack", "Cold/Hot Pack"],
+  ["nofa_ultrasound", "Ultrasound"],
+  ["nofa_xrays", "X-Rays"],
+  ["nofa_electric_stimulation", "Electric Stimulation"],
+  ["nofa_massage", "Massage"],
+  ["nofa_therapeutic_exercises", "Therapeutic Exercises"],
+  ["nofa_paraffin", "Paraffin"],
+  ["nofa_infrared", "Infrared"],
+];
+
+function nofaChecked(initial: Record<string, unknown>, key: string): boolean {
+  return initial[key] === "1" || initial[key] === true;
+}
 
 export function NofaDoc({ initial, patientName, today, page, totalPages, ident }: DocProps) {
   return (
     <PaperSheet
-      title="Florida Motor Vehicle No-Fault Law (PIP) — Notice & Authorization"
-      titleEs="Ley de No Culpa de Florida — Aviso y Autorización"
+      title="Standard Disclosure and Acknowledgement Form"
+      titleEs="Personal Injury Protection — Initial Treatment or Service Provided"
       page={page}
       totalPages={totalPages}
     >
       <PaperIdentStrip fields={ident} />
-      <PaperSection num={1} title="Notice to patient" titleEs="Aviso al paciente">
-        <PaperNote>
-          Under the Florida Motor Vehicle No-Fault Law (§627.736, Fla. Stat.),
-          Personal Injury Protection (PIP) benefits cover 80% of reasonable
-          medical expenses for injuries arising from a motor vehicle accident,
-          provided initial services are received within 14 days of the accident.
-          I understand that reimbursement is limited to $2,500 unless a licensed
-          provider determines that I had an Emergency Medical Condition (EMC),
-          in which case benefits of up to $10,000 may apply. I authorize
-          Pro Injury Medical &amp; Rehabilitation to submit claims to my PIP
-          carrier and to receive payment directly for services rendered.
-        </PaperNote>
-      </PaperSection>
-
-      <PaperSection num={2} title="Patient acknowledgment" titleEs="Reconocimiento del paciente">
-        <div className="grid grid-cols-2 gap-4">
-          <PaperField
-            label="Patient name (print)"
-            name="patient_name_print"
-            defaultValue={str(initial, "patient_name_print") || patientName}
-          />
-          <PaperField
-            label="Date signed"
-            name="signed_date"
-            type="date"
-            defaultValue={str(initial, "signed_date") || today}
-          />
+      <div className="space-y-3 px-8 pt-5 text-[11.5px] leading-relaxed">
+        <div className="text-center">
+          <p className="m-0 text-[13px] font-bold uppercase underline underline-offset-2">
+            Office of Insurance Regulation
+          </p>
+          <p className="m-0 text-[12.5px] font-semibold">
+            Bureau of Property &amp; Casualty Forms and Rates
+          </p>
+          <p className="m-0 text-[12px]">Standard Disclosure and Acknowledgement Form</p>
+          <p className="m-0 text-[12px]">
+            Personal Injury Protection - Initial Treatment or Service Provided
+          </p>
         </div>
-        <PaperTextarea label="Notes" name="notes" rows={3} defaultValue={str(initial, "notes")} />
-      </PaperSection>
 
-      <SignatureRow
-        initial={initial}
-        fields={[
-          { name: "patient_signature", label: "Patient signature" },
-          { name: "provider_signature", label: "Provider signature" },
-        ]}
-      />
+        <p className="m-0">
+          The undersigned insured person (or guardian of such person) affirms:
+        </p>
+
+        <p className="m-0">
+          1. The services set forth below were actually rendered. This means that
+          those services have already been <strong>provided at PRO INJURY, LLC</strong>
+        </p>
+        <div className="flex flex-wrap gap-x-5 gap-y-1.5 font-semibold">
+          {NOFA_SERVICES.map(([name, label]) => (
+            <label key={name} className="flex cursor-pointer items-center gap-1.5 text-[11.5px]">
+              <input
+                type="checkbox"
+                name={name}
+                value="1"
+                defaultChecked={nofaChecked(initial, name)}
+                className="h-[14px] w-[14px] accent-black"
+              />
+              {label}
+            </label>
+          ))}
+          <label className="flex min-w-[280px] flex-1 items-baseline gap-1.5 text-[11.5px]">
+            <input
+              type="checkbox"
+              name="nofa_other_check"
+              value="1"
+              defaultChecked={nofaChecked(initial, "nofa_other_check")}
+              className="h-[14px] w-[14px] shrink-0 translate-y-0.5 accent-black"
+            />
+            Other:
+            <input
+              type="text"
+              name="nofa_other_text"
+              defaultValue={str(initial, "nofa_other_text")}
+              className="min-w-0 flex-1 border-0 border-b border-black bg-transparent px-1 text-[11.5px] font-normal focus:outline-none"
+              style={{ boxShadow: "none" }}
+            />
+          </label>
+        </div>
+
+        <p className="m-0">
+          2. I have a right and the <strong>duty to confirm</strong> that the services
+          have already been provided.
+        </p>
+        <p className="m-0">
+          3. I was <strong>not solicited</strong> by any person to seek any services
+          from the medical provider of the services described above. This means that
+          no person has initiated contact with me and/or persuaded me to use the
+          doctor or licensed professional, clinic, or medical institution that
+          provided the services.
+        </p>
+        <p className="m-0">
+          4. The medical provider has <strong>explained</strong> the services to me
+          for which payment is being claimed.
+        </p>
+        <p className="m-0">
+          5. If I notify the insurer in writing of a billing error, I may be entitled
+          to a portion of any reduction in the amounts paid by my motor vehicle
+          insurer. If entitled, my share would be at least 20% of the amount of the
+          reduction, up to $500.
+        </p>
+
+        <p className="m-0">
+          The undersigned licensed medical professional affirms the statement numbered
+          1 above and also:
+        </p>
+        <div className="space-y-2 pl-6">
+          <p className="m-0">
+            A. I have <strong>not solicited</strong> or caused the insured person, who
+            was involved in a motor vehicle accident, to be solicited to make a claim
+            for Personal Injury Protection benefits.
+          </p>
+          <p className="m-0">
+            B. I have <strong>explained</strong> the services rendered to the insured
+            person, or his or her guardian, <strong>sufficiently</strong> for that
+            person to sign this form with informed consent.
+          </p>
+          <p className="m-0">
+            C. The accompanying statement or bill is properly completed in all
+            material provisions and all relevant information has been provided
+            therein, This means that each request for information has been responded
+            to <strong>truthfully, accurately,</strong> and in a{" "}
+            <strong>substantially complete manner.</strong>
+          </p>
+          <p className="m-0">
+            D. The coding of procedures on the accompanying statement or bill is
+            proper. This means that <strong>no service has been upcoded, unbundled</strong>,
+            or constitutes an invalid or{" "}
+            <strong>not medically necessary diagnostic test</strong> as defined by
+            Section 627.732 (15) and (16), Florida Statutes or Section
+            627.736(5)(b)6, Florida Statutes.
+          </p>
+        </div>
+
+        <p className="m-0">
+          Insured Person (patient receiving treatment) or Guardian of Insured Person:
+        </p>
+        <SigLine
+          initial={initial}
+          nameField="patient_name_print"
+          nameLabel="Name (PRINT or TYPE)"
+          sigField="patient_signature"
+          sigLabel="Signature"
+          dateField="patient_date"
+          today={today}
+          defaultName={patientName}
+        />
+
+        <p className="m-0">
+          Licensed Medical Professional Rendering Treatment (Signature by his or her
+          own hand):
+        </p>
+        <SigLine
+          initial={initial}
+          nameField="provider_name_print"
+          nameLabel="Name (PRINT or TYPE)"
+          sigField="provider_signature"
+          sigLabel="Signature"
+          dateField="provider_date"
+          today={today}
+        />
+
+        <div className="space-y-2 pb-8 pt-2">
+          <p className="m-0 font-bold">
+            Any person who knowingly and with intent to injure, defraud, or deceive
+            any insurer files a statement of Claim or an application containing any
+            false, incomplete, or misleading information is guilty of a felony of the
+            third degree per Section 817.234 1 , Florida Statutes.
+          </p>
+          <p className="m-0 font-bold">
+            Note: The original of this form must be furnished to the insurer pursuant
+            to Section 627.736(4)(b), Florida Statutes and may not be electronically
+            furnished. Failure to furnish this form may result in non-payment of the
+            claim.
+          </p>
+        </div>
+      </div>
     </PaperSheet>
   );
 }
@@ -210,9 +339,9 @@ export function EmcDoc({
         </ol>
 
         <p className="m-0">
-          I hereby attest that I am a physician licensed under chapter 458 er chapter
+          I hereby attest that I am a physician licensed under chapter 458 or chapter
           459, a dentist licensed under chapter 466, a physician assistant licensed
-          under chapter 459 or chapter 459, or an advanced registered nurse
+          under chapter 458 or chapter 459, or an advanced registered nurse
           practitioner licensed under chapter 464, and that the above facts are true
           and correct.
         </p>
