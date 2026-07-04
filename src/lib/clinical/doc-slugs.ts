@@ -3,10 +3,12 @@ import type { ClinicalSection } from "@/lib/clinical/consultation";
 /**
  * NP consultation packets.
  *
- * Initial consultation: Initial Evaluation → EMC → No-Fault (NOFA).
+ * Initial consultation signing order: No-Fault (NOFA) → Initial Evaluation →
+ * EMC. Completing the EMC (last document) completes the consultation and the
+ * patient moves to the therapy phase.
  * Follow-up visit: only the Follow-up report.
  */
-export const INITIAL_PACKET = ["initial-evaluation", "emc", "nofa"] as const;
+export const INITIAL_PACKET = ["nofa", "initial-evaluation", "emc"] as const;
 export const FOLLOWUP_PACKET = ["follow-up"] as const;
 
 export type ClinicalDocSlug =
