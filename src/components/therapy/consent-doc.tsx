@@ -40,9 +40,11 @@ export function ConsentForTherapyBody({
   readOnly?: boolean;
 }) {
   const LINE_H = 56;
+  // No case number on the consent — patient-facing document.
+  const identFields = ident.filter((f) => f.label !== "Case #");
   return (
     <PaperSheet title="Consent for Therapy" page={1} totalPages={1}>
-      <PaperIdentStrip fields={ident} />
+      <PaperIdentStrip fields={identFields} />
       <div className="space-y-4 px-8 pt-5 text-[12px] leading-relaxed">
         <h2 className="m-0 text-center text-[17px] font-extrabold uppercase underline underline-offset-4">
           Consent for Therapy
@@ -92,7 +94,7 @@ export function ConsentForTherapyBody({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-10 pb-6 pt-2">
+        <div className="grid grid-cols-2 gap-10 pt-2">
           <label className="block">
             <span className="flex items-end" style={{ height: LINE_H }}>
               <input
@@ -114,16 +116,19 @@ export function ConsentForTherapyBody({
           />
         </div>
 
-        <div className="flex justify-end pb-8">
-          <label className="flex items-baseline gap-2 text-[12px] font-bold">
-            Patient Initials:
-            <input
-              type="text"
-              name="patient_initials"
-              defaultValue={str(initial, "patient_initials")}
-              className="w-[90px] border-0 border-b border-black bg-transparent px-1 text-[12px] font-normal focus:outline-none"
-              style={{ boxShadow: "none" }}
-            />
+        <div className="grid grid-cols-2 gap-10 pb-8 pt-2">
+          <span aria-hidden />
+          <label className="block">
+            <span className="flex items-end" style={{ height: LINE_H }}>
+              <input
+                type="text"
+                name="therapist_name"
+                defaultValue={str(initial, "therapist_name")}
+                className="w-full border-0 border-b border-black bg-transparent px-1 pb-1 text-[12px] focus:outline-none"
+                style={{ boxShadow: "none" }}
+              />
+            </span>
+            <span className="mt-1 block text-[11px] font-bold uppercase">Therapist Name</span>
           </label>
         </div>
 
