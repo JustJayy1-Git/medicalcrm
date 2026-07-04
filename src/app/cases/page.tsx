@@ -119,8 +119,8 @@ export default async function CasesPage({
             <thead className="bg-neon-mint-100 text-eggplant-700 uppercase text-xs tracking-wider">
               <tr>
                 <th className="text-left px-4 py-3 font-medium">Case #</th>
-                <th className="text-left px-4 py-3 font-medium">Name</th>
                 <th className="text-left px-4 py-3 font-medium">Patient</th>
+                <th className="text-left px-4 py-3 font-medium">Description</th>
                 <th className="text-left px-4 py-3 font-medium">DOA</th>
                 <th className="text-left px-4 py-3 font-medium">Billing</th>
                 <th className="text-left px-4 py-3 font-medium">Status</th>
@@ -154,19 +154,7 @@ export default async function CasesPage({
                         {c.case_number ?? c.id.slice(0, 8)}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-eggplant-900">
-                      <Link
-                        href={`/cases/${c.id}`}
-                        className="hover:text-neon-pink"
-                      >
-                        {c.description ?? (
-                          <span className="text-vice-muted italic">
-                            (no name)
-                          </span>
-                        )}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-eggplant-800">
+                    <td className="px-4 py-3 text-eggplant-900 font-medium">
                       {patient ? (
                         <Link
                           href={`/patients/${patient.id}`}
@@ -177,6 +165,16 @@ export default async function CasesPage({
                       ) : (
                         "—"
                       )}
+                    </td>
+                    <td className="px-4 py-3 text-eggplant-700">
+                      <Link
+                        href={`/cases/${c.id}`}
+                        className="hover:text-neon-pink"
+                      >
+                        {c.description ?? (
+                          <span className="text-vice-muted italic">—</span>
+                        )}
+                      </Link>
                     </td>
                     <td className="px-4 py-3 text-eggplant-700">
                       {fmt(c.date_of_injury)}

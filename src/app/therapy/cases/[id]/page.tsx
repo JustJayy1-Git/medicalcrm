@@ -6,7 +6,7 @@ import {
   getTherapyCase,
   listTherapySessions,
   SOAP_PROCEDURE_LABELS,
-  sessionProcedureCodes,
+  sessionProcedureLines,
 } from "@/lib/therapy/therapy";
 import { createClient } from "@/lib/supabase/server";
 import { sendCaseToNpFollowUp } from "@/app/cases/[id]/followup-action";
@@ -182,10 +182,13 @@ export default async function TherapyCasePage({
             <ul className="divide-y divide-vice-border">
               {sessions.map((s) => {
                 const j = (s.session_json ?? {}) as Record<string, unknown>;
-                const codes = sessionProcedureCodes(j);
-                const serviceText = codes.length
-                  ? codes
-                      .map((c) => `${SOAP_PROCEDURE_LABELS.get(c) ?? c} (${c})`)
+                const lines = sessionProcedureLines(j);
+                const serviceText = lines.length
+                  ? lines
+                      .map(
+                        (l) =>
+                          `${SOAP_PROCEDURE_LABELS.get(l.code) ?? l.code} (${l.code}${l.units > 1 ? ` ×${l.units}` : ""})`,
+                      )
                       .join(", ")
                   : "—";
                 return (
