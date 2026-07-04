@@ -10,7 +10,6 @@ const NAV = [
   { href: "/dashboard", label: "Dashboard", description: "Overview & daily stats", icon: "🏠" },
   { href: "/patients", label: "Patients", description: "Charts & demographics", icon: "👥" },
   { href: "/intake-packets", label: "Intake packets", description: "iPad form submissions", icon: "📝" },
-  { href: "/cases", label: "Cases", description: "Injury cases & claims", icon: "📁" },
   { href: "/providers", label: "Providers", description: "Doctors & clinicians", icon: "🩺" },
   { href: "/facilities", label: "Facilities", description: "Locations & offices", icon: "🏥" },
   { href: "/insurance", label: "Insurance", description: "Carriers & policies", icon: "🛡️" },

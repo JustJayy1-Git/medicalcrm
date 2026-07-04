@@ -7,7 +7,7 @@ import {
   getTherapyCase,
   listTherapySessions,
   SOAP_PROCEDURE_LABELS,
-  sessionProcedureCodes,
+  sessionProcedureLines,
 } from "@/lib/therapy/therapy";
 
 function fmtDate(d: string | null | undefined) {
@@ -107,16 +107,19 @@ export async function TherapyPrint({
               <tbody>
                 {sessions.map((s) => {
                   const j = (s.session_json ?? {}) as Record<string, unknown>;
-                  const codes = sessionProcedureCodes(j);
+                  const lines = sessionProcedureLines(j);
                   return (
                     <tr key={s.id as string}>
                       <td className="border border-black/40 px-2 py-1.5 whitespace-nowrap">
                         {fmtDate(s.session_date as string)}
                       </td>
                       <td className="border border-black/40 px-2 py-1.5">
-                        {codes.length
-                          ? codes
-                              .map((c) => `${SOAP_PROCEDURE_LABELS.get(c) ?? c} (${c})`)
+                        {lines.length
+                          ? lines
+                              .map(
+                                (l) =>
+                                  `${SOAP_PROCEDURE_LABELS.get(l.code) ?? l.code} (${l.code}${l.units > 1 ? ` ×${l.units}` : ""})`,
+                              )
                               .join(", ")
                           : "—"}
                       </td>

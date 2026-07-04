@@ -99,19 +99,17 @@ function SingleComplaint({
   );
 }
 
-/** Dark-green underlined heading, as printed on the sheet. */
 function SectionHead({ children }: { children: ReactNode }) {
   return (
-    <h3 className="m-0 inline-block border-b-2 border-[#14532d] pb-0.5 text-[11.5px] font-extrabold uppercase tracking-[0.04em] text-[#14532d]">
+    <h3 className="m-0 inline-block border-b-2 border-black pb-0.5 text-[11.5px] font-extrabold uppercase tracking-[0.04em]">
       {children}
     </h3>
   );
 }
 
-/** Centered green heading with cyan-underline accent, as printed. */
 function CenterHead({ children }: { children: ReactNode }) {
   return (
-    <h3 className="m-0 pt-1 text-center text-[11.5px] font-extrabold uppercase tracking-[0.04em] text-[#14532d] underline underline-offset-2">
+    <h3 className="m-0 pt-1 text-center text-[11.5px] font-extrabold uppercase tracking-[0.04em] underline underline-offset-2">
       {children}
     </h3>
   );
@@ -134,7 +132,7 @@ function RoutineRow({
       <div className="flex items-center border-r border-black/50 px-2 py-1.5">
         <Check i={i} name={name} label={region} />
       </div>
-      <p className="m-0 px-2 py-1.5 text-[8.5px] font-semibold uppercase leading-snug text-[#14532d]">
+      <p className="m-0 px-2 py-1.5 text-[8.5px] font-semibold uppercase leading-snug">
         {routine}
       </p>
     </div>
@@ -208,8 +206,8 @@ export function TherapySoapNoteForm({
           </label>
         </div>
 
-        <p className="m-0 pb-0.5 text-[11px] font-extrabold text-[#14532d]">
-          <span className="border-b-2 border-[#14532d] pb-0.5">
+        <p className="m-0 pb-0.5 text-[11px] font-extrabold">
+          <span className="border-b-2 border-black pb-0.5">
             Patient complain of the following:
           </span>
         </p>
@@ -273,17 +271,51 @@ export function TherapySoapNoteForm({
         </div>
 
         <SectionHead>Therapy Procedure</SectionHead>
-        <div className="grid grid-cols-3 gap-x-8 gap-y-1">
-          {SOAP_PROCEDURES.map((p) => (
-            <div
-              key={p.code}
-              className="flex items-center gap-2 border-b border-black/40 pb-0.5 text-[#14532d]"
-            >
-              <Check i={i} name={`proc_${p.code}`} label={`${p.code}`} />
-              <span className="text-[10.5px]">{p.label}</span>
+        <div className="grid grid-cols-3 gap-x-7">
+          {[
+            SOAP_PROCEDURES.slice(0, 7),
+            SOAP_PROCEDURES.slice(7, 14),
+            SOAP_PROCEDURES.slice(14),
+          ].map((column, ci) => (
+            <div key={ci} className="space-y-1">
+              {column.map((p) => (
+                <div
+                  key={p.code}
+                  className="grid grid-cols-[15px_44px_1fr_52px] items-center gap-1.5 border-b border-black/40 pb-0.5"
+                >
+                  <input
+                    type="checkbox"
+                    name={`proc_${p.code}`}
+                    value="1"
+                    defaultChecked={checked(i, `proc_${p.code}`)}
+                    className="h-[13px] w-[13px] accent-black"
+                  />
+                  <span className="text-[10.5px] font-semibold">{p.code}</span>
+                  <span className="truncate text-[10.5px]" title={p.label}>
+                    {p.label}
+                  </span>
+                  <label className="flex items-center gap-0.5 text-[10px]">
+                    <span className="text-black/60">×</span>
+                    <input
+                      type="number"
+                      name={`units_${p.code}`}
+                      min={1}
+                      max={9}
+                      defaultValue={str(i, `units_${p.code}`)}
+                      placeholder="1"
+                      className="w-[34px] border-0 border-b border-black/50 bg-transparent px-0.5 text-center text-[10.5px] focus:border-black focus:outline-none"
+                      style={{ boxShadow: "none" }}
+                    />
+                  </label>
+                </div>
+              ))}
             </div>
           ))}
         </div>
+        <p className="m-0 text-[8.5px] text-black/50">
+          Mark the procedure and the modality (×1, ×2, ×3…) — units are captured for
+          billing.
+        </p>
 
         <CenterHead>Therapeutic Exercises</CenterHead>
         <div>
@@ -373,20 +405,48 @@ export function TherapySoapNoteForm({
         </label>
 
         <div className="grid grid-cols-2 gap-10 pt-2">
-          <SignaturePad
-            name="patient_signature"
-            label="Patient Signature"
-            initialDataUrl={str(i, "patient_signature") || null}
-            heightPx={54}
-            variant="line"
-          />
-          <SignaturePad
-            name="therapist_signature"
-            label="Therapist Signature"
-            initialDataUrl={str(i, "therapist_signature") || null}
-            heightPx={54}
-            variant="line"
-          />
+          <div className="space-y-4">
+            <label className="block">
+              <span className="flex items-end" style={{ height: 40 }}>
+                <input
+                  type="text"
+                  name="patient_name_print"
+                  defaultValue={str(i, "patient_name_print") || patientName}
+                  className="w-full border-0 border-b border-black bg-transparent px-1 pb-1 text-[11px] focus:outline-none"
+                  style={{ boxShadow: "none" }}
+                />
+              </span>
+              <span className="mt-1 block text-[11px] font-bold italic">Patient Name</span>
+            </label>
+            <SignaturePad
+              name="patient_signature"
+              label="Patient Signature"
+              initialDataUrl={str(i, "patient_signature") || null}
+              heightPx={54}
+              variant="line"
+            />
+          </div>
+          <div className="space-y-4">
+            <label className="block">
+              <span className="flex items-end" style={{ height: 40 }}>
+                <input
+                  type="text"
+                  name="therapist_name"
+                  defaultValue={str(i, "therapist_name")}
+                  className="w-full border-0 border-b border-black bg-transparent px-1 pb-1 text-[11px] focus:outline-none"
+                  style={{ boxShadow: "none" }}
+                />
+              </span>
+              <span className="mt-1 block text-[11px] font-bold italic">Therapist Name</span>
+            </label>
+            <SignaturePad
+              name="therapist_signature"
+              label="Therapist Signature"
+              initialDataUrl={str(i, "therapist_signature") || null}
+              heightPx={54}
+              variant="line"
+            />
+          </div>
         </div>
 
         <div className="pb-5 pt-1 text-[10px]">

@@ -51,6 +51,23 @@ export function sessionProcedureCodes(json: Record<string, unknown>): string[] {
   return codes;
 }
 
+/**
+ * Billing lines for a saved session: marked CPT code + modality units
+ * (`units_<code>`, defaults to 1). This is what flows into charges.
+ */
+export function sessionProcedureLines(
+  json: Record<string, unknown>,
+): Array<{ code: string; units: number }> {
+  return sessionProcedureCodes(json).map((code) => {
+    const raw = json[`units_${code}`];
+    const units = Number(typeof raw === "string" ? raw : 1);
+    return {
+      code,
+      units: Number.isFinite(units) && units >= 1 ? Math.min(9, Math.floor(units)) : 1,
+    };
+  });
+}
+
 /** @deprecated Legacy simple list — kept for old saved sessions. */
 export const THERAPY_SERVICES = [
   { code: "97124", label: "Massage therapy" },
