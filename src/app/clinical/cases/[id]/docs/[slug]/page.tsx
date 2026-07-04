@@ -159,6 +159,7 @@ export default async function ClinicalDocPage({
             initial={initial}
             patientName={patientName}
             today={today}
+            dateOfInjury={(caseRow?.date_of_injury as string | null) ?? undefined}
             page={pageIndex + 1}
             totalPages={totalDocs}
             ident={ident}

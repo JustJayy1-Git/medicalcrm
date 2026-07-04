@@ -1,6 +1,5 @@
 import { InitialEvaluationDoc } from "@/components/clinical/initial-evaluation-doc";
 import {
-  PaperCheckGroup,
   PaperField,
   PaperIdentStrip,
   PaperNote,
@@ -15,6 +14,7 @@ export type DocProps = {
   initial: Record<string, unknown>;
   patientName: string;
   today: string;
+  dateOfInjury?: string;
   page: number;
   totalPages: number;
   ident: Array<{ label: string; value: string }>;
@@ -102,58 +102,174 @@ export function NofaDoc({ initial, patientName, today, page, totalPages, ident }
 }
 
 /* ------------------------------------------------------------------ */
-/* EMC — placeholder until the practice's form is uploaded.           */
+/* EMC — verbatim transcription of the practice's paper               */
+/* "NOTICE OF EMERGENCY MEDICAL CONDITION". Do not paraphrase.        */
 
-export function EmcDoc({ initial, patientName, today, page, totalPages, ident }: DocProps) {
+function SigLine({
+  initial,
+  nameField,
+  nameLabel,
+  sigField,
+  sigLabel,
+  dateField,
+  today,
+  defaultName,
+}: {
+  initial: Record<string, unknown>;
+  nameField: string;
+  nameLabel: string;
+  sigField: string;
+  sigLabel: string;
+  dateField: string;
+  today: string;
+  defaultName?: string;
+}) {
+  return (
+    <div className="grid grid-cols-[2fr_2fr_1fr] items-end gap-6">
+      <label className="block">
+        <input
+          type="text"
+          name={nameField}
+          defaultValue={str(initial, nameField) || defaultName || ""}
+          className="w-full border-0 border-b border-black bg-transparent px-1 py-1 text-[12px] focus:outline-none"
+          style={{ boxShadow: "none" }}
+        />
+        <span className="mt-1 block text-[11px]">{nameLabel}</span>
+      </label>
+      <div>
+        <SignaturePad
+          name={sigField}
+          label=""
+          initialDataUrl={str(initial, sigField) || null}
+          heightPx={80}
+        />
+        <span className="mt-1 block text-[11px]">{sigLabel}</span>
+      </div>
+      <label className="block">
+        <input
+          type="date"
+          name={dateField}
+          defaultValue={str(initial, dateField) || today}
+          className="w-full border-0 border-b border-black bg-transparent px-1 py-1 text-[12px] focus:outline-none"
+          style={{ boxShadow: "none" }}
+        />
+        <span className="mt-1 block text-[11px]">Date:</span>
+      </label>
+    </div>
+  );
+}
+
+export function EmcDoc({
+  initial,
+  patientName,
+  today,
+  dateOfInjury,
+  page,
+  totalPages,
+  ident,
+}: DocProps) {
   return (
     <PaperSheet
-      title="Emergency Medical Condition (EMC) Determination"
-      titleEs="Determinación de Condición Médica de Emergencia"
+      title="Notice of Emergency Medical Condition"
       page={page}
       totalPages={totalPages}
     >
       <PaperIdentStrip fields={ident} />
-      <PaperSection num={1} title="Determination" titleEs="Determinación">
-        <PaperCheckGroup
-          legend="In my professional opinion, this patient has an Emergency Medical Condition as defined by §627.732(16), Fla. Stat."
-          name="emc_present"
-          defaultValue={str(initial, "emc_present")}
-          options={[
-            { value: "yes", label: "YES — EMC determined (up to $10,000 PIP)" },
-            { value: "no", label: "NO — no EMC (limited to $2,500 PIP)" },
-          ]}
-        />
-      </PaperSection>
+      <div className="space-y-4 px-8 pt-5 text-[12px] leading-relaxed">
+        <h2 className="m-0 text-center text-[16px] font-extrabold uppercase underline underline-offset-4">
+          Notice of Emergency Medical Condition
+        </h2>
 
-      <PaperSection num={2} title="Clinical basis" titleEs="Base clínica">
-        <PaperTextarea
-          label="Findings and rationale for determination"
-          name="emc_determination"
-          rows={7}
-          defaultValue={str(initial, "emc_determination")}
-        />
-      </PaperSection>
+        <p className="m-0">The undersigned licensed medical provider, hereby affirms:</p>
 
-      <PaperSection num={3} title="Patient & date" titleEs="Paciente y fecha">
-        <div className="grid grid-cols-2 gap-4">
-          <PaperField
-            label="Patient name (print)"
-            name="patient_name_print"
-            defaultValue={str(initial, "patient_name_print") || patientName}
-          />
-          <PaperField
-            label="Date"
-            name="signed_date"
-            type="date"
-            defaultValue={str(initial, "signed_date") || today}
-          />
+        <ol className="m-0 list-decimal space-y-3 pl-8">
+          <li>
+            The below injured patient, has in the opinion of this medical provider,
+            suffered an <strong>Emergency Medical Condition</strong>, as a result of
+            the patient&apos;s injuries sustained an automobile accident that occurred
+            on the following day{" "}
+            <input
+              type="date"
+              name="date_of_acc"
+              defaultValue={str(initial, "date_of_acc") || dateOfInjury || ""}
+              className="mx-1 inline-block w-[140px] border-0 border-b border-black bg-transparent px-1 text-[12px] focus:outline-none"
+              style={{ boxShadow: "none" }}
+            />{" "}
+            (Date of Acc).
+          </li>
+          <li>
+            The basis for the finding of an{" "}
+            <strong>Emergency Medical Condition</strong> is that the patient has
+            sustained acute symptoms of sufficient severity, which may include severe
+            pain, such that the absence of immediate medical attention{" "}
+            <span className="underline">could</span> reasonably be expected to result
+            in any of the following: a) serious jeopardy to patient health; b) serious
+            impairment to bodily functions; or c) serious dysfunction of a bodily
+            organ or part.
+          </li>
+        </ol>
+
+        <p className="m-0">
+          I hereby attest that I am a physician licensed under chapter 458 er chapter
+          459, a dentist licensed under chapter 466, a physician assistant licensed
+          under chapter 459 or chapter 459, or an advanced registered nurse
+          practitioner licensed under chapter 464, and that the above facts are true
+          and correct.
+        </p>
+
+        <SigLine
+          initial={initial}
+          nameField="provider_name_print"
+          nameLabel="Name (Print or Type)"
+          sigField="provider_signature"
+          sigLabel="Signature of Medical Provider"
+          dateField="provider_date"
+          today={today}
+        />
+
+        <ol className="m-0 list-decimal space-y-2 pl-8">
+          <li>The symptoms I reported to the medical provider are true and accurate.</li>
+          <li>
+            I understand the medical provider has determined I sustained an Emergency
+            Medical Condition as a result of the injuries I suffered in the car
+            accident.
+          </li>
+          <li>
+            The medical provider has explained to my satisfaction the need for future
+            medical attention and the harmful consequences to my health which may
+            occur if I do not receive future treatment.
+          </li>
+        </ol>
+
+        <p className="m-0">
+          Injured patient receiving this diagnosis or legal guardian of said injured
+          patient:
+        </p>
+
+        <SigLine
+          initial={initial}
+          nameField="patient_name_print"
+          nameLabel="Name (Print or Type)"
+          sigField="patient_signature"
+          sigLabel="Signature of injured patient/guardian"
+          dateField="patient_date"
+          today={today}
+          defaultName={patientName}
+        />
+
+        <div className="flex justify-end pb-8 pt-4">
+          <label className="flex items-baseline gap-2 text-[12px] font-bold">
+            Patient Initials:
+            <input
+              type="text"
+              name="patient_initials"
+              defaultValue={str(initial, "patient_initials")}
+              className="w-[90px] border-0 border-b border-black bg-transparent px-1 text-[12px] font-normal focus:outline-none"
+              style={{ boxShadow: "none" }}
+            />
+          </label>
         </div>
-      </PaperSection>
-
-      <SignatureRow
-        initial={initial}
-        fields={[{ name: "provider_signature", label: "Provider signature" }]}
-      />
+      </div>
     </PaperSheet>
   );
 }
