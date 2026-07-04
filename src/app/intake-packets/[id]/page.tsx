@@ -22,10 +22,18 @@ export default async function IntakePacketDetailPage({ params }: Props) {
       <Link href="/intake-packets" className="text-sm text-vice-muted hover:text-neon-pink">
         ← All packets
       </Link>
-      <h1 className="text-xl font-serif font-semibold text-eggplant-900 mt-2 mb-1">
-        Packet #{packetId}
-        {meta.full_name ? ` — ${meta.full_name}` : ""}
-      </h1>
+      <div className="flex items-center justify-between gap-4 mt-2 mb-1">
+        <h1 className="text-xl font-serif font-semibold text-eggplant-900">
+          Packet #{packetId}
+          {meta.full_name ? ` — ${meta.full_name}` : ""}
+        </h1>
+        <Link
+          href={`/intake-packets/${packetId}/print`}
+          className="shrink-0 px-3 py-1.5 text-xs border border-vice-border text-eggplant-800 rounded-md hover:bg-neon-mint-100 font-medium"
+        >
+          🖨 Print packet
+        </Link>
+      </div>
       <p className="text-sm text-vice-muted mb-6">
         Status: {meta.status}
         {meta.patient_id ? (

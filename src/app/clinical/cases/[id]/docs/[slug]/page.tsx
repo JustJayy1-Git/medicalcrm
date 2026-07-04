@@ -97,6 +97,12 @@ export default async function ClinicalDocPage({
           </span>
         </div>
         <div className="flex shrink-0 items-center gap-3">
+          <Link
+            href={`/clinical/cases/${caseId}/print`}
+            className="rounded-md border border-[#c9a35c]/50 px-3 py-1.5 text-xs font-bold uppercase text-[#e6c987] hover:bg-[#c9a35c]/10"
+          >
+            🖨 Print
+          </Link>
           {prevSlug ? (
             <Link
               href={`${basePath}/${prevSlug}`}

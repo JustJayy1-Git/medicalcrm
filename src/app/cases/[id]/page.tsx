@@ -91,6 +91,20 @@ const { data: c } = await supabase
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <Link
+              href={`/cases/${c.id}/print/consultation`}
+              className="px-3 py-1.5 text-xs border border-vice-border text-eggplant-800 rounded-md hover:bg-neon-mint-100"
+              title="Print NP consultation packet (Initial Evaluation, EMC, No-Fault)"
+            >
+              🖨 Consultation
+            </Link>
+            <Link
+              href={`/cases/${c.id}/print/therapy`}
+              className="px-3 py-1.5 text-xs border border-vice-border text-eggplant-800 rounded-md hover:bg-neon-mint-100"
+              title="Print therapy record (consent + session log)"
+            >
+              🖨 Therapy
+            </Link>
             <form action={sendCaseToNpFollowUp}>
               <input type="hidden" name="case_id" value={c.id} />
               <button
