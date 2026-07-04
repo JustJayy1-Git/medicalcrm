@@ -67,16 +67,25 @@ export default async function TherapyCasePage({
           <h1 className="text-2xl font-serif font-semibold text-eggplant-900">
             {patientName}
           </h1>
-          <form action={sendCaseToNpFollowUp}>
-            <input type="hidden" name="case_id" value={caseId} />
-            <button
-              type="submit"
-              className="px-3 py-1.5 text-xs border border-gold/50 text-eggplant-800 rounded-md hover:bg-gold-soft font-medium"
-              title="Put this patient back in the nurse practitioner queue"
+          <div className="flex shrink-0 items-center gap-2">
+            <Link
+              href={`/therapy/cases/${caseId}/print`}
+              className="px-3 py-1.5 text-xs border border-vice-border text-eggplant-800 rounded-md hover:bg-neon-mint-100 font-medium"
+              title="Print therapy record (consent + session log)"
             >
-              🩺 Send to NP follow-up
-            </button>
-          </form>
+              🖨 Print
+            </Link>
+            <form action={sendCaseToNpFollowUp}>
+              <input type="hidden" name="case_id" value={caseId} />
+              <button
+                type="submit"
+                className="px-3 py-1.5 text-xs border border-gold/50 text-eggplant-800 rounded-md hover:bg-gold-soft font-medium"
+                title="Put this patient back in the nurse practitioner queue"
+              >
+                🩺 Send to NP follow-up
+              </button>
+            </form>
+          </div>
         </div>
         <dl className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
           <div>

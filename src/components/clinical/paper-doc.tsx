@@ -21,7 +21,7 @@ export function PaperSheet({
   children: ReactNode;
 }) {
   return (
-    <div className="relative mx-auto my-6 w-[816px] max-w-full min-h-[1056px] bg-white text-black shadow-[0_24px_60px_rgba(0,0,0,0.45)] overflow-hidden">
+    <div className="paper-sheet relative mx-auto my-6 w-[816px] max-w-full min-h-[1056px] bg-white text-black shadow-[0_24px_60px_rgba(0,0,0,0.45)] overflow-hidden">
       {/* Watermark */}
       <div
         className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center opacity-[0.05]"
