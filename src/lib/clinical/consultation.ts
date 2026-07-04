@@ -75,7 +75,11 @@ export async function getClinicalConsultation(
     .from("clinical_consultations")
     .select(
       `*,
-       case:cases(id, case_number, date_of_injury, description, pain_notes, diagnosis_codes),
+       case:cases(
+         id, case_number, date_of_injury, description, pain_notes, diagnosis_codes,
+         case_type, how_it_happened, loss_consciousness, airbag_deployed,
+         seatbelt_worn, er_visit
+       ),
        patient:patients(
          id, first_name, last_name, middle_name, date_of_birth, phone, email,
          address_line1, city, state, zip, sex
