@@ -103,13 +103,15 @@ export async function fetchClaimsForCaseDos(
   const provider = Array.isArray(visit.provider)
     ? visit.provider[0]
     : visit.provider;
-  const charges = ((visit.charges ?? []) as {
+  // No slicing here — buildCms1500Pages splits consults onto their own
+  // forms and chunks therapy lines six per form.
+  const charges = (visit.charges ?? []) as {
     cpt_code: string | null;
     modifier?: string | null;
     units?: number | null;
     fee?: number | string | null;
     icd_codes?: string[] | null;
-  }[]).slice(0, 6);
+  }[];
 
   return buildCms1500Pages({
     caseId,
