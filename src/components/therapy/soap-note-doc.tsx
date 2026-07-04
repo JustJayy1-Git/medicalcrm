@@ -1,4 +1,4 @@
-import { PaperIdentStrip, PaperSheet } from "@/components/clinical/paper-doc";
+import { PaperSheet } from "@/components/clinical/paper-doc";
 import { SignaturePad } from "@/components/signature-pad";
 import { addTherapySessionAction } from "@/app/therapy/cases/[id]/actions";
 import { SOAP_PROCEDURES } from "@/lib/therapy/therapy";
@@ -99,15 +99,25 @@ function SingleComplaint({
   );
 }
 
+/** Dark-green underlined heading, as printed on the sheet. */
 function SectionHead({ children }: { children: ReactNode }) {
   return (
-    <h3 className="m-0 inline-block border-b-2 border-black text-[11.5px] font-extrabold uppercase tracking-[0.04em] text-[#0b4f3f]">
+    <h3 className="m-0 inline-block border-b-2 border-[#14532d] pb-0.5 text-[11.5px] font-extrabold uppercase tracking-[0.04em] text-[#14532d]">
       {children}
     </h3>
   );
 }
 
-/** Exercise / re-education row: checkbox + region, routine text beside it. */
+/** Centered green heading with cyan-underline accent, as printed. */
+function CenterHead({ children }: { children: ReactNode }) {
+  return (
+    <h3 className="m-0 pt-1 text-center text-[11.5px] font-extrabold uppercase tracking-[0.04em] text-[#14532d] underline underline-offset-2">
+      {children}
+    </h3>
+  );
+}
+
+/** Exercise / re-education row — bordered cells like the printed table. */
 function RoutineRow({
   i,
   name,
@@ -120,9 +130,13 @@ function RoutineRow({
   routine: string;
 }) {
   return (
-    <div className="grid grid-cols-[150px_1fr] items-start gap-3 border-b border-black/25 py-1">
-      <Check i={i} name={name} label={region} />
-      <p className="m-0 text-[8.5px] font-semibold uppercase leading-snug">{routine}</p>
+    <div className="grid grid-cols-[160px_1fr] border border-t-0 border-black/50 first:border-t">
+      <div className="flex items-center border-r border-black/50 px-2 py-1.5">
+        <Check i={i} name={name} label={region} />
+      </div>
+      <p className="m-0 px-2 py-1.5 text-[8.5px] font-semibold uppercase leading-snug text-[#14532d]">
+        {routine}
+      </p>
     </div>
   );
 }
@@ -132,7 +146,6 @@ export function TherapySoapNoteForm({
   patientId,
   patientName,
   today,
-  ident,
   initial = {},
   readOnly = false,
   sessionDate,
@@ -141,7 +154,6 @@ export function TherapySoapNoteForm({
   patientId?: string;
   patientName: string;
   today: string;
-  ident: Array<{ label: string; value: string }>;
   initial?: Record<string, unknown>;
   readOnly?: boolean;
   sessionDate?: string;
@@ -150,7 +162,6 @@ export function TherapySoapNoteForm({
 
   const sheet = (
     <PaperSheet title="Therapy SOAP Note" page={1} totalPages={1}>
-      <PaperIdentStrip fields={ident} />
       <div className="space-y-2.5 px-7 pt-4 text-[11px]">
         <div className="flex items-baseline gap-2">
           <span className="shrink-0 font-bold">Patient Name:</span>
@@ -197,8 +208,10 @@ export function TherapySoapNoteForm({
           </label>
         </div>
 
-        <p className="m-0 border-b-2 border-black/70 pb-0.5 text-[11px] font-extrabold">
-          Patient complain of the following:
+        <p className="m-0 pb-0.5 text-[11px] font-extrabold text-[#14532d]">
+          <span className="border-b-2 border-[#14532d] pb-0.5">
+            Patient complain of the following:
+          </span>
         </p>
         <div className="grid grid-cols-3 gap-x-8 gap-y-1">
           <div className="space-y-1">
@@ -262,16 +275,17 @@ export function TherapySoapNoteForm({
         <SectionHead>Therapy Procedure</SectionHead>
         <div className="grid grid-cols-3 gap-x-8 gap-y-1">
           {SOAP_PROCEDURES.map((p) => (
-            <div key={p.code} className="flex items-center gap-2 border-b border-black/25 pb-0.5">
+            <div
+              key={p.code}
+              className="flex items-center gap-2 border-b border-black/40 pb-0.5 text-[#14532d]"
+            >
               <Check i={i} name={`proc_${p.code}`} label={`${p.code}`} />
               <span className="text-[10.5px]">{p.label}</span>
             </div>
           ))}
         </div>
 
-        <h3 className="m-0 text-center text-[11.5px] font-extrabold uppercase underline underline-offset-2">
-          Therapeutic Exercises
-        </h3>
+        <CenterHead>Therapeutic Exercises</CenterHead>
         <div>
           <RoutineRow i={i} name="ex_cervical" region="Cervical 1-2" routine="1-PROM+ISOMETRIC ROTATION+FLEX+ISOMETRIC-EXT" />
           <RoutineRow
@@ -312,9 +326,7 @@ export function TherapySoapNoteForm({
           />
         </div>
 
-        <h3 className="m-0 text-center text-[11.5px] font-extrabold uppercase underline underline-offset-2">
-          Neuromuscular Re-Education:
-        </h3>
+        <CenterHead>Neuromuscular Re-Education:</CenterHead>
         <div>
           <RoutineRow
             i={i}

@@ -169,7 +169,6 @@ export default async function TherapyCasePage({
             patientId={patient.id}
             patientName={patientName}
             today={today}
-            ident={ident}
           />
         </section>
 
