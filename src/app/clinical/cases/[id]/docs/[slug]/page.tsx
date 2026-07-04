@@ -200,9 +200,17 @@ export default async function ClinicalDocPage({
               type="submit"
               name="_complete"
               value="1"
-              className="rounded-md bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-white"
+              className="rounded-md border border-[#41B6E6]/50 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-[#7ecff0] hover:bg-[#41B6E6]/10"
             >
               Save &amp; mark complete
+            </button>
+            <button
+              type="submit"
+              name={nextSlug ? "_nav" : "_finish"}
+              value={nextSlug ? `${basePath}/${nextSlug}` : "/clinical"}
+              className="rounded-md bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] px-5 py-2 text-[11px] font-bold uppercase tracking-wider text-white"
+            >
+              {nextSlug ? "Save & next →" : "Save, complete & finish"}
             </button>
             <span className="lux-gold-text ml-auto font-serif text-[10px] font-semibold uppercase tracking-widest">
               Pro Injury Medical &amp; Rehabilitation
