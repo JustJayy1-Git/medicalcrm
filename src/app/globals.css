@@ -54,6 +54,39 @@ body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
+/* ---- Clickable feel ------------------------------------------------ */
+/* Tailwind 4 preflight leaves buttons with the default arrow cursor;
+   restore the hand and add tactile press feedback everywhere. */
+button:not(:disabled),
+[role="button"],
+select:not(:disabled),
+input[type="checkbox"]:not(:disabled),
+input[type="radio"]:not(:disabled),
+label:has(input[type="checkbox"]:not(:disabled)),
+label:has(input[type="radio"]:not(:disabled)) {
+  cursor: pointer;
+}
+
+button:not(:disabled) {
+  transition: transform 80ms ease;
+}
+button:not(:disabled):active {
+  transform: scale(0.96);
+}
+
+input[type="checkbox"]:not(:disabled),
+input[type="radio"]:not(:disabled) {
+  transition: transform 80ms ease;
+}
+input[type="checkbox"]:not(:disabled):active,
+input[type="radio"]:not(:disabled):active {
+  transform: scale(0.8);
+}
+
+a:active {
+  opacity: 0.8;
+}
+
 /* ---- Luxury layer ------------------------------------------------- */
 
 /* Serif headings pick up the display face with refined spacing. */

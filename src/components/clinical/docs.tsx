@@ -401,18 +401,7 @@ export function EmcDoc({
           defaultName={patientName}
         />
 
-        <div className="flex justify-end pb-8 pt-4">
-          <label className="flex items-baseline gap-2 text-[12px] font-bold">
-            Patient Initials:
-            <input
-              type="text"
-              name="patient_initials"
-              defaultValue={str(initial, "patient_initials")}
-              className="w-[90px] border-0 border-b border-black bg-transparent px-1 text-[12px] font-normal focus:outline-none"
-              style={{ boxShadow: "none" }}
-            />
-          </label>
-        </div>
+        <div className="pb-8" />
       </div>
     </PaperSheet>
   );
