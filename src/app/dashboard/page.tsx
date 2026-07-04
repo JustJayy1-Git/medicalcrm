@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardCharts } from "@/components/dashboard/dashboard-charts";
+import { CARE_PHASE_META, fetchCarePhases } from "@/lib/care-phase";
 import { fetchDashboardSnapshot } from "@/lib/dashboard-stats";
 
 export const dynamic = "force-dynamic";
@@ -68,6 +69,11 @@ export default async function DashboardPage() {
     .in("status", ["open", "active"])
     .order("updated_at", { ascending: false })
     .limit(8);
+
+  const carePhases = await fetchCarePhases(
+    supabase,
+    (recentCases ?? []).map((r) => r.id as string),
+  );
 
   return (
     <div className="px-8 py-8 max-w-7xl mx-auto">
@@ -154,12 +160,12 @@ export default async function DashboardPage() {
 
         <div className="lux-card p-6 rounded-xl bg-white border border-vice-border shadow-sm">
           <h2 className="text-lg font-serif font-semibold text-eggplant-900 mb-2">
-            Active cases
+            Active cases — care phase
           </h2>
           {(recentCases ?? []).length === 0 ? (
             <p className="text-sm text-eggplant-400">No open or active cases.</p>
           ) : (
-            <ul className="text-sm space-y-2">
+            <ul className="text-sm space-y-2.5">
               {recentCases!.map((row) => {
                 const patient = Array.isArray(row.patient)
                   ? row.patient[0]
@@ -167,20 +173,24 @@ export default async function DashboardPage() {
                 const label = patient
                   ? `${patient.last_name}, ${patient.first_name}`
                   : "Case";
-                const ref = row.referral_source
-                  ? ` · ${String(row.referral_source).slice(0, 24)}`
-                  : "";
+                const phase = CARE_PHASE_META[carePhases.get(row.id) ?? "intake"];
                 return (
-                  <li key={row.id}>
-                    <Link
-                      href={`/cases/${row.id}`}
-                      className="text-neon-pink hover:underline font-medium"
+                  <li key={row.id} className="flex items-center justify-between gap-3">
+                    <span className="min-w-0">
+                      <Link
+                        href={`/cases/${row.id}`}
+                        className="text-neon-pink hover:underline font-medium"
+                      >
+                        {label}
+                      </Link>
+                      <span className="text-eggplant-500 text-xs ml-2">
+                        {row.case_number ?? row.status}
+                      </span>
+                    </span>
+                    <span
+                      className={`shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${phase.className}`}
                     >
-                      {label}
-                    </Link>
-                    <span className="text-eggplant-500 text-xs ml-2">
-                      {row.case_number ?? row.status}
-                      {ref}
+                      {phase.label}
                     </span>
                   </li>
                 );
