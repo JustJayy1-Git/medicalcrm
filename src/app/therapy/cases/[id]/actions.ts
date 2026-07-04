@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { createChargesFromSoapNote } from "@/lib/therapy/billing";
 import { addTherapySession, saveTherapyConsent } from "@/lib/therapy/therapy";
 import { createClient } from "@/lib/supabase/server";
 
@@ -59,6 +60,23 @@ export async function addTherapySessionAction(formData: FormData) {
     createdBy: user.id,
   });
 
+  // Billing capture: marked procedures become charge lines for this DOS.
+  try {
+    await createChargesFromSoapNote({
+      supabase,
+      caseId,
+      patientId,
+      sessionDate,
+      payload,
+      createdBy: user.id,
+    });
+  } catch (err) {
+    // The clinical note is saved either way; billing can be entered manually.
+    console.error("SOAP note billing capture failed:", err);
+  }
+
   revalidatePath(`/therapy/cases/${caseId}`);
   revalidatePath("/therapy");
+  revalidatePath(`/cases/${caseId}`);
+  revalidatePath("/reports/cms-1500");
 }
