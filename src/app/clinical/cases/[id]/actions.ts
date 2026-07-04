@@ -36,8 +36,10 @@ export async function saveClinicalDocument(formData: FormData) {
 
   await saveClinicalFormSection(supabase, caseId, section, payload, markComplete);
 
-  // Completing the follow-up note also closes the follow-up queue entry.
-  if (section === "follow_up" && markComplete) {
+  // Finishing the packet (toolbar on the last document) closes the whole
+  // consultation — the patient leaves the NP queue and moves to therapy.
+  // Completing the follow-up note does the same for follow-up visits.
+  if (finishNav || (section === "follow_up" && markComplete)) {
     await completeClinicalFollowUp(supabase, caseId);
   }
 
