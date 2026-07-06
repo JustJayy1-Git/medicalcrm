@@ -144,10 +144,34 @@ export async function updateSession(request: NextRequest) {
     }
 
     if (!user && !isPublic) {
-      const login = request.nextUrl.clone();
-      login.pathname = "/login";
-      login.searchParams.set("next", pathname + search);
-      return NextResponse.redirect(login);
+      // Kiosk iPad self-heal: an expired session on intake data endpoints
+      // signs the device back in instead of failing the save.
+      const referer = request.headers.get("referer") ?? "";
+      const isDataPath =
+        pathname.startsWith("/api/") ||
+        pathname.startsWith("/portal/api/") ||
+        pathname.startsWith("/serve/");
+      if (isDataPath && referer.includes("/portal/")) {
+        const kioskUser = await signInKioskDevice(supabase);
+        if (kioskUser) user = kioskUser;
+      }
+
+      if (!user) {
+        // Never redirect data endpoints to an HTML login page — fetch()
+        // callers would try to parse it as JSON ("Unexpected token '<'").
+        if (isDataPath) {
+          const denied = NextResponse.json(
+            { error: "session_expired" },
+            { status: 401 },
+          );
+          copyResponseCookies(response, denied);
+          return denied;
+        }
+        const login = request.nextUrl.clone();
+        login.pathname = "/login";
+        login.searchParams.set("next", pathname + search);
+        return NextResponse.redirect(login);
+      }
     }
 
     let role: string | null = null;

@@ -32,13 +32,22 @@ export function buildPortalBridgeScript(opts: {
       credentials: 'same-origin',
       body: JSON.stringify(data)
     });
+    var isJson = (r.headers.get('content-type') || '').indexOf('json') !== -1;
     if(!r.ok){
       var msg = 'save failed';
-      try {
-        var errBody = await r.json();
-        if(errBody && errBody.error) msg = String(errBody.error);
-      } catch(parseErr){}
+      if(isJson){
+        try {
+          var errBody = await r.json();
+          if(errBody && errBody.error) msg = String(errBody.error);
+        } catch(parseErr){}
+      }
+      if(r.status === 401 || msg === 'session_expired' || msg === 'Unauthorized'){
+        msg = 'Session expired — reload this page and try again. Your answers are kept on this device.';
+      }
       throw new Error(msg);
+    }
+    if(!isJson){
+      throw new Error('Session expired — reload this page and try again. Your answers are kept on this device.');
     }
     return r.json();
   };
