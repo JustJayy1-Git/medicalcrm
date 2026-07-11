@@ -67,8 +67,9 @@ export async function addTherapySessionAction(formData: FormData) {
   });
 
   // Billing capture: marked procedures become charge lines for this DOS.
+  let billingParam = "none";
   try {
-    await createChargesFromSoapNote({
+    const result = await createChargesFromSoapNote({
       supabase,
       caseId,
       patientId,
@@ -76,13 +77,18 @@ export async function addTherapySessionAction(formData: FormData) {
       payload,
       createdBy: user.id,
     });
+    if (result.created > 0) billingParam = `ok-${result.created}`;
+    else if (result.skipped > 0) billingParam = "dup";
   } catch (err) {
     // The clinical note is saved either way; billing can be entered manually.
     console.error("SOAP note billing capture failed:", err);
+    billingParam = "failed";
   }
 
   revalidatePath(`/therapy/cases/${caseId}`);
   revalidatePath("/therapy");
   revalidatePath(`/cases/${caseId}`);
   revalidatePath("/reports/cms-1500");
+
+  redirect(`/therapy/cases/${caseId}/docs/soap-note?billing=${billingParam}`);
 }
