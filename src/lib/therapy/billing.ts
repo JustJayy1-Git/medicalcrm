@@ -99,23 +99,26 @@ export async function createChargesFromSoapNote(opts: {
     for (const l of missing) feeByCode.set(l.code, 0);
   }
 
-  const zeroFee: string[] = [];
-  const rows = newLines.map((l) => {
-    const fee = feeByCode.get(l.code) ?? 0;
-    if (!(fee > 0)) zeroFee.push(l.code);
-    return {
-      visit_id: visitId,
-      case_id: opts.caseId,
-      patient_id: opts.patientId,
-      cpt_code: l.code,
-      units: l.units,
-      fee,
-      modifier: "59",
-      icd_codes: [] as string[],
-      status: "unbilled",
-      created_by: opts.createdBy,
-    };
-  });
+  // Practice rule: only priced codes are billed (per the HICFA). Zero-fee
+  // procedures stay documented on the SOAP note but create no charge line.
+  const zeroFee = newLines
+    .filter((l) => !((feeByCode.get(l.code) ?? 0) > 0))
+    .map((l) => l.code);
+  const billable = newLines.filter((l) => (feeByCode.get(l.code) ?? 0) > 0);
+  if (billable.length === 0) return { created: 0, skipped, zeroFee };
+
+  const rows = billable.map((l) => ({
+    visit_id: visitId,
+    case_id: opts.caseId,
+    patient_id: opts.patientId,
+    cpt_code: l.code,
+    units: l.units,
+    fee: feeByCode.get(l.code) ?? 0,
+    modifier: "59",
+    icd_codes: [] as string[],
+    status: "unbilled",
+    created_by: opts.createdBy,
+  }));
 
   const { error: chargeErr } = await supabase.from("charges").insert(rows);
   if (chargeErr) throw chargeErr;
@@ -152,5 +155,17 @@ export async function rebuildTherapyBillingForCase(opts: {
     });
     created += result.created;
   }
+
+  // Sweep out zero-fee auto-captured lines from earlier syncs — the practice
+  // never bills unpriced codes, so untouched $0 lines are just noise.
+  await opts.supabase
+    .from("charges")
+    .delete()
+    .eq("case_id", opts.caseId)
+    .eq("status", "unbilled")
+    .eq("fee", 0)
+    .eq("paid", 0)
+    .eq("modifier", "59");
+
   return { sessions: (sessions ?? []).length, created };
 }
