@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { CaseChargeLedger } from "@/components/case-charge-ledger";
 import { fetchCaseLedger } from "@/lib/charge-ledger-server";
 import { sendCaseToNpFollowUp } from "./followup-action";
+import { syncTherapyBilling } from "./therapy-billing-action";
 
 export const dynamic = "force-dynamic";
 
@@ -23,10 +24,13 @@ const STATUS_PILL: Record<string, string> = {
 
 export default async function CasePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ billing_sync?: string }>;
 }) {
   const { id } = await params;
+  const { billing_sync: billingSync } = await searchParams;
   const supabase = await createClient();
 const { data: c } = await supabase
     .from("cases")
@@ -56,6 +60,18 @@ const { data: c } = await supabase
     .from("therapy_sessions")
     .select("id", { count: "exact", head: true })
     .eq("case_id", id);
+  const { data: therapyConsent } = await supabase
+    .from("therapy_consents")
+    .select("signed_at")
+    .eq("case_id", id)
+    .maybeSingle();
+  const { data: intakePacket } = await supabase
+    .from("intake_packets")
+    .select("id, status")
+    .eq("case_id", id)
+    .order("id", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   return (
     <div className="px-6 py-4 max-w-6xl mx-auto">
@@ -176,6 +192,69 @@ const { data: c } = await supabase
           <span className="text-eggplant-800">
             Therapy sessions: <strong>{therapySessionCount ?? 0}</strong>
           </span>
+          <form action={syncTherapyBilling} className="ml-auto">
+            <input type="hidden" name="case_id" value={c.id} />
+            <button
+              type="submit"
+              className="px-2.5 py-1 text-[11px] border border-gold/50 text-eggplant-800 rounded-md hover:bg-gold-soft font-medium"
+              title="Re-run billing capture for every saved therapy note on this case (skips anything already billed)"
+            >
+              ⟳ Sync therapy billing
+            </button>
+          </form>
+        </div>
+
+        {billingSync ? (
+          <p
+            className={`mb-4 rounded-lg border px-4 py-2.5 text-xs font-medium ${
+              billingSync === "failed"
+                ? "border-red-200 bg-red-50 text-red-700"
+                : "border-emerald-200 bg-emerald-50 text-emerald-700"
+            }`}
+          >
+            {billingSync === "failed"
+              ? "Therapy billing sync failed — check that migrations are applied, or enter charges via Transaction entry."
+              : `Therapy billing synced: ${billingSync.replace("-of-", " new charge line(s) from ")} therapy note(s). Already-billed codes were skipped.`}
+          </p>
+        ) : null}
+
+        {/* Patient folder — every signed document, viewable & printable */}
+        <div className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-lg border border-vice-border bg-white px-4 py-2.5 text-xs shadow-sm">
+          <span className="font-bold uppercase tracking-wider text-eggplant-700">
+            Patient folder
+          </span>
+          {intakePacket ? (
+            <>
+              <Link
+                href={`/intake-packets/${intakePacket.id}`}
+                className="text-neon-pink hover:underline font-medium"
+              >
+                Intake packet
+              </Link>
+              <Link
+                href={`/intake-packets/${intakePacket.id}/print`}
+                className="text-eggplant-700 hover:text-neon-pink"
+              >
+                🖨 Print intake
+              </Link>
+            </>
+          ) : (
+            <span className="text-vice-muted">Intake packet: none linked</span>
+          )}
+          <Link
+            href={`/cases/${c.id}/print/consultation`}
+            className="text-eggplant-700 hover:text-neon-pink"
+          >
+            🖨 NP consultation (No-Fault · Initial Eval · EMC)
+          </Link>
+          <Link
+            href={`/cases/${c.id}/print/therapy`}
+            className="text-eggplant-700 hover:text-neon-pink"
+          >
+            🖨 Therapy record{" "}
+            {therapyConsent?.signed_at ? "(consent ✓" : "(consent pending"}
+            {` · ${therapySessionCount ?? 0} sessions)`}
+          </Link>
         </div>
 
         <section className="mb-4">

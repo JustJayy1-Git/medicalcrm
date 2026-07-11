@@ -28,10 +28,13 @@ function one<T>(v: T | T[] | null | undefined): T | null {
 
 export default async function TherapyDocPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string; slug: string }>;
+  searchParams: Promise<{ billing?: string; view?: string }>;
 }) {
   const { id: caseId, slug } = await params;
+  const { billing, view } = await searchParams;
   if (!(THERAPY_DOCS as readonly string[]).includes(slug)) notFound();
 
   const supabase = await createClient();
@@ -50,9 +53,13 @@ export default async function TherapyDocPage({
   const consentSigned = Boolean(consent?.signed_at);
   const basePath = `/therapy/cases/${caseId}/docs`;
 
-  // Step gate: the consent must be signed before the therapy sheet opens.
+  // Step gate: the consent must be signed before the therapy sheet opens —
+  // and once signed it is on file in the patient's folder, not editable here.
   if (slug === "soap-note" && !consentSigned) {
     redirect(`${basePath}/consent`);
+  }
+  if (slug === "consent" && consentSigned) {
+    redirect(`${basePath}/soap-note`);
   }
 
   const patientName = `${patient.first_name ?? ""} ${patient.last_name ?? ""}`.trim();
@@ -69,6 +76,34 @@ export default async function TherapyDocPage({
 
   const sessions =
     slug === "soap-note" ? await listTherapySessions(supabase, caseId) : [];
+
+  // Read-only view of a previous session's full sheet.
+  const viewedSession = view
+    ? (sessions.find((s) => (s.id as string) === view) ?? null)
+    : null;
+
+  const billingBanner =
+    billing === "failed"
+      ? {
+          tone: "border-red-500/50 bg-red-950/40 text-red-300",
+          text: "Note saved, but billing capture failed — ask admin to press “Sync therapy billing” on the case, or enter charges manually.",
+        }
+      : billing?.startsWith("ok-")
+        ? {
+            tone: "border-emerald-500/50 bg-emerald-950/40 text-emerald-300",
+            text: `✓ Note saved — ${billing.slice(3)} charge line(s) sent to billing for this date of service.`,
+          }
+        : billing === "dup"
+          ? {
+              tone: "border-[#c9a35c]/50 bg-[#c9a35c]/10 text-[#e6c987]",
+              text: "Note saved — these procedures were already billed for this date, so no duplicate charges were created.",
+            }
+          : billing === "none"
+            ? {
+                tone: "border-[#2a2f3a] bg-[#12151c] text-[#c8d2e0]/70",
+                text: "Note saved. No procedures were marked, so nothing was sent to billing.",
+              }
+            : null;
 
   return (
     <div className="flex h-full min-h-[100dvh] flex-col bg-[#1a1d24]">
@@ -93,39 +128,44 @@ export default async function TherapyDocPage({
           >
             🖨 Print
           </Link>
-          {slug === "soap-note" ? (
+          {viewedSession ? (
             <Link
-              href={`${basePath}/consent`}
-              className="rounded-md border border-[#2a2f3a] px-3 py-1.5 text-xs font-bold uppercase text-[#c8d2e0] hover:border-[#41B6E6] hover:text-white"
+              href={`${basePath}/soap-note`}
+              className="rounded-md bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] px-3 py-1.5 text-xs font-bold uppercase text-white"
             >
-              ← Back
+              ← Back to today&apos;s note
             </Link>
-          ) : null}
-          <button
-            type="submit"
-            form={formId}
-            className="rounded-md bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] px-3 py-1.5 text-xs font-bold uppercase text-white"
-          >
-            {slug === "consent" ? "Save & start therapy →" : "Save today's note"}
-          </button>
+          ) : (
+            <button
+              type="submit"
+              form={formId}
+              className="rounded-md bg-gradient-to-r from-[#41B6E6] to-[#DB3EB1] px-3 py-1.5 text-xs font-bold uppercase text-white"
+            >
+              {slug === "consent" ? "Save & start therapy →" : "Save today's note"}
+            </button>
+          )}
         </div>
       </header>
 
       {/* Document pills */}
       <nav className="flex shrink-0 flex-wrap items-center gap-2 bg-[#12151c] px-4 py-2">
-        <Link
-          href={`${basePath}/consent`}
-          className={[
-            "rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors",
-            slug === "consent"
-              ? "border-[#e6c987]/70 bg-[#c9a35c]/15 text-[#e6c987]"
-              : consentSigned
-                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+        {consentSigned ? (
+          <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-300">
+            1. Consent ✓ on file
+          </span>
+        ) : (
+          <Link
+            href={`${basePath}/consent`}
+            className={[
+              "rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors",
+              slug === "consent"
+                ? "border-[#e6c987]/70 bg-[#c9a35c]/15 text-[#e6c987]"
                 : "border-[#2a2f3a] text-[#c8d2e0]/60 hover:text-white",
-          ].join(" ")}
-        >
-          1. Consent{consentSigned ? " ✓" : ""}
-        </Link>
+            ].join(" ")}
+          >
+            1. Consent
+          </Link>
+        )}
         {consentSigned ? (
           <Link
             href={`${basePath}/soap-note`}
@@ -157,36 +197,49 @@ export default async function TherapyDocPage({
 
       <div className="flex-1 overflow-auto px-3">
         {slug === "consent" ? (
-          <>
-            {consentSigned ? (
-              <p className="mx-auto mt-4 w-[816px] max-w-full rounded-sm border border-emerald-500/50 bg-emerald-950/40 px-3 py-1.5 text-[11px] font-semibold text-emerald-300">
-                ✓ Consent signed{" "}
-                {consent?.signed_at
-                  ? new Date(consent.signed_at as string).toLocaleDateString("en-US")
-                  : ""}{" "}
-                — one-time document, on file. Re-save only to correct it.
-              </p>
-            ) : null}
-            <ConsentForTherapyForm
-              caseId={caseId}
-              patientId={patient.id}
-              initial={(consent?.consent_json ?? {}) as Record<string, unknown>}
-              patientName={patientName}
-              today={today}
-              ident={ident}
-              formId={formId}
-              navAfterSave={`${basePath}/soap-note`}
-            />
-          </>
+          <ConsentForTherapyForm
+            caseId={caseId}
+            patientId={patient.id}
+            initial={(consent?.consent_json ?? {}) as Record<string, unknown>}
+            patientName={patientName}
+            today={today}
+            ident={ident}
+            formId={formId}
+            navAfterSave={`${basePath}/soap-note`}
+          />
         ) : (
           <>
-            <TherapySoapNoteForm
-              caseId={caseId}
-              patientId={patient.id}
-              patientName={patientName}
-              today={today}
-              formId={formId}
-            />
+            {billingBanner && !viewedSession ? (
+              <p
+                className={`mx-auto mt-4 w-[816px] max-w-full rounded-sm border px-3 py-2 text-[11px] font-semibold ${billingBanner.tone}`}
+              >
+                {billingBanner.text}
+              </p>
+            ) : null}
+
+            {viewedSession ? (
+              <>
+                <p className="mx-auto mt-4 w-[816px] max-w-full rounded-sm border border-[#c9a35c]/50 bg-[#c9a35c]/10 px-3 py-2 text-[11px] font-semibold text-[#e6c987]">
+                  Viewing the note from {fmtDate(viewedSession.session_date as string)} —
+                  read-only, on file in the patient&apos;s folder.
+                </p>
+                <TherapySoapNoteForm
+                  patientName={patientName}
+                  today={today}
+                  initial={(viewedSession.session_json ?? {}) as Record<string, unknown>}
+                  sessionDate={viewedSession.session_date as string}
+                  readOnly
+                />
+              </>
+            ) : (
+              <TherapySoapNoteForm
+                caseId={caseId}
+                patientId={patient.id}
+                patientName={patientName}
+                today={today}
+                formId={formId}
+              />
+            )}
 
             {/* Session history below today's sheet */}
             <section className="mx-auto mb-8 w-[816px] max-w-full rounded-xl border border-[#2a2f3a] bg-[#12151c] p-5">
@@ -211,21 +264,29 @@ export default async function TherapyDocPage({
                           .join(", ")
                       : "—";
                     return (
-                      <li key={s.id as string} className="py-2.5">
-                        <div className="flex items-baseline justify-between gap-4">
-                          <p className="text-sm font-semibold text-white">
-                            {fmtDate(s.session_date as string)}
-                          </p>
-                          {typeof j.pain_level === "string" && j.pain_level !== "" ? (
-                            <p className="text-xs text-[#c8d2e0]/60">
-                              pain {j.pain_level}/10
+                      <li key={s.id as string}>
+                        <Link
+                          href={`${basePath}/soap-note?view=${s.id}`}
+                          className="block rounded-md px-2 py-2.5 transition-colors hover:bg-white/5"
+                        >
+                          <div className="flex items-baseline justify-between gap-4">
+                            <p className="text-sm font-semibold text-white">
+                              {fmtDate(s.session_date as string)}
+                              <span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-[#41B6E6]">
+                                View sheet →
+                              </span>
                             </p>
+                            {typeof j.pain_level === "string" && j.pain_level !== "" ? (
+                              <p className="text-xs text-[#c8d2e0]/60">
+                                pain {j.pain_level}/10
+                              </p>
+                            ) : null}
+                          </div>
+                          <p className="mt-0.5 text-sm text-[#c8d2e0]/80">{serviceText}</p>
+                          {typeof j.notes === "string" && j.notes ? (
+                            <p className="mt-0.5 text-xs text-[#c8d2e0]/60">{j.notes}</p>
                           ) : null}
-                        </div>
-                        <p className="mt-0.5 text-sm text-[#c8d2e0]/80">{serviceText}</p>
-                        {typeof j.notes === "string" && j.notes ? (
-                          <p className="mt-0.5 text-xs text-[#c8d2e0]/60">{j.notes}</p>
-                        ) : null}
+                        </Link>
                       </li>
                     );
                   })}

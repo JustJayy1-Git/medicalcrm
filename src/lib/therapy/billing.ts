@@ -1,7 +1,10 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { sessionProcedureLines } from "@/lib/therapy/therapy";
+import {
+  SOAP_PROCEDURE_LABELS,
+  sessionProcedureLines,
+} from "@/lib/therapy/therapy";
 
 /**
  * Turn a saved Therapy SOAP Note into billable charge lines, exactly like
@@ -77,6 +80,25 @@ export async function createChargesFromSoapNote(opts: {
     (cptRows ?? []).map((r) => [r.code as string, Number(r.default_fee ?? 0)]),
   );
 
+  // charges.cpt_code has a FK to cpt_codes — register any SOAP-sheet code
+  // that is missing from the fee schedule (fee 0.00 until priced) so one
+  // unknown code can never sink the whole day's billing.
+  const missing = newLines.filter((l) => !feeByCode.has(l.code));
+  if (missing.length > 0) {
+    const { error: seedErr } = await supabase.from("cpt_codes").upsert(
+      missing.map((l) => ({
+        code: l.code,
+        description: SOAP_PROCEDURE_LABELS.get(l.code) ?? `Therapy procedure ${l.code}`,
+        default_fee: 0,
+        is_active: true,
+        category: "therapy",
+      })),
+      { onConflict: "code", ignoreDuplicates: true },
+    );
+    if (seedErr) throw seedErr;
+    for (const l of missing) feeByCode.set(l.code, 0);
+  }
+
   const zeroFee: string[] = [];
   const rows = newLines.map((l) => {
     const fee = feeByCode.get(l.code) ?? 0;
@@ -99,4 +121,36 @@ export async function createChargesFromSoapNote(opts: {
   if (chargeErr) throw chargeErr;
 
   return { created: rows.length, skipped, zeroFee };
+}
+
+/**
+ * Backfill: re-run billing capture for every saved SOAP note on a case.
+ * Idempotent — codes already charged on a visit are skipped, so this only
+ * fills the gaps left by earlier failed captures.
+ */
+export async function rebuildTherapyBillingForCase(opts: {
+  supabase: SupabaseClient;
+  caseId: string;
+  createdBy: string;
+}): Promise<{ sessions: number; created: number }> {
+  const { data: sessions, error } = await opts.supabase
+    .from("therapy_sessions")
+    .select("patient_id, session_date, session_json")
+    .eq("case_id", opts.caseId)
+    .order("session_date", { ascending: true });
+  if (error) throw error;
+
+  let created = 0;
+  for (const s of sessions ?? []) {
+    const result = await createChargesFromSoapNote({
+      supabase: opts.supabase,
+      caseId: opts.caseId,
+      patientId: s.patient_id as string,
+      sessionDate: s.session_date as string,
+      payload: (s.session_json ?? {}) as Record<string, unknown>,
+      createdBy: opts.createdBy,
+    });
+    created += result.created;
+  }
+  return { sessions: (sessions ?? []).length, created };
 }
