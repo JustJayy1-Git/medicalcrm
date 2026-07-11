@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { syncTherapyBilling } from "@/app/cases/[id]/therapy-billing-action";
+import { CaseChargeLedger } from "@/components/case-charge-ledger";
 import { DeletePatientButton } from "@/components/patients/delete-patient-button";
 import { PatientFilesPanel } from "@/components/patient-files-panel";
+import { fetchCaseLedger } from "@/lib/charge-ledger-server";
 import { isPortalPlaceholderPatient } from "@/lib/patient-placeholder";
 import { PatientTabs } from "./patient-tabs";
 
@@ -27,10 +30,14 @@ export default async function PatientPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; tab?: string; billing_sync?: string }>;
 }) {
   const { id } = await params;
-  const { error: pageError } = await searchParams;
+  const {
+    error: pageError,
+    tab: tabParam,
+    billing_sync: billingSync,
+  } = await searchParams;
   const supabase = await createClient();
 const { data: patient, error } = await supabase
     .from("patients")
@@ -61,6 +68,45 @@ const { data: patient, error } = await supabase
     cases?.find((c) => c.status === "open" || c.status === "active")?.id ??
     cases?.[0]?.id ??
     null;
+
+  // Visits, signed documents, and per-case ledgers for the tabs.
+  const caseIds = (cases ?? []).map((c) => c.id);
+  const caseNumberById = new Map(
+    (cases ?? []).map((c) => [c.id, c.case_number ?? c.id.slice(0, 8)]),
+  );
+
+  const [{ data: visits }, { data: intakePackets }, { data: therapyConsents }] =
+    await Promise.all([
+      supabase
+        .from("visits")
+        .select("id, case_id, visit_date, visit_type, status, notes")
+        .eq("patient_id", id)
+        .order("visit_date", { ascending: false })
+        .limit(200),
+      supabase
+        .from("intake_packets")
+        .select("id, status, case_id")
+        .eq("patient_id", id)
+        .order("id", { ascending: false }),
+      caseIds.length
+        ? supabase
+            .from("therapy_consents")
+            .select("case_id, signed_at")
+            .in("case_id", caseIds)
+        : Promise.resolve({ data: [] as { case_id: string; signed_at: string | null }[] }),
+    ]);
+
+  const ledgers = await Promise.all(
+    caseIds.map(async (caseId) => ({
+      caseId,
+      ledger: await fetchCaseLedger(supabase, caseId),
+    })),
+  );
+
+  const validTabs = ["overview", "cases", "files", "visits", "billing"] as const;
+  const defaultTab = (validTabs as readonly string[]).includes(tabParam ?? "")
+    ? (tabParam as (typeof validTabs)[number])
+    : "cases";
 
   return (
     <div className="px-8 py-6 max-w-6xl mx-auto">
@@ -114,6 +160,7 @@ const { data: patient, error } = await supabase
 
         {/* Tabs */}
         <PatientTabs
+          defaultTab={defaultTab}
           overview={<OverviewTab patient={patient} />}
           cases={
             <CasesTab
@@ -122,22 +169,29 @@ const { data: patient, error } = await supabase
             />
           }
           files={
-            <PatientFilesPanel
-              patientId={id}
-              defaultCaseId={defaultCaseId}
-              initial={attachments ?? []}
-            />
+            <div className="space-y-6">
+              <SignedDocuments
+                intakePackets={intakePackets ?? []}
+                caseIds={caseIds}
+                caseNumberById={caseNumberById}
+                therapyConsents={therapyConsents ?? []}
+              />
+              <PatientFilesPanel
+                patientId={id}
+                defaultCaseId={defaultCaseId}
+                initial={attachments ?? []}
+              />
+            </div>
           }
           visits={
-            <Empty
-              title="No visits yet"
-              hint="Once visits are logged, they'll appear here."
-            />
+            <VisitsTab visits={visits ?? []} caseNumberById={caseNumberById} />
           }
           billing={
-            <Empty
-              title="Billing coming soon"
-              hint="Ledger, claims, and statements will live here."
+            <BillingTab
+              patientId={id}
+              ledgers={ledgers}
+              caseNumberById={caseNumberById}
+              billingSync={billingSync}
             />
           }
         />
@@ -309,6 +363,249 @@ function CasesTab({
           </table>
         </div>
       )}
+    </div>
+  );
+}
+
+// =================================================
+// Files — every document the patient signed
+// =================================================
+function SignedDocuments({
+  intakePackets,
+  caseIds,
+  caseNumberById,
+  therapyConsents,
+}: {
+  intakePackets: { id: number; status: string; case_id: string | null }[];
+  caseIds: string[];
+  caseNumberById: Map<string, string>;
+  therapyConsents: { case_id: string; signed_at: string | null }[];
+}) {
+  const consentByCase = new Map(therapyConsents.map((t) => [t.case_id, t.signed_at]));
+
+  return (
+    <div className="p-5 rounded-xl bg-white border border-vice-border shadow-sm">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-neon-pink mb-3">
+        Signed documents
+      </h2>
+      <ul className="divide-y divide-neon-mint-100 text-sm">
+        {intakePackets.map((p) => (
+          <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
+            <span className="text-eggplant-900 font-medium">
+              Intake packet #{p.id}
+              <span className="ml-2 text-xs text-vice-muted capitalize">{p.status}</span>
+            </span>
+            <span className="flex items-center gap-4">
+              <Link
+                href={`/intake-packets/${p.id}`}
+                className="text-xs text-neon-pink hover:underline font-medium"
+              >
+                View
+              </Link>
+              <Link
+                href={`/intake-packets/${p.id}/print`}
+                target="_blank"
+                className="text-xs text-neon-pink hover:underline font-medium"
+              >
+                🖨 Print
+              </Link>
+            </span>
+          </li>
+        ))}
+        {intakePackets.length === 0 ? (
+          <li className="py-2.5 text-vice-muted">No iPad intake packet on file.</li>
+        ) : null}
+
+        {caseIds.map((caseId) => (
+          <li key={caseId} className="py-2.5 space-y-1.5">
+            <p className="text-xs uppercase tracking-wider text-vice-muted">
+              Case {caseNumberById.get(caseId)}
+            </p>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-eggplant-900 font-medium">
+                NP documents — No-Fault · EMC · Initial Evaluation
+              </span>
+              <Link
+                href={`/cases/${caseId}/print/consultation`}
+                target="_blank"
+                className="text-xs text-neon-pink hover:underline font-medium"
+              >
+                🖨 Print
+              </Link>
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-eggplant-900 font-medium">
+                Consent for therapy
+                {consentByCase.get(caseId) ? (
+                  <span className="ml-2 text-xs text-emerald-700">
+                    ✓ signed {fmtDate(consentByCase.get(caseId))}
+                  </span>
+                ) : (
+                  <span className="ml-2 text-xs text-amber-700">pending</span>
+                )}
+              </span>
+              <Link
+                href={`/cases/${caseId}/print/therapy`}
+                target="_blank"
+                className="text-xs text-neon-pink hover:underline font-medium"
+              >
+                🖨 Print
+              </Link>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// =================================================
+// Visits — consultations + therapy sheets, printable
+// =================================================
+const VISIT_TYPE_LABEL: Record<string, string> = {
+  eval: "Initial consultation",
+  reeval: "Follow-up consultation",
+  office: "Therapy session",
+  consult: "Consultation",
+  discharge: "Discharge",
+  tele: "Telehealth",
+  other: "Visit",
+};
+
+function VisitsTab({
+  visits,
+  caseNumberById,
+}: {
+  visits: {
+    id: string;
+    case_id: string | null;
+    visit_date: string;
+    visit_type: string | null;
+    status: string;
+    notes: string | null;
+  }[];
+  caseNumberById: Map<string, string>;
+}) {
+  if (visits.length === 0) {
+    return (
+      <Empty
+        title="No visits yet"
+        hint="Visits appear automatically when the NP finishes a consultation or the therapist saves a therapy sheet."
+      />
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-vice-border overflow-hidden bg-white shadow-sm">
+      <table className="w-full text-sm">
+        <thead className="bg-neon-mint-100 text-eggplant-700 uppercase text-xs tracking-wider">
+          <tr>
+            <th className="text-left px-4 py-2 font-medium">Date</th>
+            <th className="text-left px-4 py-2 font-medium">Type</th>
+            <th className="text-left px-4 py-2 font-medium">Case</th>
+            <th className="text-right px-4 py-2 font-medium">Record</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-vice-border">
+          {visits.map((v) => {
+            const isConsult = v.visit_type === "eval" || v.visit_type === "reeval";
+            return (
+              <tr key={v.id} className="hover:bg-vice-surface">
+                <td className="px-4 py-2 font-medium text-eggplant-900">
+                  {fmtDate(v.visit_date)}
+                </td>
+                <td className="px-4 py-2 text-eggplant-800">
+                  {VISIT_TYPE_LABEL[v.visit_type ?? "other"] ?? "Visit"}
+                </td>
+                <td className="px-4 py-2 text-eggplant-700">
+                  {v.case_id ? caseNumberById.get(v.case_id) ?? "—" : "—"}
+                </td>
+                <td className="px-4 py-2 text-right">
+                  {v.case_id ? (
+                    <Link
+                      href={
+                        isConsult
+                          ? `/cases/${v.case_id}/print/consultation`
+                          : `/cases/${v.case_id}/print/therapy`
+                      }
+                      target="_blank"
+                      className="text-xs text-neon-pink hover:underline font-medium"
+                    >
+                      🖨 Print {isConsult ? "consultation" : "therapy record"}
+                    </Link>
+                  ) : (
+                    "—"
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// =================================================
+// Billing — day-by-day charges with printable HICFAs
+// =================================================
+function BillingTab({
+  patientId,
+  ledgers,
+  caseNumberById,
+  billingSync,
+}: {
+  patientId: string;
+  ledgers: { caseId: string; ledger: Awaited<ReturnType<typeof fetchCaseLedger>> }[];
+  caseNumberById: Map<string, string>;
+  billingSync?: string;
+}) {
+  if (ledgers.length === 0) {
+    return (
+      <Empty
+        title="No billing yet"
+        hint="Charges appear automatically when the NP finishes a consultation or the therapist saves a therapy sheet."
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {billingSync ? (
+        <p
+          className={`rounded-lg border px-4 py-2.5 text-xs font-medium ${
+            billingSync === "failed"
+              ? "border-red-200 bg-red-50 text-red-700"
+              : "border-emerald-200 bg-emerald-50 text-emerald-700"
+          }`}
+        >
+          {billingSync === "failed"
+            ? "Therapy billing sync failed — check migrations, or enter charges via Transaction entry."
+            : `Therapy billing synced: ${billingSync.replace("-of-", " new charge line(s) from ")} therapy note(s).`}
+        </p>
+      ) : null}
+
+      {ledgers.map(({ caseId, ledger }) => (
+        <div key={caseId}>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-sm font-semibold text-eggplant-800">
+              Case {caseNumberById.get(caseId)}
+            </h2>
+            <form action={syncTherapyBilling}>
+              <input type="hidden" name="case_id" value={caseId} />
+              <input type="hidden" name="patient_id" value={patientId} />
+              <button
+                type="submit"
+                className="px-2.5 py-1 text-[11px] border border-gold/50 text-eggplant-800 rounded-md hover:bg-gold-soft font-medium"
+                title="Re-run billing capture for every saved therapy note (skips anything already billed)"
+              >
+                ⟳ Sync therapy billing
+              </button>
+            </form>
+          </div>
+          <CaseChargeLedger caseId={caseId} ledger={ledger} />
+        </div>
+      ))}
     </div>
   );
 }

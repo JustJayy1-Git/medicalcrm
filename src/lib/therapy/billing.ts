@@ -107,6 +107,8 @@ export async function createChargesFromSoapNote(opts: {
   const billable = newLines.filter((l) => (feeByCode.get(l.code) ?? 0) > 0);
   if (billable.length === 0) return { created: 0, skipped, zeroFee };
 
+  // Practice rule: modifier 59 only applies when the modality is ×2 or more
+  // (e.g. 97012 billed ×1 carries no modifier on the HICFA).
   const rows = billable.map((l) => ({
     visit_id: visitId,
     case_id: opts.caseId,
@@ -114,7 +116,7 @@ export async function createChargesFromSoapNote(opts: {
     cpt_code: l.code,
     units: l.units,
     fee: feeByCode.get(l.code) ?? 0,
-    modifier: "59",
+    modifier: l.units >= 2 ? "59" : null,
     icd_codes: [] as string[],
     status: "unbilled",
     created_by: opts.createdBy,
@@ -165,6 +167,15 @@ export async function rebuildTherapyBillingForCase(opts: {
     .eq("status", "unbilled")
     .eq("fee", 0)
     .eq("paid", 0)
+    .eq("modifier", "59");
+
+  // Normalize modifiers on earlier captures: ×1 lines carry no modifier 59.
+  await opts.supabase
+    .from("charges")
+    .update({ modifier: null })
+    .eq("case_id", opts.caseId)
+    .eq("status", "unbilled")
+    .eq("units", 1)
     .eq("modifier", "59");
 
   return { sessions: (sessions ?? []).length, created };
