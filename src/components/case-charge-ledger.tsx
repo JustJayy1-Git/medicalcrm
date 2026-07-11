@@ -55,7 +55,7 @@ export function CaseChargeLedger({
                 <th className="text-left py-2 pr-3">Date</th>
                 <th className="text-left py-2 pr-3">Lines</th>
                 <th className="text-right py-2">Charges</th>
-                <th className="text-right py-2 pl-3">CMS-1500</th>
+                <th className="text-right py-2 pl-3">HICFA (CMS-1500)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neon-mint-100">
@@ -72,9 +72,10 @@ export function CaseChargeLedger({
                     <Link
                       href={`/reports/cms-1500/print?caseId=${encodeURIComponent(caseId)}&dos=${encodeURIComponent(v.visit_date)}`}
                       target="_blank"
-                      className="text-xs text-neon-pink hover:underline"
+                      className="text-xs font-semibold text-neon-pink hover:underline"
+                      title="Prefilled claim form(s) for this date — consult and therapy print separately"
                     >
-                      Print
+                      🖨 Print claim
                     </Link>
                   </td>
                 </tr>
