@@ -2,22 +2,24 @@
 
 import { useState, ReactNode } from "react";
 
+type TabKey = "overview" | "cases" | "files" | "visits" | "billing";
+
 export function PatientTabs({
   overview,
   cases,
   files,
   visits,
   billing,
+  defaultTab = "cases",
 }: {
   overview: ReactNode;
   cases: ReactNode;
   files: ReactNode;
   visits: ReactNode;
   billing: ReactNode;
+  defaultTab?: TabKey;
 }) {
-  const [tab, setTab] = useState<"overview" | "cases" | "files" | "visits" | "billing">(
-    "cases",
-  );
+  const [tab, setTab] = useState<TabKey>(defaultTab);
 
   return (
     <div>

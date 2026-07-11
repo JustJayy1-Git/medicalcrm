@@ -17,6 +17,7 @@ export async function syncTherapyBilling(formData: FormData) {
   if (!user) redirect("/login");
 
   const caseId = String(formData.get("case_id") ?? "");
+  const patientId = String(formData.get("patient_id") ?? "");
   if (!caseId) throw new Error("Missing case id");
 
   let result = { sessions: 0, created: 0 };
@@ -33,10 +34,15 @@ export async function syncTherapyBilling(formData: FormData) {
   }
 
   revalidatePath(`/cases/${caseId}`);
+  if (patientId) revalidatePath(`/patients/${patientId}`);
   revalidatePath("/reports/cms-1500");
 
   const param = failed
     ? "failed"
     : `${result.created}-of-${result.sessions}`;
-  redirect(`/cases/${caseId}?billing_sync=${param}`);
+  redirect(
+    patientId
+      ? `/patients/${patientId}?tab=billing&billing_sync=${param}`
+      : `/cases/${caseId}?billing_sync=${param}`,
+  );
 }
