@@ -2,10 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { syncTherapyBilling } from "@/app/cases/[id]/therapy-billing-action";
-import { CaseChargeLedger } from "@/components/case-charge-ledger";
 import { DeletePatientButton } from "@/components/patients/delete-patient-button";
 import { PatientFilesPanel } from "@/components/patient-files-panel";
-import { fetchCaseLedger } from "@/lib/charge-ledger-server";
+import { parseIcdCodes } from "@/lib/icd";
 import { isPortalPlaceholderPatient } from "@/lib/patient-placeholder";
 import { PatientTabs } from "./patient-tabs";
 
@@ -96,11 +95,22 @@ const { data: patient, error } = await supabase
         : Promise.resolve({ data: [] as { case_id: string; signed_at: string | null }[] }),
     ]);
 
-  const ledgers = await Promise.all(
-    caseIds.map(async (caseId) => ({
-      caseId,
-      ledger: await fetchCaseLedger(supabase, caseId),
-    })),
+  const { data: chargeRows } = caseIds.length
+    ? await supabase
+        .from("charges")
+        .select(
+          `id, case_id, cpt_code, modifier, units, fee, paid, adjustment,
+           visit:visits(visit_date)`,
+        )
+        .in("case_id", caseIds)
+        .order("created_at", { ascending: true })
+    : { data: [] };
+
+  const { data: caseDiags } = caseIds.length
+    ? await supabase.from("cases").select("id, diagnosis_codes").in("id", caseIds)
+    : { data: [] };
+  const diagByCase = new Map(
+    (caseDiags ?? []).map((c) => [c.id as string, parseIcdCodes(c.diagnosis_codes)]),
   );
 
   const validTabs = ["overview", "cases", "files", "visits", "billing"] as const;
@@ -189,7 +199,9 @@ const { data: patient, error } = await supabase
           billing={
             <BillingTab
               patientId={id}
-              ledgers={ledgers}
+              caseIds={caseIds}
+              charges={(chargeRows ?? []) as ChargeRow[]}
+              diagByCase={diagByCase}
               caseNumberById={caseNumberById}
               billingSync={billingSync}
             />
@@ -421,37 +433,42 @@ function SignedDocuments({
             <p className="text-xs uppercase tracking-wider text-vice-muted">
               Case {caseNumberById.get(caseId)}
             </p>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-eggplant-900 font-medium">
-                NP documents — No-Fault · EMC · Initial Evaluation
-              </span>
-              <Link
-                href={`/cases/${caseId}/print/consultation`}
-                target="_blank"
-                className="text-xs text-neon-pink hover:underline font-medium"
+            {(
+              [
+                ["Florida No-Fault (NOFA) — signed notice", "nofa", null],
+                ["Notice of Emergency Medical Condition — signed", "emc", null],
+                [
+                  "Consent for Therapy",
+                  "therapy-consent",
+                  consentByCase.get(caseId) ?? null,
+                ],
+              ] as const
+            ).map(([label, slug, signedAt]) => (
+              <div
+                key={slug}
+                className="flex flex-wrap items-center justify-between gap-2"
               >
-                🖨 Print
-              </Link>
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-eggplant-900 font-medium">
-                Consent for therapy
-                {consentByCase.get(caseId) ? (
-                  <span className="ml-2 text-xs text-emerald-700">
-                    ✓ signed {fmtDate(consentByCase.get(caseId))}
-                  </span>
-                ) : (
-                  <span className="ml-2 text-xs text-amber-700">pending</span>
-                )}
-              </span>
-              <Link
-                href={`/cases/${caseId}/print/therapy`}
-                target="_blank"
-                className="text-xs text-neon-pink hover:underline font-medium"
-              >
-                🖨 Print
-              </Link>
-            </div>
+                <span className="text-eggplant-900 font-medium">
+                  {label}
+                  {slug === "therapy-consent" ? (
+                    signedAt ? (
+                      <span className="ml-2 text-xs text-emerald-700">
+                        ✓ signed {fmtDate(signedAt)}
+                      </span>
+                    ) : (
+                      <span className="ml-2 text-xs text-amber-700">pending</span>
+                    )
+                  ) : null}
+                </span>
+                <Link
+                  href={`/cases/${caseId}/print/doc/${slug}`}
+                  target="_blank"
+                  className="text-xs text-neon-pink hover:underline font-medium"
+                >
+                  🖨 Print
+                </Link>
+              </div>
+            ))}
           </li>
         ))}
       </ul>
@@ -524,14 +541,21 @@ function VisitsTab({
                   {v.case_id ? (
                     <Link
                       href={
-                        isConsult
-                          ? `/cases/${v.case_id}/print/consultation`
-                          : `/cases/${v.case_id}/print/therapy`
+                        v.visit_type === "reeval"
+                          ? `/cases/${v.case_id}/print/doc/follow-up`
+                          : isConsult
+                            ? `/cases/${v.case_id}/print/doc/initial-evaluation`
+                            : `/cases/${v.case_id}/print/doc/therapy-sessions`
                       }
                       target="_blank"
                       className="text-xs text-neon-pink hover:underline font-medium"
                     >
-                      🖨 Print {isConsult ? "consultation" : "therapy record"}
+                      🖨 Print{" "}
+                      {v.visit_type === "reeval"
+                        ? "follow-up report"
+                        : isConsult
+                          ? "initial evaluation"
+                          : "therapy sheets"}
                     </Link>
                   ) : (
                     "—"
@@ -547,20 +571,40 @@ function VisitsTab({
 }
 
 // =================================================
-// Billing — day-by-day charges with printable HICFAs
+// Billing — Medisoft-style transaction grid + HICFA prints
 // =================================================
+type ChargeRow = {
+  id: string;
+  case_id: string | null;
+  cpt_code: string | null;
+  modifier: string | null;
+  units: number | null;
+  fee: number | string | null;
+  paid: number | string | null;
+  adjustment: number | string | null;
+  visit: { visit_date: string } | { visit_date: string }[] | null;
+};
+
+function money(n: number) {
+  return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 function BillingTab({
   patientId,
-  ledgers,
+  caseIds,
+  charges,
+  diagByCase,
   caseNumberById,
   billingSync,
 }: {
   patientId: string;
-  ledgers: { caseId: string; ledger: Awaited<ReturnType<typeof fetchCaseLedger>> }[];
+  caseIds: string[];
+  charges: ChargeRow[];
+  diagByCase: Map<string, string[]>;
   caseNumberById: Map<string, string>;
   billingSync?: string;
 }) {
-  if (ledgers.length === 0) {
+  if (caseIds.length === 0) {
     return (
       <Empty
         title="No billing yet"
@@ -570,7 +614,7 @@ function BillingTab({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {billingSync ? (
         <p
           className={`rounded-lg border px-4 py-2.5 text-xs font-medium ${
@@ -585,27 +629,162 @@ function BillingTab({
         </p>
       ) : null}
 
-      {ledgers.map(({ caseId, ledger }) => (
-        <div key={caseId}>
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-sm font-semibold text-eggplant-800">
-              Case {caseNumberById.get(caseId)}
-            </h2>
-            <form action={syncTherapyBilling}>
-              <input type="hidden" name="case_id" value={caseId} />
-              <input type="hidden" name="patient_id" value={patientId} />
-              <button
-                type="submit"
-                className="px-2.5 py-1 text-[11px] border border-gold/50 text-eggplant-800 rounded-md hover:bg-gold-soft font-medium"
-                title="Re-run billing capture for every saved therapy note (skips anything already billed)"
-              >
-                ⟳ Sync therapy billing
-              </button>
-            </form>
+      {caseIds.map((caseId) => {
+        const rows = charges
+          .filter((c) => c.case_id === caseId)
+          .map((c) => {
+            const visit = Array.isArray(c.visit) ? c.visit[0] : c.visit;
+            const units = Number(c.units ?? 1);
+            const amount = Number(c.fee ?? 0);
+            return {
+              id: c.id,
+              date: visit?.visit_date ?? "",
+              cpt: c.cpt_code ?? "",
+              modifier: c.modifier ?? "",
+              units,
+              amount,
+              total: amount * units,
+              paid: Number(c.paid ?? 0),
+              adjustment: Number(c.adjustment ?? 0),
+            };
+          })
+          .sort((a, b) => a.date.localeCompare(b.date) || a.cpt.localeCompare(b.cpt));
+
+        const diags = diagByCase.get(caseId) ?? [];
+        const serviceDates = [...new Set(rows.map((r) => r.date).filter(Boolean))];
+        const accountTotal = rows.reduce((s, r) => s + r.total, 0);
+        const paidTotal = rows.reduce((s, r) => s + r.paid + r.adjustment, 0);
+
+        // Aging on the open balance, Medisoft buckets.
+        const buckets = [0, 0, 0, 0];
+        const now = Date.now();
+        for (const r of rows) {
+          const open = r.total - r.paid - r.adjustment;
+          if (!(open > 0) || !r.date) continue;
+          const days = Math.max(
+            0,
+            Math.floor((now - new Date(`${r.date}T12:00:00`).getTime()) / 86400000),
+          );
+          const idx = days <= 30 ? 0 : days <= 60 ? 1 : days <= 90 ? 2 : 3;
+          buckets[idx] += open;
+        }
+
+        return (
+          <div key={caseId}>
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <h2 className="text-sm font-semibold text-eggplant-800">
+                Case {caseNumberById.get(caseId)} — Transaction entry
+              </h2>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/cases/${caseId}/visits/new`}
+                  className="px-2.5 py-1 text-[11px] border border-vice-border text-eggplant-800 rounded-md hover:bg-neon-mint-100 font-medium"
+                >
+                  + New transaction
+                </Link>
+                <form action={syncTherapyBilling}>
+                  <input type="hidden" name="case_id" value={caseId} />
+                  <input type="hidden" name="patient_id" value={patientId} />
+                  <button
+                    type="submit"
+                    className="px-2.5 py-1 text-[11px] border border-gold/50 text-eggplant-800 rounded-md hover:bg-gold-soft font-medium"
+                    title="Re-run billing capture for every saved therapy note (skips anything already billed)"
+                  >
+                    ⟳ Sync therapy billing
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            {/* Print claims per date of service */}
+            <div className="flex flex-wrap items-center gap-2 mb-2 text-xs">
+              <span className="font-bold uppercase tracking-wider text-eggplant-700">
+                Print claim:
+              </span>
+              {serviceDates.map((d) => (
+                <Link
+                  key={d}
+                  href={`/reports/cms-1500/print?caseId=${encodeURIComponent(caseId)}&dos=${encodeURIComponent(d)}`}
+                  target="_blank"
+                  className="px-2 py-0.5 rounded-md border border-vice-border text-neon-pink hover:bg-neon-mint-100 font-medium"
+                >
+                  🖨 {fmtDate(d)}
+                </Link>
+              ))}
+              {serviceDates.length > 1 ? (
+                <Link
+                  href={`/reports/cms-1500/print?caseId=${encodeURIComponent(caseId)}&all=1`}
+                  target="_blank"
+                  className="px-2 py-0.5 rounded-md border border-gold/50 text-eggplant-800 hover:bg-gold-soft font-medium"
+                >
+                  🖨 All days
+                </Link>
+              ) : null}
+              {serviceDates.length === 0 ? (
+                <span className="text-vice-muted">no charges yet</span>
+              ) : null}
+            </div>
+
+            {rows.length === 0 ? (
+              <p className="p-6 rounded-xl bg-white border border-dashed border-vice-border text-sm text-vice-muted text-center">
+                No charges on this case yet.
+              </p>
+            ) : (
+              <div className="rounded-xl border border-vice-border overflow-x-auto bg-white shadow-sm">
+                <table className="w-full text-xs whitespace-nowrap">
+                  <thead className="bg-neon-mint-100 text-eggplant-700 uppercase tracking-wider">
+                    <tr>
+                      <th className="text-left px-3 py-2 font-medium">Date</th>
+                      <th className="text-left px-3 py-2 font-medium">Procedure</th>
+                      <th className="text-left px-3 py-2 font-medium">Mod</th>
+                      <th className="text-right px-3 py-2 font-medium">Units</th>
+                      <th className="text-right px-3 py-2 font-medium">Amount</th>
+                      <th className="text-right px-3 py-2 font-medium">Total</th>
+                      <th className="text-left px-3 py-2 font-medium">Diag 1</th>
+                      <th className="text-left px-3 py-2 font-medium">Diag 2</th>
+                      <th className="text-left px-3 py-2 font-medium">Diag 3</th>
+                      <th className="text-left px-3 py-2 font-medium">Diag 4</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neon-mint-100">
+                    {rows.map((r) => (
+                      <tr key={r.id} className="hover:bg-vice-surface tabular-nums">
+                        <td className="px-3 py-1.5 text-eggplant-900 font-medium">
+                          {fmtDate(r.date)}
+                        </td>
+                        <td className="px-3 py-1.5 font-mono text-eggplant-900">{r.cpt}</td>
+                        <td className="px-3 py-1.5 text-eggplant-700">{r.modifier}</td>
+                        <td className="px-3 py-1.5 text-right">{r.units}</td>
+                        <td className="px-3 py-1.5 text-right">{money(r.amount)}</td>
+                        <td className="px-3 py-1.5 text-right font-medium">
+                          {money(r.total)}
+                        </td>
+                        {[0, 1, 2, 3].map((i) => (
+                          <td key={i} className="px-3 py-1.5 font-mono text-eggplant-700">
+                            {diags[i] ?? ""}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="border-t border-vice-border bg-vice-surface font-medium">
+                    <tr className="tabular-nums">
+                      <td className="px-3 py-2" colSpan={5}>
+                        Aging — 0-30: ${money(buckets[0])} · 31-60: ${money(buckets[1])} ·
+                        61-90: ${money(buckets[2])} · 91+: ${money(buckets[3])}
+                      </td>
+                      <td className="px-3 py-2 text-right" colSpan={5}>
+                        Payments: ${money(paidTotal)} · Account Total:{" "}
+                        <strong>${money(accountTotal)}</strong>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
           </div>
-          <CaseChargeLedger caseId={caseId} ledger={ledger} />
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

@@ -10,17 +10,20 @@ export type PracticeInfo = {
   zip: string;
 };
 
+/** Defaults mirror the practice's real CMS-1500s; env vars still override. */
 export function getPracticeFromEnv(): PracticeInfo {
   return {
-    name: process.env.NEXT_PUBLIC_PRACTICE_NAME?.trim() || "PRO INJURY LLC",
-    taxId: process.env.NEXT_PUBLIC_PRACTICE_TAX_ID?.trim() || "",
-    npi: process.env.NEXT_PUBLIC_PRACTICE_NPI?.trim() || "",
-    phone: process.env.NEXT_PUBLIC_PRACTICE_PHONE?.trim() || "",
-    addressLine1: process.env.NEXT_PUBLIC_PRACTICE_ADDRESS1?.trim() || "",
+    name: process.env.NEXT_PUBLIC_PRACTICE_NAME?.trim() || "PRO INJURY",
+    taxId: process.env.NEXT_PUBLIC_PRACTICE_TAX_ID?.trim() || "862423282",
+    npi: process.env.NEXT_PUBLIC_PRACTICE_NPI?.trim() || "1578225918",
+    phone: process.env.NEXT_PUBLIC_PRACTICE_PHONE?.trim() || "(786) 362-5480",
+    addressLine1:
+      process.env.NEXT_PUBLIC_PRACTICE_ADDRESS1?.trim() ||
+      "15165 NW 77TH AVE SUITE 1001",
     addressLine2: "",
-    city: process.env.NEXT_PUBLIC_PRACTICE_CITY?.trim() || "",
+    city: process.env.NEXT_PUBLIC_PRACTICE_CITY?.trim() || "MIAMI LAKES",
     state: process.env.NEXT_PUBLIC_PRACTICE_STATE?.trim() || "FL",
-    zip: process.env.NEXT_PUBLIC_PRACTICE_ZIP?.trim() || "",
+    zip: process.env.NEXT_PUBLIC_PRACTICE_ZIP?.trim() || "33014",
   };
 }
 

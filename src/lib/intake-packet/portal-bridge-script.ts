@@ -138,6 +138,15 @@ export function buildPortalBridgeScript(opts: {
     ready: false,
     intake: {},
     async preload(){
+      // Server-injected data (print/review views) — no fetch needed.
+      if(window.__proInjuryInitialData){
+        var d = window.__proInjuryInitialData;
+        this.intake = d.intake || {};
+        this._cachedForm = d.cached || {};
+        try { localStorage.setItem(INTAKE_KEY, JSON.stringify(this.intake)); } catch(e){}
+        this.ready = true;
+        return { cached: this._cachedForm, intake: this.intake };
+      }
       try {
         const packet = await apiGet('/api/intake-packets/' + PACKET_ID);
         const cached = packet.forms && packet.forms[FORM_SLUG] ? packet.forms[FORM_SLUG] : {};
