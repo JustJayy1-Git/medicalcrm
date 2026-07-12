@@ -67,6 +67,7 @@ export type Cms1500Claim = {
   unableToWorkFrom: CmsDateParts;
   unableToWorkTo: CmsDateParts;
   referringProvider: string;
+  referringNpi: string;
   hospitalizationFrom: CmsDateParts;
   hospitalizationTo: CmsDateParts;
   outsideLab: boolean;

@@ -96,6 +96,16 @@ async function fillClaimPage(
   if (ins.feca) drawX(page, font, CMS1500_INSURANCE_CHECKS.feca.left, CMS1500_INSURANCE_CHECKS.feca.top);
   if (ins.other) drawX(page, font, CMS1500_INSURANCE_CHECKS.other.left, CMS1500_INSURANCE_CHECKS.other.top);
 
+  // Payer mailing block — where the claim gets delivered.
+  drawInBox(page, font, claim.carrierName, F.carrierName);
+  if (claim.carrierAddress) {
+    const parts = claim.carrierAddress.split(",").map((s) => s.trim());
+    const street = parts[0] ?? "";
+    const rest = parts.slice(1).join(", ");
+    drawInBox(page, font, street, F.carrierAddress1);
+    drawInBox(page, font, rest, F.carrierAddress2);
+  }
+
   drawInBox(page, font, claim.insuredId, F.insuredId);
   drawInBox(page, font, claim.patientName, F.patientName);
   drawInBox(page, font, claim.patientBirth.mm, F.patientBirthMm);
@@ -114,9 +124,17 @@ async function fillClaimPage(
   drawInBox(page, font, claim.insuredState, F.insuredState);
   drawInBox(page, font, claim.insuredZip, F.insuredZip);
   drawInBox(page, font, claim.policyGroup, F.policyGroup);
+  if (claim.patientSignatureOnFile) {
+    drawInBox(page, font, "SIGNATURE ON FILE", F.patientSignature12);
+  }
+  if (claim.insuredSignatureOnFile) {
+    drawInBox(page, font, "SIGNATURE ON FILE", F.insuredSignature13);
+  }
   drawInBox(page, font, claim.dateOfInjury.mm, F.injuryMm);
   drawInBox(page, font, claim.dateOfInjury.dd, F.injuryDd);
   drawInBox(page, font, claim.dateOfInjury.yy, F.injuryYy);
+  drawInBox(page, font, claim.referringProvider, F.referringProvider);
+  drawInBox(page, font, claim.referringNpi, F.referringNpi);
   drawInBox(page, font, claim.priorAuth, F.priorAuth);
 
   claim.diagnosisCodes.forEach((code, i) => {

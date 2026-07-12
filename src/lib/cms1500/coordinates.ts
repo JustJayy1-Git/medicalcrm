@@ -15,6 +15,10 @@ export const CMS1500_REF_WIDTH = 612;
 export const CMS1500_REF_HEIGHT = 792;
 
 export const CMS1500_FIELDS = {
+  /* Payer mailing block (top-right margin, as on the practice's claims). */
+  carrierName: { left: 60, top: 2.6, width: 38, height: 2 },
+  carrierAddress1: { left: 60, top: 4.2, width: 38, height: 2 },
+  carrierAddress2: { left: 60, top: 5.8, width: 38, height: 2 },
   insuredId: { left: 68, top: 7.6, width: 30, height: 2.2 },
   patientName: { left: 4, top: 12.2, width: 40, height: 2.5 },
   patientBirthMm: { left: 47.5, top: 12.2, width: 3.5, height: 2.5 },
@@ -33,9 +37,15 @@ export const CMS1500_FIELDS = {
   insuredState: { left: 87, top: 25.2, width: 4, height: 2.5 },
   insuredZip: { left: 92, top: 25.2, width: 8, height: 2.5 },
   policyGroup: { left: 68, top: 34.8, width: 30, height: 2.5 },
+  /* Boxes 12/13 — signature on file. */
+  patientSignature12: { left: 12, top: 36.3, width: 26, height: 2.2 },
+  insuredSignature13: { left: 72, top: 36.3, width: 24, height: 2.2 },
   injuryMm: { left: 4, top: 38.2, width: 3.5, height: 2.5 },
   injuryDd: { left: 8, top: 38.2, width: 3.5, height: 2.5 },
   injuryYy: { left: 12, top: 38.2, width: 4, height: 2.5 },
+  /* Box 17 / 17b — referring provider. */
+  referringProvider: { left: 5.5, top: 40.3, width: 27, height: 2.2 },
+  referringNpi: { left: 36, top: 40.3, width: 14, height: 2.2 },
   priorAuth: { left: 68, top: 41.5, width: 30, height: 2.5 },
   taxId: { left: 4, top: 72.2, width: 22, height: 2.5 },
   patientAccount: { left: 44, top: 72.2, width: 18, height: 2.5 },

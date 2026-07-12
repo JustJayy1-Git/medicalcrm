@@ -17,18 +17,7 @@ function fmtDate(d: string | null | undefined) {
   return new Date(d).toLocaleDateString("en-US");
 }
 
-const PRINT_CSS = `
-  @media print {
-    .no-print { display: none !important; }
-    body { background: #fff !important; }
-    .paper-sheet {
-      box-shadow: none !important;
-      margin: 0 auto !important;
-      min-height: auto !important;
-      page-break-after: always;
-    }
-  }
-`;
+import { PAPER_PRINT_CSS } from "@/components/print/print-css";
 
 /**
  * Printable NP consultation packet — all documents stacked, page-break per
@@ -86,7 +75,7 @@ export async function ConsultationPrint({
 
   return (
     <div className="min-h-screen bg-[#1a1d24]">
-      <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
+      <style dangerouslySetInnerHTML={{ __html: PAPER_PRINT_CSS }} />
       <PrintToolbar
         backHref={backHref}
         backLabel={backLabel}

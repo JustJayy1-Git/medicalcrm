@@ -1,8 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { notFound } from "next/navigation";
 import { PaperIdentStrip, PaperSheet } from "@/components/clinical/paper-doc";
+import { PAPER_PRINT_CSS } from "@/components/print/print-css";
 import { PrintToolbar } from "@/components/print/print-toolbar";
-import { ConsentForTherapyBody } from "@/components/therapy/consent-doc";
+import { TherapySoapNoteForm } from "@/components/therapy/soap-note-doc";
 import {
   getTherapyCase,
   listTherapySessions,
@@ -15,20 +16,7 @@ function fmtDate(d: string | null | undefined) {
   return new Date(`${d}T12:00:00`).toLocaleDateString("en-US");
 }
 
-const PRINT_CSS = `
-  @media print {
-    .no-print { display: none !important; }
-    body { background: #fff !important; }
-    .paper-sheet {
-      box-shadow: none !important;
-      margin: 0 auto !important;
-      min-height: auto !important;
-      page-break-after: always;
-    }
-  }
-`;
-
-/** Printable therapy record: consent signature + every therapy sheet. */
+/** Printable therapy record: every therapy sheet, read-only. */
 export async function TherapyPrint({
   supabase,
   caseId,
@@ -54,7 +42,7 @@ export async function TherapyPrint({
 
   const sessions = await listTherapySessions(supabase, caseId);
   const patientName = `${patient.first_name ?? ""} ${patient.last_name ?? ""}`.trim();
-  const consentJson = (consent?.consent_json ?? {}) as Record<string, unknown>;
+  void consent;
   const today = new Date().toLocaleDateString("en-CA");
 
   const ident = [
@@ -64,31 +52,38 @@ export async function TherapyPrint({
     { label: "Date of injury", value: fmtDate(caseRow.date_of_injury) },
   ];
 
-  const totalPages = 1 + (sessions.length > 0 ? 1 : 0);
-
   return (
     <div className="min-h-screen bg-[#1a1d24]">
-      <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
+      <style dangerouslySetInnerHTML={{ __html: PAPER_PRINT_CSS }} />
       <PrintToolbar
         backHref={backHref}
         backLabel={backLabel}
-        title={`${patientName} · Therapy record · ${sessions.length} sessions`}
+        title={`${patientName} · Therapy sheets · ${sessions.length} sessions`}
       />
 
-      {/* Consent page — the real document, read-only */}
+      {/* Every therapy sheet, oldest first, read-only — the medical record.
+          The consent prints separately from the patient's Files tab. */}
       <fieldset disabled className="m-0 border-0 p-0">
-        <ConsentForTherapyBody
-          initial={consentJson}
-          patientName={patientName}
-          today={today}
-          ident={ident}
-          readOnly
-        />
+        {sessions.length === 0 ? (
+          <p className="mx-auto w-[816px] max-w-full py-10 text-center text-sm text-[#c8d2e0]/70">
+            No therapy sheets on file yet.
+          </p>
+        ) : null}
+        {[...sessions].reverse().map((s) => (
+          <TherapySoapNoteForm
+            key={s.id as string}
+            patientName={patientName}
+            today={today}
+            initial={(s.session_json ?? {}) as Record<string, unknown>}
+            sessionDate={s.session_date as string}
+            readOnly
+          />
+        ))}
       </fieldset>
 
-      {/* Session log */}
+      {/* Session log summary */}
       {sessions.length > 0 ? (
-        <PaperSheet title="Therapy Session Log" page={2} totalPages={totalPages}>
+        <PaperSheet title="Therapy Session Log" page={1} totalPages={1}>
           <PaperIdentStrip fields={ident} />
           <div className="px-8 pb-10 pt-5">
             <table className="w-full border-collapse text-[10.5px]">

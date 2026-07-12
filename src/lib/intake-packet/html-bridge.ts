@@ -464,6 +464,11 @@ export function injectApiBridge(
     storeKey: string;
     needsIntakePrefill: boolean;
     portalMode?: boolean;
+    /** Server-loaded saved data — prefills synchronously (print/review). */
+    initialData?: {
+      cached: Record<string, unknown>;
+      intake: Record<string, unknown>;
+    };
   },
 ): string {
   const portalMode = opts.portalMode ?? true;
@@ -481,7 +486,13 @@ export function injectApiBridge(
     portalNavSlugs,
   });
 
-  let out = patched.replace("</head>", `${bridge}\n</head>`);
+  const dataScript = opts.initialData
+    ? `<script>window.__proInjuryInitialData = ${JSON.stringify(
+        opts.initialData,
+      ).replace(/</g, "\\u003c")};</script>`
+    : "";
+
+  let out = patched.replace("</head>", `${dataScript}${bridge}\n</head>`);
 
   // Disable legacy localStorage-only listeners (hijack script handles persistence).
   out = out.replace(
